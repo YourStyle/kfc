@@ -1,20 +1,33 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Rostics Legends
 
-# Run and deploy your AI Studio app
+Match-3 игра и квест-платформа для промо-кампании Rostic's.
 
-This contains everything you need to run your app locally.
+## Стек
 
-View your app in AI Studio: https://ai.studio/apps/drive/1-RzrILhd3iQuCDZu14kgGZX0v-oguvy7
+- **Frontend:** React + Vite + PixiJS
+- **Backend:** Flask + PostgreSQL + Redis
+- **Admin:** Flask-Admin
+- **Infra:** Docker Compose, Nginx, Prometheus + Grafana
 
-## Run Locally
+## Запуск
 
-**Prerequisites:**  Node.js
+```bash
+cp .env.example .env
+docker compose up -d
+```
 
+Frontend: http://localhost:3000
+Backend API: http://localhost:5000/api/health
+Admin: http://localhost:5001
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Структура
+
+```
+frontend/    — React SPA (match-3 игра, квест, лидерборд)
+backend/     — Flask REST API
+admin/       — Админ-панель
+landing/     — Лендинги промо-кампаний
+nginx/       — Конфигурация reverse proxy
+scripts/     — Утилиты и миграции
+monitoring/  — Prometheus, Grafana, Loki
+```
