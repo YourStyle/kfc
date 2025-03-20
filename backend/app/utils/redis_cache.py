@@ -78,6 +78,28 @@ def delete_verification_code(email: str) -> bool:
 # ==================== RATE LIMITING ====================
 
 RATE_LIMIT_PREFIX = "ratelimit:"
+JWT_BLOCKLIST_PREFIX = "jwt_blocklist:"
+
+
+def blocklist_token(jti: str, ttl_seconds: int = 86400 * 7) -> bool:
+    """Add a JWT token ID to the blocklist. TTL matches token expiry (7 days)."""
+    if not redis_client:
+        return False
+    try:
+        redis_client.setex(f"{JWT_BLOCKLIST_PREFIX}{jti}", ttl_seconds, "1")
+        return True
+    except Exception:
+        return False
+
+
+def is_token_blocklisted(jti: str) -> bool:
+    """Check if a JWT token ID has been revoked."""
+    if not redis_client:
+        return False  # Fail open: don't lock out users if Redis is down
+    try:
+        return redis_client.exists(f"{JWT_BLOCKLIST_PREFIX}{jti}") > 0
+    except Exception:
+        return False
 
 
 def check_rate_limit(key: str, limit: int, window_seconds: int) -> tuple[bool, int]:

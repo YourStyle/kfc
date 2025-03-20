@@ -41,6 +41,8 @@ def create_app():
     # JWT Configuration
     app.config['JWT_SECRET_KEY'] = app.config['SECRET_KEY']
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=7)
+    app.config['JWT_BLOCKLIST_ENABLED'] = True
+    app.config['JWT_BLOCKLIST_TOKEN_CHECKS'] = ['access']
 
     # Mail Configuration
     app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.yandex.ru')
@@ -55,6 +57,13 @@ def create_app():
     migrate.init_app(app, db)
     mail.init_app(app)
     jwt.init_app(app)
+
+    # JWT blocklist check — revoked tokens are rejected
+    @jwt.token_in_blocklist_loader
+    def check_if_token_revoked(jwt_header, jwt_payload):
+        from app.utils.redis_cache import is_token_blocklisted
+        jti = jwt_payload.get('jti', '')
+        return is_token_blocklisted(jti)
 
     # Prometheus metrics (skip in testing to avoid duplicate registration)
     global metrics

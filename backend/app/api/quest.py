@@ -8,7 +8,7 @@ from app.models.promo_code import PromoCodePool, PromoCode
 from app.models.user_activity import log_activity
 from app.utils.encryption import compute_hash
 from app.utils.timezone import now_moscow
-from app.utils.redis_cache import get_redis
+from app.utils.redis_cache import get_redis, rate_limit
 from app.services.email import send_promo_email
 
 bp = Blueprint('quest', __name__)
@@ -508,6 +508,7 @@ def claim_promo():
 
 @bp.route('/send-promo-email', methods=['POST'])
 @jwt_required()
+@rate_limit(3, 600, key_func=lambda r: f"promo_email:{r.headers.get('Authorization', 'anon')}")
 def send_promo_email_endpoint():
     """Send the user's claimed promo code to their registered email."""
     user_id = get_jwt_identity()

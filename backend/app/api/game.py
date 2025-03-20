@@ -227,7 +227,7 @@ def complete_game():
 def calculate_completion(targets: dict, met: dict, score: int) -> dict:
     """
     Calculate completion percentage for each category and overall.
-    Level is won if EITHER collection OR score targets are 100% complete.
+    Level is won only if ALL applicable targets are met (AND logic).
     Each category has 50% weight in overall percentage.
     """
     result = {
@@ -239,38 +239,40 @@ def calculate_completion(targets: dict, met: dict, score: int) -> dict:
         'score_complete': False,
     }
 
+    has_collection_target = 'collect' in targets and targets['collect']
+    has_score_target = 'min_score' in targets and targets['min_score'] > 0
+
     # Calculate collection completion
-    if 'collect' in targets and targets['collect']:
+    if has_collection_target:
         total_required = 0
         total_collected = 0
+        met_collect = met.get('collect', {}) if isinstance(met, dict) else {}
         for item, required in targets['collect'].items():
             total_required += required
-            collected = met.get('collect', {}).get(item, 0)
-            total_collected += min(collected, required)  # Cap at required amount
+            collected = met_collect.get(item, 0) if isinstance(met_collect, dict) else 0
+            total_collected += min(collected, required)
 
         if total_required > 0:
             result['collection_percent'] = min(100, (total_collected / total_required) * 100)
             result['collection_complete'] = total_collected >= total_required
     else:
-        # No collection targets - consider as 100% complete
         result['collection_percent'] = 100
         result['collection_complete'] = True
 
     # Calculate score completion
-    if 'min_score' in targets and targets['min_score'] > 0:
+    if has_score_target:
         min_score = targets['min_score']
         result['score_percent'] = min(100, (score / min_score) * 100)
         result['score_complete'] = score >= min_score
     else:
-        # No score target - consider as 100% complete
         result['score_percent'] = 100
         result['score_complete'] = True
 
     # Overall percentage: 50% collection + 50% score
     result['overall_percent'] = (result['collection_percent'] * 0.5) + (result['score_percent'] * 0.5)
 
-    # Level is won if EITHER category is 100% complete
-    result['is_won'] = result['collection_complete'] or result['score_complete']
+    # SECURITY: Level is won only if ALL applicable targets are complete (AND, not OR)
+    result['is_won'] = result['collection_complete'] and result['score_complete']
 
     return result
 

@@ -5,7 +5,7 @@ import string
 from datetime import timedelta
 
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt
 
 from app import db
 from app.models.user import User
@@ -280,9 +280,10 @@ def get_current_user():
 @bp.route('/logout', methods=['POST'])
 @jwt_required()
 def logout():
-    # In a stateless JWT setup, logout is handled client-side
-    # But we can log the activity
+    from app.utils.redis_cache import blocklist_token
     user_id = get_jwt_identity()
+    jti = get_jwt()['jti']
+    blocklist_token(jti)
     log_activity(user_id, 'logout', request=request)
 
     return jsonify({'message': 'Logged out successfully'})
@@ -322,5 +323,10 @@ def delete_account():
     })
 
     db.session.commit()
+
+    # Revoke current token so deleted account can't keep accessing API
+    from app.utils.redis_cache import blocklist_token
+    jti = get_jwt()['jti']
+    blocklist_token(jti)
 
     return jsonify({'message': 'Account data has been anonymized'})
