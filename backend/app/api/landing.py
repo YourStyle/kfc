@@ -202,13 +202,13 @@ def track_visit():
     city, country, region = lookup_geo(ip_address)
 
     visit = LandingVisit(
-        ip_address=ip_address,
         city=city,
         country=country,
         region=region,
         user_agent=user_agent,
         referrer=referrer or None,
     )
+    visit.set_ip(ip_address)
     try:
         db.session.add(visit)
         db.session.commit()

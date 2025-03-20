@@ -2761,7 +2761,7 @@ def landing_stats():
 
     # Summary stats
     total_visits = LandingVisit.query.count()
-    unique_ips = db.session.query(func.count(distinct(LandingVisit.ip_address))).scalar() or 0
+    unique_ips = db.session.query(func.count(distinct(LandingVisit.ip_hash))).filter(LandingVisit.ip_hash.isnot(None)).scalar() or 0
 
     today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
     today_visits = LandingVisit.query.filter(LandingVisit.created_at >= today_start).count()
@@ -3046,7 +3046,7 @@ def public_landing_export_xlsx(token):
     ws.title = 'Сводка'
 
     total_visits = LandingVisit.query.count()
-    unique_ips = db.session.query(func.count(distinct(LandingVisit.ip_address))).scalar() or 0
+    unique_ips = db.session.query(func.count(distinct(LandingVisit.ip_hash))).filter(LandingVisit.ip_hash.isnot(None)).scalar() or 0
     today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
     today_visits = LandingVisit.query.filter(LandingVisit.created_at >= today_start).count()
 
@@ -3291,7 +3291,7 @@ def render_public_landing_page(token):
     from markupsafe import escape
 
     total_visits = LandingVisit.query.count()
-    unique_ips = db.session.query(func.count(distinct(LandingVisit.ip_address))).scalar() or 0
+    unique_ips = db.session.query(func.count(distinct(LandingVisit.ip_hash))).filter(LandingVisit.ip_hash.isnot(None)).scalar() or 0
 
     today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
     today_visits = LandingVisit.query.filter(LandingVisit.created_at >= today_start).count()
