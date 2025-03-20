@@ -60,24 +60,30 @@ def start_game():
     })
 
 
+def _game_complete_rate_key(r):
+    """Rate limit key using JWT Authorization header (user-specific, not IP-based)."""
+    auth = r.headers.get('Authorization', 'anon')
+    return f"game_complete:{auth}"
+
+
 @bp.route('/complete', methods=['POST'])
 @jwt_required()
-@rate_limit(60, 60)  # 60 completions per minute (anti-cheat)
+@rate_limit(60, 60, key_func=_game_complete_rate_key)
 def complete_game():
     """Complete a game session"""
     user_id = get_jwt_identity()
     data = request.get_json()
 
     session_id = data.get('session_id')
-    score = data.get('score', 0)
-    moves_used = data.get('moves_used', 0)
+    raw_score = data.get('score', 0)
+    raw_moves_used = data.get('moves_used', 0)
     targets_met = data.get('targets_met', {})
-    duration_seconds = data.get('duration_seconds', 0)
+    raw_duration = data.get('duration_seconds', 0)
 
     if not session_id:
         return jsonify({'error': 'session_id is required'}), 400
 
-    # Validate session in Redis (anti-cheat)
+    # Validate session in Redis (anti-cheat) — FAIL CLOSED
     is_valid, error_msg = validate_game_session(session_id, user_id)
     if not is_valid:
         return jsonify({'error': error_msg}), 400
@@ -91,6 +97,39 @@ def complete_game():
 
     level = Level.query.get(session.level_id)
 
+    # === ANTI-CHEAT: Server-side validation of all client-submitted values ===
+
+    # 1. Clamp moves_used to valid range [0, max_moves]
+    moves_used = max(0, min(int(raw_moves_used), level.max_moves))
+
+    # 2. Validate duration (minimum 1 second per move, max 1 hour)
+    min_duration = max(1, moves_used)  # at least 1 second per move
+    duration_seconds = max(min_duration, min(int(raw_duration), 3600))
+
+    # 3. Sanitize targets_met: cap collected items at level target values
+    sanitized_targets = {}
+    if 'collect' in level.targets and level.targets['collect']:
+        sanitized_collect = {}
+        client_collect = targets_met.get('collect', {}) if isinstance(targets_met, dict) else {}
+        for item, required in level.targets['collect'].items():
+            collected = client_collect.get(item, 0)
+            if isinstance(collected, (int, float)):
+                sanitized_collect[item] = max(0, min(int(collected), required))
+            else:
+                sanitized_collect[item] = 0
+        sanitized_targets['collect'] = sanitized_collect
+    targets_met = sanitized_targets
+
+    # 4. Enforce maximum score per level
+    # Max score formula: min_score * 3 (generous cap covering 3-star + bonuses)
+    min_score_target = level.targets.get('min_score', 1000) if level.targets else 1000
+    max_allowed_score = min_score_target * 3
+    # Also cap based on grid: max theoretical = grid_cells * max_moves * 100
+    grid_cap = level.grid_width * level.grid_height * level.max_moves * 100
+    max_allowed_score = min(max_allowed_score, grid_cap)
+
+    score = max(0, min(int(raw_score), max_allowed_score))
+
     # Calculate completion percentages and win status
     completion = calculate_completion(level.targets, targets_met, score)
     is_won = completion['is_won']
@@ -100,7 +139,7 @@ def complete_game():
     moves_bonus = 0
     if is_won and remaining_moves > 0:
         moves_bonus = remaining_moves * 50  # 50 points per remaining move
-        score += moves_bonus
+        score = min(score + moves_bonus, max_allowed_score)
 
     # Calculate stars
     stars = calculate_stars(level.targets, score, targets_met) if is_won else 0
@@ -131,8 +170,9 @@ def complete_game():
 
     progress.attempts_count += 1
 
+    # Cap best_score at max_allowed_score
     if score > progress.best_score:
-        progress.best_score = score
+        progress.best_score = min(score, max_allowed_score)
 
     if is_won:
         if stars > progress.stars:

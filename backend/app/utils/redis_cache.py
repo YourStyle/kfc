@@ -86,7 +86,9 @@ def check_rate_limit(key: str, limit: int, window_seconds: int) -> tuple[bool, i
     Returns (is_allowed, remaining_requests).
     """
     if not redis_client:
-        return True, limit  # Allow if Redis unavailable
+        # Fail open for non-game endpoints (login, register) to avoid lockout
+        # Game endpoints use validate_game_session which fails closed
+        return True, limit
 
     full_key = f"{RATE_LIMIT_PREFIX}{key}"
 
@@ -312,13 +314,14 @@ def validate_game_session(session_id: int, user_id: int) -> tuple[bool, str]:
     """
     Validate game session for anti-cheat.
     Returns (is_valid, error_message).
+    SECURITY: Fails CLOSED — if Redis is unavailable or session not found, reject.
     """
     if not redis_client:
-        return True, ""  # Skip validation if Redis unavailable
+        return False, "Game service temporarily unavailable. Please try again."
 
     session = get_game_session(session_id)
     if not session:
-        return True, ""  # Session not in Redis (might be old), allow
+        return False, "Session expired or invalid. Please start a new game."
 
     if session['user_id'] != user_id:
         return False, "Session does not belong to this user"
@@ -335,7 +338,7 @@ def validate_game_session(session_id: int, user_id: int) -> tuple[bool, str]:
 def get_active_sessions_count(user_id: int) -> int:
     """Count active game sessions for a user (anti-cheat: detect multi-session abuse)"""
     if not redis_client:
-        return 0
+        return 999  # Fail closed: block new sessions if Redis unavailable
 
     count = 0
     try:

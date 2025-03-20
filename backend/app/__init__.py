@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -24,7 +26,10 @@ def create_app():
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
     # Configuration
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key')
+    secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key')
+    if secret_key == 'dev-secret-key' and os.environ.get('FLASK_ENV') == 'production':
+        raise RuntimeError("SECURITY: SECRET_KEY must be set in production! Do not use the default.")
+    app.config['SECRET_KEY'] = secret_key
     # Support SQLite for local development
     database_url = os.environ.get('DATABASE_URL', 'sqlite:///rostics.db')
     # Fix for SQLAlchemy with postgres:// vs postgresql://
@@ -34,8 +39,8 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # JWT Configuration
-    app.config['JWT_SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key')
-    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = 86400 * 7  # 7 days
+    app.config['JWT_SECRET_KEY'] = app.config['SECRET_KEY']
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=7)
 
     # Mail Configuration
     app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.yandex.ru')

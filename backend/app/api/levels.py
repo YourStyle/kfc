@@ -24,7 +24,7 @@ def get_level(level_id):
 @bp.route('/<int:level_id>/leaderboard', methods=['GET'])
 def get_level_leaderboard(level_id):
     """Get leaderboard for a specific level"""
-    limit = request.args.get('limit', 100, type=int)
+    limit = min(request.args.get('limit', 100, type=int), 500)
 
     leaderboard = db.session.query(
         UserLevelProgress.user_id,

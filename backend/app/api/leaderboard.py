@@ -19,7 +19,7 @@ def get_global_leaderboard():
     - limit: max number of results (default 100)
     - city: filter by region - 'moscow' or 'region' (optional, returns all if not specified)
     """
-    limit = request.args.get('limit', 100, type=int)
+    limit = min(request.args.get('limit', 100, type=int), 500)
     city = request.args.get('city', None)
 
     # Validate city filter
@@ -81,7 +81,7 @@ def get_global_leaderboard():
 @rate_limit(60, 60)  # 60 requests per minute
 def get_weekly_leaderboard():
     """Get weekly leaderboard based on scores earned this week (cached for 2 minutes)"""
-    limit = request.args.get('limit', 100, type=int)
+    limit = min(request.args.get('limit', 100, type=int), 500)
 
     # Try cache first
     cache_key = f"weekly:{limit}"
@@ -94,17 +94,28 @@ def get_weekly_leaderboard():
     start_of_week = today - timedelta(days=today.weekday())
     start_of_week = start_of_week.replace(hour=0, minute=0, second=0, microsecond=0)
 
-    # Get scores from game sessions this week
+    # Get best score per level per user this week (prevents farming via repeated plays)
     from app.models.game_session import GameSession
 
-    weekly_scores = db.session.query(
+    # Subquery: best score per (user, level) this week
+    best_per_level = db.session.query(
         GameSession.user_id,
-        db.func.sum(GameSession.score).label('weekly_score')
+        GameSession.level_id,
+        db.func.max(GameSession.score).label('best_score')
     ).filter(
         GameSession.created_at >= start_of_week,
         GameSession.is_won == True
     ).group_by(
-        GameSession.user_id
+        GameSession.user_id,
+        GameSession.level_id
+    ).subquery()
+
+    # Sum of best scores across levels per user
+    weekly_scores = db.session.query(
+        best_per_level.c.user_id,
+        db.func.sum(best_per_level.c.best_score).label('weekly_score')
+    ).group_by(
+        best_per_level.c.user_id
     ).order_by(
         db.desc('weekly_score')
     ).limit(limit).all()

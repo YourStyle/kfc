@@ -260,7 +260,8 @@ def sync_guest_progress():
 
         is_correct = entry.get('is_correct', False)
         is_skipped = entry.get('is_skipped', False)
-        points = entry.get('points_earned', 0)
+        # SECURITY: Always use server-side point value, never trust client
+        points = (page.points or 0) if is_correct and not is_skipped else 0
 
         progress = QuestProgress(
             user_id=user_id,
@@ -508,13 +509,16 @@ def claim_promo():
 @bp.route('/send-promo-email', methods=['POST'])
 @jwt_required()
 def send_promo_email_endpoint():
-    """Send the user's claimed promo code to a given email address."""
+    """Send the user's claimed promo code to their registered email."""
     user_id = get_jwt_identity()
-    data = request.get_json()
-    email = (data.get('email') or '').strip()
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
 
+    # SECURITY: Only allow sending to the user's own registered email
+    email = user.email
     if not email or '@' not in email:
-        return jsonify({'error': 'Введите корректный email'}), 400
+        return jsonify({'error': 'Email не найден в вашем аккаунте'}), 400
 
     # Verify user has a claimed promo code
     existing_claim = PromoCode.query.filter_by(used_by_user_id=user_id).first()
@@ -528,7 +532,7 @@ def send_promo_email_endpoint():
             tier=existing_claim.pool.tier if existing_claim.pool else '',
             discount_label=existing_claim.pool.discount_label if existing_claim.pool else '',
         )
-    except Exception as e:
+    except Exception:
         return jsonify({'error': 'Не удалось отправить письмо'}), 500
 
     log_activity(user_id, 'quest_promo_email', {
@@ -536,7 +540,7 @@ def send_promo_email_endpoint():
         'code_hash': compute_hash(existing_claim.code),
     }, request)
 
-    return jsonify({'message': 'Промокод отправлен на ' + email})
+    return jsonify({'message': 'Промокод отправлен на ваш email'})
 
 
 @bp.route('/guest-promo', methods=['POST'])
@@ -570,17 +574,22 @@ def guest_promo():
         if existing_code:
             return jsonify({'error': 'Этот email уже получил промокод. Войдите в аккаунт.'}), 400
 
-    # Validate score server-side — fetch real page points from DB
+    # Validate score server-side — require qr_token as proof of scan
     if not entries or not isinstance(entries, list):
         return jsonify({'error': 'Нет данных о прохождении'}), 400
 
     score = 0
+    seen_slugs = set()
     for entry in entries[:50]:  # cap iterations
         slug = (entry.get('page_slug') or '').strip()
-        if not slug:
+        qr_token = (entry.get('qr_token') or '').strip()
+        if not slug or slug in seen_slugs:
             continue
+        seen_slugs.add(slug)
         page = QuestPage.query.filter_by(slug=slug, is_active=True).first()
-        if page and entry.get('is_correct'):
+        # SECURITY: Validate via qr_token (cryptographic proof of scan),
+        # not client-supplied is_correct flag
+        if page and qr_token and page.qr_token == qr_token:
             score += page.points
 
     if score < 120:
