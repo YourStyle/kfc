@@ -1,5 +1,6 @@
 import logging
 import random
+import re
 import string
 from datetime import timedelta
 
@@ -46,6 +47,10 @@ def register():
 
     if len(password) < 8:
         return jsonify({'error': 'Password must be at least 8 characters'}), 400
+
+    # Validate username
+    if username and (len(username) > 30 or not re.match(r'^[\w\s\-А-Яа-яЁё]+$', username)):
+        return jsonify({'error': 'Username must be 1-30 characters (letters, numbers, spaces, hyphens)'}), 400
 
     # Validate city
     if city not in ('moscow', 'region'):

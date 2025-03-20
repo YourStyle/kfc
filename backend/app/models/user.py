@@ -40,6 +40,8 @@ class User(db.Model):
         self.password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
     def check_password(self, password):
+        if not self.password_hash or not self.password_hash.startswith('$2'):
+            return False  # Deleted/invalid account — reject without bcrypt error
         return bcrypt.checkpw(password.encode('utf-8'), self.password_hash.encode('utf-8'))
 
     @staticmethod
