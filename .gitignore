@@ -32,3 +32,16 @@ __pycache__/
 
 # Database backups
 backups/
+
+# Database files
+*.db
+*.sqlite3
+
+# Environment files (only .env.example should be tracked)
+.env
+.env.*
+!.env.example
+
+# Secrets
+*.pem
+*.key

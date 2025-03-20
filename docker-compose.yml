@@ -48,7 +48,7 @@ services:
     environment:
       TZ: Europe/Moscow
       FLASK_ENV: ${FLASK_ENV:-development}
-      SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
       DATABASE_URL: postgresql://${POSTGRES_USER:-rostics}:${POSTGRES_PASSWORD:-rostics}@db:5432/${POSTGRES_DB:-rostics}
       REDIS_URL: redis://redis:6379/0
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://localhost:3000}
@@ -81,10 +81,10 @@ services:
     restart: unless-stopped
     environment:
       TZ: Europe/Moscow
-      SECRET_KEY: ${ADMIN_SECRET_KEY:-admin-secret-key-change-in-production}
+      SECRET_KEY: ${ADMIN_SECRET_KEY:?Set ADMIN_SECRET_KEY in .env}
       DATABASE_URL: postgresql://${POSTGRES_USER:-rostics}:${POSTGRES_PASSWORD:-rostics}@db:5432/${POSTGRES_DB:-rostics}
       ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
       ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
       HASH_PEPPER: ${HASH_PEPPER:-}
       MAIL_SERVER: ${MAIL_SERVER:-mail.rosticslegends.ru}
@@ -240,7 +240,7 @@ services:
     environment:
       - TZ=Europe/Moscow
       - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-rostics123}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:?Set GRAFANA_PASSWORD in .env}
       - GF_USERS_ALLOW_SIGN_UP=false
     volumes:
       - grafana_data:/var/lib/grafana

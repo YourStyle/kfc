@@ -269,6 +269,7 @@ class LandingVisit(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     ip_address = db.Column(EncryptedString())
+    ip_hash = db.Column(db.String(64), index=True)
     city = db.Column(db.String(100))
     country = db.Column(db.String(100))
     region = db.Column(db.String(200))
