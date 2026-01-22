@@ -1,5 +1,6 @@
 
 export type ItemType = 'chicken' | 'burger' | 'fries' | 'cola' | 'bucket' | 'cookie';
+export type BonusType = 'none' | 'row' | 'column' | 'color';
 
 export interface GridPos {
   row: number;
@@ -10,5 +11,5 @@ export interface GameState {
   score: number;
   moves: number;
   isGameOver: boolean;
-  level: number;
+  wingsCollected: number;
 }
