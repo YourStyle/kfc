@@ -2,353 +2,269 @@
 import Phaser from 'phaser';
 import { GRID_SIZE, TILE_SIZE, ITEM_TYPES, ITEM_DATA } from '../constants';
 import { GridPos } from '../types';
+import { FXService } from './FXService';
+import { GridManager } from './GridManager';
+import { InputHandler } from './InputHandler';
 
 export class Match3Scene extends Phaser.Scene {
-  // Explicitly declare Phaser Scene properties to fix TypeScript errors when using default import
-  public add!: Phaser.GameObjects.GameObjectFactory;
-  public tweens!: Phaser.Tweens.TweenManager;
-  public cameras!: Phaser.Cameras.Scene2D.CameraManager;
-  public scale!: Phaser.Scale.ScaleManager;
-  public events!: Phaser.Events.EventEmitter;
-  public game!: Phaser.Game;
-
-  private grid: (Phaser.GameObjects.Container | null)[][] = [];
-  private selectedItem: GridPos | null = null;
-  private isProcessing: boolean = false;
-  private score: number = 0;
-  private moves: number = 30;
+  private fx!: FXService;
+  private inputHandler!: InputHandler;
+  // Инициализируем массив сразу, чтобы избежать "reading '0' of undefined"
+  private grid: (Phaser.GameObjects.Container | null)[][] = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(null));
+  private isProcessing = false;
+  private stats = { score: 0, moves: 30, wingsCollected: 0 };
 
   constructor() {
     super('Match3Scene');
   }
 
+  preload() {
+    // Используем прямой путь к папке images
+    this.load.setPath('images/');
+    
+    // Пытаемся загрузить ассеты
+    ITEM_TYPES.forEach(type => {
+      this.load.image(`item-${type}`, `${type}.png`);
+    });
+
+    this.load.on('loaderror', (file: any) => {
+      console.error('Не удалось загрузить:', file.key, 'по пути:', file.src);
+    });
+  }
+
+  private createFallbackTextures() {
+    ITEM_TYPES.forEach(type => {
+      const key = `item-${type}`;
+      // Если текстура не загрузилась (не существует в кэше)
+      if (!this.textures.exists(key)) {
+        console.warn(`Создаю заглушку для ${key}`);
+        const data = ITEM_DATA[type];
+        const graphics = this.make.graphics({ x: 0, y: 0 });
+        
+        // Рисуем фон
+        graphics.fillStyle(data.particleColor, 1);
+        graphics.fillRoundedRect(0, 0, 64, 64, 12);
+        graphics.lineStyle(4, 0xffffff, 0.5);
+        graphics.strokeRoundedRect(2, 2, 60, 60, 10);
+        graphics.generateTexture(`${key}-bg`, 64, 64);
+        
+        const rt = this.add.renderTexture(0, 0, 64, 64);
+        rt.draw(this.add.image(32, 32, `${key}-bg`));
+        rt.draw(this.add.text(32, 32, data.emoji, { fontSize: '32px' }).setOrigin(0.5));
+        rt.saveTexture(key);
+        
+        graphics.destroy();
+      }
+    });
+  }
+
   create() {
-    this.cameras.main.setBackgroundColor('#1a1a1a');
+    // Сначала создаем запасные текстуры, если основные не загрузились
+    this.createFallbackTextures();
+    
+    this.fx = new FXService(this);
+    this.inputHandler = new InputHandler(this, (p1, p2) => this.handleSwipe(p1, p2));
+    
     this.createBackground();
     this.initGrid();
     
     this.events.on('reset-game', () => this.resetGame());
+    this.game.events.emit('assets-loaded');
   }
 
   private createBackground() {
     const { width, height } = this.scale;
-    
-    const stripeWidth = 40;
-    for (let i = 0; i < width; i += stripeWidth * 2) {
-      this.add.rectangle(i + stripeWidth/2, height/2, stripeWidth, height, 0xE4002B, 0.1);
-    }
-
-    const boardBgWidth = GRID_SIZE * TILE_SIZE + 20;
-    const boardBgHeight = GRID_SIZE * TILE_SIZE + 20;
-    const boardX = width / 2;
-    const boardY = height / 2 + 30;
-
-    this.add.rectangle(boardX, boardY, boardBgWidth, boardBgHeight, 0x333333, 0.8)
-      .setStrokeStyle(4, 0xE4002B);
+    const size = GRID_SIZE * TILE_SIZE + 40;
+    const graphics = this.add.graphics();
+    graphics.fillStyle(0xffffff, 1).fillRoundedRect(width/2 - size/2, height/2 + 75 - size/2, size, size, 40);
+    graphics.lineStyle(10, 0xE4002B, 1).strokeRoundedRect(width/2 - size/2, height/2 + 75 - size/2, size, size, 40);
   }
 
   private initGrid() {
+    this.clearGrid();
     for (let r = 0; r < GRID_SIZE; r++) {
-      this.grid[r] = [];
       for (let c = 0; c < GRID_SIZE; c++) {
         this.spawnItem(r, c);
       }
     }
-
-    while (this.findAllMatches().length > 0) {
-      this.clearBoardInstant();
+    
+    // Убираем начальные совпадения без анимации
+    while (GridManager.getMatches(this.grid).length > 0) {
+      this.clearGrid();
       for (let r = 0; r < GRID_SIZE; r++) {
         for (let c = 0; c < GRID_SIZE; c++) {
           this.spawnItem(r, c);
         }
       }
     }
-  }
-
-  private clearBoardInstant() {
-    for (let r = 0; r < GRID_SIZE; r++) {
-      for (let c = 0; c < GRID_SIZE; c++) {
-        if (this.grid[r][c]) {
-          this.grid[r][c]?.destroy();
-          this.grid[r][c] = null;
-        }
-      }
-    }
+    this.updateUI();
   }
 
   private spawnItem(row: number, col: number) {
     const type = Phaser.Utils.Array.GetRandom(ITEM_TYPES);
-    const x = this.getColX(col);
-    const y = this.getRowY(row);
-
-    const container = this.add.container(x, y);
-    const bg = this.add.circle(0, 0, 28, 0xffffff, 0.05);
-    const emoji = this.add.text(0, 0, ITEM_DATA[type].emoji, {
-      fontSize: '40px',
-    }).setOrigin(0.5);
-
-    container.add([bg, emoji]);
-    container.setData('type', type);
-    container.setData('row', row);
-    container.setData('col', col);
-
-    container.setSize(TILE_SIZE, TILE_SIZE);
-    container.setInteractive();
-
-    container.on('pointerdown', () => this.handleItemClick(row, col));
-
-    this.grid[row][col] = container;
+    const container = this.add.container(this.getColX(col), this.getRowY(row));
     
-    container.setScale(0);
-    this.tweens.add({
-      targets: container,
-      scale: 1,
-      duration: 300,
-      ease: 'Back.easeOut'
+    // Используем ключ текстуры, который либо загрузился, либо создался как fallback
+    const img = this.add.image(0, 0, `item-${type}`).setDisplaySize(TILE_SIZE - 10, TILE_SIZE - 10);
+    
+    container.add(img);
+    container.setData({ type, row, col }).setSize(TILE_SIZE, TILE_SIZE).setInteractive();
+    
+    container.on('pointerdown', (p: Phaser.Input.Pointer) => {
+      if (!this.isProcessing) {
+        this.inputHandler.startDrag(p, { row, col });
+        this.tweens.add({ targets: container, scale: 1.1, duration: 100 });
+      }
     });
+    
+    this.grid[row][col] = container;
+    return container;
   }
 
-  private getColX(col: number) {
-    const boardWidth = GRID_SIZE * TILE_SIZE;
-    const startX = (this.scale.width - boardWidth) / 2 + TILE_SIZE / 2;
-    return startX + col * TILE_SIZE;
-  }
-
-  private getRowY(row: number) {
-    const boardHeight = GRID_SIZE * TILE_SIZE;
-    const startY = (this.scale.height - boardHeight) / 2 + TILE_SIZE / 2 + 30;
-    return startY + row * TILE_SIZE;
-  }
-
-  private async handleItemClick(row: number, col: number) {
-    if (this.isProcessing || this.moves <= 0) return;
-
-    if (!this.selectedItem) {
-      this.selectedItem = { row, col };
-      this.grid[row][col]?.setScale(1.2);
+  private async handleSwipe(p1: GridPos, p2: GridPos) {
+    const i1 = this.grid[p1.row][p1.col];
+    if (i1) this.tweens.add({ targets: i1, scale: 1, duration: 100 });
+    
+    this.isProcessing = true;
+    await this.swap(p1, p2);
+    
+    if (GridManager.getMatches(this.grid).length > 0) {
+      this.stats.moves--;
+      this.updateUI();
+      await this.processTurn();
     } else {
-      const first = this.selectedItem;
-      const second = { row, col };
-      
-      this.grid[first.row][first.col]?.setScale(1.0);
-
-      if (this.isAdjacent(first, second)) {
-        await this.swapItems(first, second);
-        const matches = this.findAllMatches();
-        
-        if (matches.length > 0) {
-          this.moves--;
-          this.updateReactUI();
-          await this.processMatches();
-        } else {
-          await this.swapItems(first, second);
-        }
-      }
-      this.selectedItem = null;
+      await this.swap(p1, p2);
+    }
+    this.isProcessing = false;
+    
+    if (this.stats.moves <= 0) {
+      this.game.events.emit('game-over');
     }
   }
 
-  private isAdjacent(pos1: GridPos, pos2: GridPos) {
-    const rowDiff = Math.abs(pos1.row - pos2.row);
-    const colDiff = Math.abs(pos1.col - pos2.col);
-    return (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1);
-  }
+  private async swap(p1: GridPos, p2: GridPos) {
+    const i1 = this.grid[p1.row][p1.col]!;
+    const i2 = this.grid[p2.row][p2.col]!;
+    
+    [this.grid[p1.row][p1.col], this.grid[p2.row][p2.col]] = [i2, i1];
+    
+    i1.setData({ row: p2.row, col: p2.col });
+    i2.setData({ row: p1.row, col: p1.col });
 
-  private async swapItems(pos1: GridPos, pos2: GridPos) {
-    this.isProcessing = true;
-    const item1 = this.grid[pos1.row][pos1.col]!;
-    const item2 = this.grid[pos2.row][pos2.col]!;
-
-    this.grid[pos1.row][pos1.col] = item2;
-    this.grid[pos2.row][pos2.col] = item1;
-
-    item1.setData('row', pos2.row);
-    item1.setData('col', pos2.col);
-    item2.setData('row', pos1.row);
-    item2.setData('col', pos1.col);
-
-    return new Promise<void>((resolve) => {
-      this.tweens.add({
-        targets: item1,
-        x: this.getColX(pos2.col),
-        y: this.getRowY(pos2.row),
-        duration: 300,
-        ease: 'Cubic.easeInOut'
-      });
-      this.tweens.add({
-        targets: item2,
-        x: this.getColX(pos1.col),
-        y: this.getRowY(pos1.row),
-        duration: 300,
-        ease: 'Cubic.easeInOut',
-        onComplete: () => {
-          this.isProcessing = false;
-          resolve();
-        }
-      });
+    return new Promise<void>(res => {
+      this.tweens.add({ targets: i1, x: this.getColX(p2.col), y: this.getRowY(p2.row), duration: 200 });
+      this.tweens.add({ targets: i2, x: this.getColX(p1.col), y: this.getRowY(p1.row), duration: 200, onComplete: () => res() });
     });
   }
 
-  private findAllMatches(): GridPos[] {
-    const matchPositions: Set<string> = new Set();
-
-    for (let r = 0; r < GRID_SIZE; r++) {
-      let count = 1;
-      for (let c = 1; c < GRID_SIZE; c++) {
-        if (this.grid[r][c]?.getData('type') === this.grid[r][c - 1]?.getData('type')) {
-          count++;
-        } else {
-          if (count >= 3) {
-            for (let i = 0; i < count; i++) matchPositions.add(`${r},${c - 1 - i}`);
-          }
-          count = 1;
-        }
-      }
-      if (count >= 3) {
-        for (let i = 0; i < count; i++) matchPositions.add(`${r},${GRID_SIZE - 1 - i}`);
-      }
-    }
-
-    for (let c = 0; c < GRID_SIZE; c++) {
-      let count = 1;
-      for (let r = 1; r < GRID_SIZE; r++) {
-        if (this.grid[r][c]?.getData('type') === this.grid[r - 1][c]?.getData('type')) {
-          count++;
-        } else {
-          if (count >= 3) {
-            for (let i = 0; i < count; i++) matchPositions.add(`${r - 1 - i},${c}`);
-          }
-          count = 1;
-        }
-      }
-      if (count >= 3) {
-        for (let i = 0; i < count; i++) matchPositions.add(`${GRID_SIZE - 1 - i},${c}`);
-      }
-    }
-
-    return Array.from(matchPositions).map(s => {
-      const [r, c] = s.split(',').map(Number);
-      return { row: r, col: c };
-    });
-  }
-
-  private async processMatches() {
-    this.isProcessing = true;
-    let matches = this.findAllMatches();
-
+  private async processTurn() {
+    let matches = GridManager.getMatches(this.grid);
+    let combo = 0;
+    
     while (matches.length > 0) {
-      this.score += matches.length * 10;
-      this.updateReactUI();
+      combo++;
+      const unique = Array.from(new Set(matches.flatMap(m => m.positions).map(p => `${p.row},${p.col}`)))
+        .map(s => { 
+          const [r, c] = s.split(',').map(Number); 
+          return { row: r, col: c }; 
+        });
 
-      await Promise.all(matches.map(pos => {
-        const item = this.grid[pos.row][pos.col];
-        if (!item) return Promise.resolve();
-        
-        return new Promise<void>((resolve) => {
-          this.tweens.add({
-            targets: item,
-            scale: 0,
-            alpha: 0,
-            duration: 300,
-            onComplete: () => {
-              item.destroy();
-              this.grid[pos.row][pos.col] = null;
-              resolve();
-            }
-          });
+      // Защита от пустого массива unique
+      if (combo > 1 && unique.length > 0) {
+        this.fx.showCombo(this.getColX(unique[0].col), this.getRowY(unique[0].row), combo);
+      }
+      
+      this.stats.score += unique.length * 10 * combo;
+      
+      unique.forEach(p => {
+        const item = this.grid[p.row][p.col];
+        if (item) {
+          const type = item.getData('type');
+          if (type === 'chicken') {
+            this.stats.wingsCollected++;
+            this.fx.flyToBasket(item.x, item.y);
+          }
+          this.fx.emitDeath(item.x, item.y, type);
+        }
+      });
+
+      this.updateUI();
+      await this.removeItems(unique);
+      await this.applyGravity();
+      matches = GridManager.getMatches(this.grid);
+    }
+  }
+
+  private async removeItems(pos: GridPos[]) {
+    await Promise.all(pos.map(p => {
+      const item = this.grid[p.row][p.col];
+      this.grid[p.row][p.col] = null;
+      return new Promise<void>(res => {
+        if (!item) return res();
+        this.tweens.add({ targets: item, scale: 0, alpha: 0, duration: 200, onComplete: () => { 
+          item.destroy(); 
+          res(); 
+        }});
+      });
+    }));
+  }
+
+  private async applyGravity() {
+    const { drops, refills } = GridManager.getDropMap(this.grid);
+    const promises: Promise<void>[] = [];
+
+    drops.forEach(d => {
+      this.grid[d.toRow][d.col] = d.item;
+      this.grid[d.fromRow][d.col] = null;
+      d.item.setData('row', d.toRow);
+      promises.push(new Promise(res => {
+        this.tweens.add({ 
+          targets: d.item, 
+          y: this.getRowY(d.toRow), 
+          duration: 300, 
+          ease: 'Bounce.easeOut', 
+          onComplete: () => res() 
         });
       }));
+    });
 
-      await this.dropItems();
-      await this.refillBoard();
-      matches = this.findAllMatches();
-    }
+    refills.forEach(r => {
+      const item = this.spawnItem(r.row, r.col);
+      const targetY = this.getRowY(r.row);
+      item.y = targetY - 400;
+      promises.push(new Promise(res => {
+        this.tweens.add({ 
+          targets: item, 
+          y: targetY, 
+          duration: 400, 
+          ease: 'Back.easeOut', 
+          onComplete: () => res() 
+        });
+      }));
+    });
 
-    this.isProcessing = false;
-    if (this.moves <= 0) {
-        this.game.events.emit('game-over', this.score);
-    }
+    await Promise.all(promises);
   }
 
-  private async dropItems() {
-    const dropPromises: Promise<void>[] = [];
-    for (let c = 0; c < GRID_SIZE; c++) {
-      let emptySlots = 0;
-      for (let r = GRID_SIZE - 1; r >= 0; r--) {
-        if (this.grid[r][c] === null) {
-          emptySlots++;
-        } else if (emptySlots > 0) {
-          const item = this.grid[r][c]!;
-          const newRow = r + emptySlots;
-          this.grid[newRow][c] = item;
-          this.grid[r][c] = null;
-          item.setData('row', newRow);
-          
-          dropPromises.push(new Promise<void>((resolve) => {
-            this.tweens.add({
-              targets: item,
-              y: this.getRowY(newRow),
-              duration: 200,
-              ease: 'Bounce.easeOut',
-              onComplete: () => resolve()
-            });
-          }));
-        }
+  private getColX(c: number) { return (this.scale.width - GRID_SIZE * TILE_SIZE) / 2 + TILE_SIZE / 2 + c * TILE_SIZE; }
+  private getRowY(r: number) { return (this.scale.height - GRID_SIZE * TILE_SIZE) / 2 + TILE_SIZE / 2 + 75 + r * TILE_SIZE; }
+  
+  private clearGrid() { 
+    for(let r=0; r<GRID_SIZE; r++) {
+      for(let c=0; c<GRID_SIZE; c++) { 
+        this.grid[r][c]?.destroy(); 
+        this.grid[r][c] = null; 
       }
     }
-    await Promise.all(dropPromises);
   }
-
-  private async refillBoard() {
-    const refillPromises: Promise<void>[] = [];
-    for (let c = 0; c < GRID_SIZE; c++) {
-      for (let r = 0; r < GRID_SIZE; r++) {
-        if (this.grid[r][c] === null) {
-          const type = Phaser.Utils.Array.GetRandom(ITEM_TYPES);
-          const x = this.getColX(c);
-          const y = this.getRowY(r);
-          
-          const container = this.add.container(x, y - 500); 
-          const bg = this.add.circle(0, 0, 28, 0xffffff, 0.05);
-          const emoji = this.add.text(0, 0, ITEM_DATA[type].emoji, {
-            fontSize: '40px',
-          }).setOrigin(0.5);
-
-          container.add([bg, emoji]);
-          container.setData('type', type);
-          container.setData('row', r);
-          container.setData('col', c);
-          container.setSize(TILE_SIZE, TILE_SIZE);
-          container.setInteractive();
-          container.on('pointerdown', () => this.handleItemClick(r, c));
-
-          this.grid[r][c] = container;
-
-          refillPromises.push(new Promise<void>((resolve) => {
-            this.tweens.add({
-              targets: container,
-              y: this.getRowY(r),
-              duration: 400,
-              ease: 'Back.easeOut',
-              onComplete: () => resolve()
-            });
-          }));
-        }
-      }
-    }
-    await Promise.all(refillPromises);
+  
+  private updateUI() { 
+    this.game.events.emit('update-stats', { ...this.stats }); 
   }
-
-  private updateReactUI() {
-    this.game.events.emit('update-stats', { score: this.score, moves: this.moves });
-  }
-
-  private resetGame() {
-    this.score = 0;
-    this.moves = 30;
-    this.isProcessing = false;
-    this.clearBoardInstant();
-    this.initGrid();
-    this.updateReactUI();
+  
+  private resetGame() { 
+    this.stats = { score: 0, moves: 30, wingsCollected: 0 }; 
+    this.isProcessing = false; 
+    this.initGrid(); 
   }
 }
