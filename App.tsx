@@ -21,8 +21,13 @@ const App: React.FC = () => {
       backgroundColor: '#f8f9fa',
       antialias: true,
       pixelArt: false,
-      roundPixels: true,
+      roundPixels: false,
       scene: Match3Scene,
+      render: {
+        antialias: true,
+        antialiasGL: true,
+        mipmapFilter: 'LINEAR_MIPMAP_LINEAR',
+      },
     };
 
     const game = new Phaser.Game(config);
@@ -63,12 +68,13 @@ const App: React.FC = () => {
 
       <div className="relative z-10 w-full max-w-[600px] h-full max-h-[800px] shadow-2xl bg-white sm:rounded-[40px] overflow-hidden">
         <div id="game-container" className="w-full h-full" />
-        <Overlay 
-          score={stats.score} 
-          moves={stats.moves} 
+        <Overlay
+          score={stats.score}
+          moves={stats.moves}
           wingsCollected={stats.wingsCollected}
-          isGameOver={isGameOver} 
-          onReset={handleReset} 
+          isGameOver={isGameOver}
+          onReset={handleReset}
+          gameRef={gameRef}
         />
       </div>
     </div>
