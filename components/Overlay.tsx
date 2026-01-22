@@ -9,25 +9,17 @@ interface OverlayProps {
   wingsCollected: number;
   isGameOver: boolean;
   onReset: () => void;
-  gameRef?: React.RefObject<Phaser.Game | null>;
+  basketShaking?: boolean;
 }
 
-const Overlay: React.FC<OverlayProps> = ({ score, moves, wingsCollected, isGameOver, onReset, gameRef }) => {
+const Overlay: React.FC<OverlayProps> = ({ score, moves, wingsCollected, isGameOver, onReset, basketShaking = false }) => {
   const [tutorialStep, setTutorialStep] = useState(0);
   const [showTutorial, setShowTutorial] = useState(true);
-  const [isShaking, setIsShaking] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
-  const prevWingsRef = useRef(wingsCollected);
   const shareCardRef = useRef<HTMLDivElement>(null);
 
-  // Тряска корзины когда добавляются крылышки
-  useEffect(() => {
-    if (wingsCollected > prevWingsRef.current) {
-      setIsShaking(true);
-      setTimeout(() => setIsShaking(false), 500);
-    }
-    prevWingsRef.current = wingsCollected;
-  }, [wingsCollected]);
+  // Используем переданный basketShaking
+  const isShaking = basketShaking;
 
   const nextStep = () => {
     if (tutorialStep < TUTORIAL_STEPS.length - 1) {
@@ -122,7 +114,7 @@ const Overlay: React.FC<OverlayProps> = ({ score, moves, wingsCollected, isGameO
       <div className="w-full max-w-md flex justify-between items-stretch gap-2 pointer-events-auto">
         <div className={`flex-1 bg-white border-b-4 border-gray-200 shadow-lg rounded-3xl p-2 flex items-center justify-center gap-2 transition-transform ${isShaking ? 'scale-105' : ''}`}>
           <img
-            src="/images/bucket.png"
+            src={`${import.meta.env.BASE_URL}images/bucket.png`}
             alt="Корзина"
             className="w-10 h-10 object-contain"
             style={isShaking ? { animation: 'shake 0.5s ease-in-out' } : {}}

@@ -1,46 +1,34 @@
-
 import React, { useRef, useState, useEffect } from 'react';
-import Phaser from 'phaser';
-import { Match3Scene } from './game/Match3Scene';
+import { PixiGame } from './game/PixiGame';
 import Overlay from './components/Overlay';
 
 const App: React.FC = () => {
-  const gameRef = useRef<Phaser.Game | null>(null);
+  const gameRef = useRef<PixiGame | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [stats, setStats] = useState({ score: 0, moves: 30, wingsCollected: 0 });
   const [isGameOver, setIsGameOver] = useState(false);
   const [isAssetsLoading, setIsAssetsLoading] = useState(true);
+  const [basketShaking, setBasketShaking] = useState(false);
+
+  const handleBasketHit = () => {
+    setBasketShaking(true);
+    setTimeout(() => setBasketShaking(false), 500);
+  };
 
   useEffect(() => {
-    if (gameRef.current) return;
+    if (gameRef.current || !containerRef.current) return;
 
-    const config: Phaser.Types.Core.GameConfig = {
-      type: Phaser.AUTO,
-      parent: 'game-container',
-      width: 600,
-      height: 800,
-      backgroundColor: '#f8f9fa',
-      antialias: true,
-      pixelArt: false,
-      roundPixels: false,
-      scene: Match3Scene,
-      render: {
-        antialias: true,
-        antialiasGL: true,
-        mipmapFilter: 'LINEAR_MIPMAP_LINEAR',
-      },
-    };
-
-    const game = new Phaser.Game(config);
-    gameRef.current = game;
-
-    // Слушатели событий из Phaser
-    game.events.on('assets-loaded', () => setIsAssetsLoading(false));
-    game.events.on('update-stats', (data: any) => setStats(data));
-    game.events.on('game-over', () => setIsGameOver(true));
+    gameRef.current = new PixiGame(
+      containerRef.current,
+      (newStats) => setStats(newStats),
+      () => setIsGameOver(true),
+      () => setIsAssetsLoading(false),
+      handleBasketHit
+    );
 
     return () => {
       if (gameRef.current) {
-        gameRef.current.destroy(true);
+        gameRef.current.destroy();
         gameRef.current = null;
       }
     };
@@ -48,10 +36,7 @@ const App: React.FC = () => {
 
   const handleReset = () => {
     setIsGameOver(false);
-    // Use the Match3Scene instance to emit the reset event.
-    // Casting to any to bypass strict type checking where inherited Scene properties might not be resolved.
-    const scene = gameRef.current?.scene.getScene('Match3Scene') as any;
-    if (scene) scene.events.emit('reset-game');
+    gameRef.current?.reset();
   };
 
   return (
@@ -67,14 +52,14 @@ const App: React.FC = () => {
       )}
 
       <div className="relative z-10 w-full max-w-[600px] h-full max-h-[800px] shadow-2xl bg-white sm:rounded-[40px] overflow-hidden">
-        <div id="game-container" className="w-full h-full" />
+        <div ref={containerRef} id="game-container" className="w-full h-full" />
         <Overlay
           score={stats.score}
           moves={stats.moves}
           wingsCollected={stats.wingsCollected}
           isGameOver={isGameOver}
           onReset={handleReset}
-          gameRef={gameRef}
+          basketShaking={basketShaking}
         />
       </div>
     </div>

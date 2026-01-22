@@ -23,8 +23,9 @@ export class Match3Scene extends Phaser.Scene {
 
   preload() {
     // Загружаем ассеты из public/images
+    const basePath = import.meta.env.BASE_URL || '/';
     ITEM_TYPES.forEach(type => {
-      const path = `/images/${type}.png`;
+      const path = `${basePath}images/${type}.png`;
       console.log(`Loading: item-${type} from ${path}`);
       this.load.image(`item-${type}`, path);
     });
@@ -35,11 +36,15 @@ export class Match3Scene extends Phaser.Scene {
 
     this.load.on('complete', () => {
       console.log('All assets loaded. Textures:', this.textures.getTextureKeys());
-      // Устанавливаем линейную фильтрацию для сглаживания при уменьшении
+      // Устанавливаем линейную фильтрацию и CLAMP_TO_EDGE для избежания артефактов
       ITEM_TYPES.forEach(type => {
         const texture = this.textures.get(`item-${type}`);
-        if (texture && texture.source[0]) {
+        if (texture) {
           texture.setFilter(Phaser.Textures.FilterMode.LINEAR);
+          // CLAMP_TO_EDGE убирает артефакты на краях
+          if (texture.setWrap) {
+            texture.setWrap(Phaser.Textures.WrapMode.CLAMP_TO_EDGE);
+          }
         }
       });
     });
@@ -64,7 +69,7 @@ export class Match3Scene extends Phaser.Scene {
         // Создаем renderTexture вне видимой области
         const rt = this.make.renderTexture({ x: 0, y: 0, width: 64, height: 64 }, false);
         const bgImg = this.make.image({ x: 32, y: 32, key: `${key}-bg` }, false);
-        const text = this.make.text({ x: 32, y: 32, text: data.emoji, style: { fontSize: '32px' } }, false);
+        const text = this.make.text({ x: 32, y: 32, text: data.emoji, style: { fontSize: '32px', resolution: 1 } }, false);
         text.setOrigin(0.5);
 
         rt.draw(bgImg);
@@ -139,19 +144,6 @@ export class Match3Scene extends Phaser.Scene {
 
     container.add([bg, img]);
     container.setData({ type, row, col, img }).setSize(TILE_SIZE, TILE_SIZE).setInteractive();
-
-    // Плавная анимация парения
-    const floatDelay = (row * GRID_SIZE + col) * 100 + Math.random() * 500;
-    const floatDuration = 2000 + Math.random() * 1000;
-    this.tweens.add({
-      targets: img,
-      y: { from: 0, to: -3 },
-      duration: floatDuration,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.easeInOut',
-      delay: floatDelay
-    });
 
     container.on('pointerdown', (p: Phaser.Input.Pointer) => {
       if (!this.isProcessing) {

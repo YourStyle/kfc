@@ -151,22 +151,22 @@ export class FXService {
   }
 
   public emitDeath(x: number, y: number, type: ItemType) {
-    // Основной эмиттер
-    this.particleEmitters[type]?.emitParticleAt(x, y, 8);
+    // Основной эмиттер (уменьшено для производительности)
+    this.particleEmitters[type]?.emitParticleAt(x, y, 4);
 
     // Дополнительные эмиттеры для сложных эффектов
     if (type === 'burger') {
-      this.particleEmitters['burger-lettuce']?.emitParticleAt(x, y, 3);
-      this.particleEmitters['burger-sesame']?.emitParticleAt(x, y, 5);
+      this.particleEmitters['burger-lettuce']?.emitParticleAt(x, y, 2);
+      this.particleEmitters['burger-sesame']?.emitParticleAt(x, y, 2);
     } else if (type === 'cola') {
-      this.particleEmitters['cola-drops']?.emitParticleAt(x, y, 5);
+      this.particleEmitters['cola-drops']?.emitParticleAt(x, y, 2);
     }
   }
 
   public showCombo(x: number, y: number, combo: number) {
     const texts = ["ХРУСТЬ!", "ВКУСНО!", "СОЧНО!", "КОМБО!", "ШЕФ!"];
     const label = this.scene.add.text(x, y, texts[Math.min(combo - 2, 4)], {
-      fontSize: '56px', fontFamily: 'Oswald', fontStyle: '900', color: '#E4002B', stroke: '#fff', strokeThickness: 10
+      fontSize: '56px', fontFamily: 'Oswald', fontStyle: '900', color: '#E4002B', stroke: '#fff', strokeThickness: 10, resolution: 1
     }).setOrigin(0.5).setDepth(1000).setScale(0.5).setAlpha(0);
 
     this.scene.tweens.add({
@@ -232,7 +232,8 @@ export class FXService {
       fontStyle: '900',
       color: '#ffffff',
       stroke: '#E4002B',
-      strokeThickness: 8
+      strokeThickness: 8,
+      resolution: 1
     }).setOrigin(0.5).setDepth(1500).setScale(0).setAlpha(0);
 
     this.scene.tweens.add({
