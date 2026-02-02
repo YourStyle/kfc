@@ -1,0 +1,93 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": true,
+  "panels": [
+    {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "description": "Общее количество HTTP запросов к backend за последний час.",
+      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 0 },
+      "id": 1,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false } },
+      "title": "Total Requests (1h)",
+      "type": "stat",
+      "targets": [{ "expr": "sum(count_over_time({service=\"backend\"} [1h]))", "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "description": "Количество ошибок за час. ERROR, Exception, Traceback.",
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 10 }, { "color": "red", "value": 50 }] } } },
+      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 0 },
+      "id": 2,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false } },
+      "title": "Errors (1h)",
+      "type": "stat",
+      "targets": [{ "expr": "sum(count_over_time({container=~\"rostics-(backend|frontend|admin|nginx|db|redis).*\"} |~ \"(?i)error|exception|traceback\" [1h]))", "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "description": "Предупреждения за последний час.",
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 20 }, { "color": "orange", "value": 100 }] } } },
+      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 0 },
+      "id": 3,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false } },
+      "title": "Warnings (1h)",
+      "type": "stat",
+      "targets": [{ "expr": "sum(count_over_time({container=~\"rostics-(backend|frontend|admin|nginx|db|redis).*\"} |~ \"(?i)warning\" [1h]))", "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "description": "Логи Flask backend в реальном времени",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 4 },
+      "id": 5,
+      "options": { "dedupStrategy": "none", "enableLogDetails": true, "prettifyLogMessage": false, "showCommonLabels": false, "showLabels": false, "showTime": true, "sortOrder": "Descending", "wrapLogMessage": false },
+      "title": "Backend Logs",
+      "type": "logs",
+      "targets": [{ "expr": "{container=\"rostics-backend\"}", "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "description": "Ошибки и исключения из всех сервисов",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 14 },
+      "id": 6,
+      "options": { "dedupStrategy": "none", "enableLogDetails": true, "prettifyLogMessage": false, "showCommonLabels": false, "showLabels": true, "showTime": true, "sortOrder": "Descending", "wrapLogMessage": false },
+      "title": "Error Logs (All Services)",
+      "type": "logs",
+      "targets": [{ "expr": "{container=~\"rostics-(backend|frontend|admin|nginx|db|redis).*\"} |~ \"(?i)error|exception|traceback\"", "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "description": "График количества лог-сообщений по сервисам",
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } } },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 22 },
+      "id": 7,
+      "options": { "legend": { "calcs": [], "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "title": "Logs per Service",
+      "type": "timeseries",
+      "targets": [{ "expr": "sum by (container) (count_over_time({container=~\"rostics-(backend|frontend|admin|nginx|db|redis).*\"}[1m]))", "legendFormat": "{{container}}", "refId": "A" }]
+    },
+    {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "description": "Логи Admin Panel в реальном времени",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 22 },
+      "id": 8,
+      "options": { "dedupStrategy": "none", "enableLogDetails": true, "prettifyLogMessage": false, "showCommonLabels": false, "showLabels": false, "showTime": true, "sortOrder": "Descending", "wrapLogMessage": false },
+      "title": "Admin Logs",
+      "type": "logs",
+      "targets": [{ "expr": "{container=\"rostics-admin\"}", "refId": "A" }]
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["logs", "loki"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "title": "Application Logs",
+  "uid": "app-logs",
+  "version": 1
+}
