@@ -1,0 +1,93 @@
+groups:
+  - name: service_health
+    rules:
+      # Alert when a service is down
+      - alert: ServiceDown
+        expr: up{job=~"backend|admin"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "{{ $labels.job }} has been unreachable for more than 1 minute."
+
+      # Alert on high error rate (5xx responses)
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(flask_http_request_total{status=~"5.."}[5m])) by (job)
+          /
+          sum(rate(flask_http_request_total[5m])) by (job)
+          > 0.05
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate on {{ $labels.job }}"
+          description: "Error rate is {{ $value | humanizePercentage }} on {{ $labels.job }}"
+
+      # Alert on slow response times
+      - alert: SlowResponses
+        expr: |
+          histogram_quantile(0.95, sum(rate(flask_http_request_duration_seconds_bucket[5m])) by (le, job))
+          > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow responses on {{ $labels.job }}"
+          description: "95th percentile response time is {{ $value }}s on {{ $labels.job }}"
+
+  - name: container_health
+    rules:
+      # Alert when container restarts frequently
+      - alert: ContainerRestarting
+        expr: |
+          increase(container_last_seen{name=~"rostics-.*"}[10m]) == 0
+          and
+          changes(container_start_time_seconds{name=~"rostics-.*"}[10m]) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container {{ $labels.name }} is restarting"
+          description: "Container {{ $labels.name }} has restarted more than 2 times in 10 minutes"
+
+      # Alert on high container memory usage
+      - alert: HighContainerMemory
+        expr: |
+          container_memory_usage_bytes{name=~"rostics-.*"}
+          /
+          container_spec_memory_limit_bytes{name=~"rostics-.*"}
+          > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage on {{ $labels.name }}"
+          description: "Container {{ $labels.name }} is using {{ $value | humanizePercentage }} of memory limit"
+
+      # Alert when container is not running
+      - alert: ContainerNotRunning
+        expr: |
+          absent(container_last_seen{name="rostics-backend"})
+          or absent(container_last_seen{name="rostics-admin"})
+          or absent(container_last_seen{name="rostics-db"})
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical container not running"
+          description: "One or more critical containers (backend, admin, db) are not running"
+
+  - name: database_health
+    rules:
+      # Alert when database connection pool is exhausted
+      - alert: DatabaseConnectionsHigh
+        expr: |
+          pg_stat_activity_count > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High database connections"
+          description: "Database has {{ $value }} active connections"
