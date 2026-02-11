@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
+import { AuthProvider } from '../contexts/AuthContext';
 
 // Mock the api module
 vi.mock('../services/api', () => ({
@@ -26,6 +27,13 @@ vi.mock('../services/api', () => ({
 import api from '../services/api';
 import App from '../App';
 
+const renderApp = () =>
+  render(
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  );
+
 describe('App', () => {
   beforeEach(() => {
     vi.resetAllMocks();
@@ -45,7 +53,7 @@ describe('App', () => {
         data: { levels: mockLevels },
       });
 
-      render(<App />);
+      renderApp();
 
       await waitFor(() => {
         expect(api.getLevels).toHaveBeenCalled();
@@ -61,7 +69,7 @@ describe('App', () => {
       });
 
       // Should not crash
-      render(<App />);
+      renderApp();
 
       await waitFor(() => {
         expect(api.getLevels).toHaveBeenCalled();
@@ -73,7 +81,7 @@ describe('App', () => {
         data: { levels: [] },
       });
 
-      render(<App />);
+      renderApp();
 
       await waitFor(() => {
         expect(api.getLevels).toHaveBeenCalled();
@@ -95,7 +103,7 @@ describe('App', () => {
 
       // This test ensures that levels is an array, not an object
       // If levels were an object { levels: [...] }, calling findIndex would throw
-      render(<App />);
+      renderApp();
 
       await waitFor(() => {
         expect(api.getLevels).toHaveBeenCalled();

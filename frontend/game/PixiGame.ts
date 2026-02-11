@@ -32,7 +32,11 @@ export class PixiGame {
   private particleContainer: Container;
   private grid: (TileData | null)[][] = [];
   private isProcessing = false;
-  private stats = { score: 0, moves: 30, wingsCollected: 0 };
+  private stats = {
+    score: 0,
+    moves: 30,
+    collected: { drumstick: 0, wing: 0, burger: 0, fries: 0, bucket: 0, ice_cream: 0, donut: 0, cappuccino: 0 }
+  };
   private dragStart: GridPos | null = null;
   private particles: ParticleSystem;
   private textures: Record<string, Texture> = {};
@@ -43,7 +47,7 @@ export class PixiGame {
   private hintTimeout: ReturnType<typeof setTimeout> | null = null;
   private hintTweens: gsap.core.Tween[] = [];
   private onStatsUpdate: (stats: typeof this.stats) => void;
-  private onGameOver: () => void;
+  private onGameOver: (finalStats: { score: number; moves: number; collected: Record<string, number> }) => void;
   private onAssetsLoaded: () => void;
   private onBasketHit: () => void;
   private levelConfig?: LevelConfig;
@@ -52,7 +56,7 @@ export class PixiGame {
   constructor(
     container: HTMLElement,
     onStatsUpdate: (stats: typeof PixiGame.prototype.stats) => void,
-    onGameOver: () => void,
+    onGameOver: (finalStats: { score: number; moves: number; collected: Record<string, number> }) => void,
     onAssetsLoaded: () => void,
     onBasketHit: () => void,
     levelConfig?: LevelConfig
@@ -106,7 +110,7 @@ export class PixiGame {
     await this.app.init({
       width: canvasWidth,
       height: canvasHeight,
-      backgroundColor: 0xf8f9fa,
+      backgroundAlpha: 0, // Transparent background
       antialias: true,
       resolution: Math.min(window.devicePixelRatio || 1, 2),
       autoDensity: true,
@@ -125,7 +129,11 @@ export class PixiGame {
     // Центрируем поле с учётом UI сверху и снизу
     const gridWidth = this.gridSize * this.tileSize;
     const gridHeight = this.gridSize * this.tileSize;
-    const topOffset = isMobile ? 140 : 120; // Отступ сверху для UI
+    // Считаем кол-во целей чтобы сдвинуть сетку если целей на 2 строки
+    const targetCount = (this.levelConfig?.targets?.collect ? Object.keys(this.levelConfig.targets.collect).length : 0)
+      + (this.levelConfig?.targets?.min_score ? 1 : 0);
+    const extraOffset = targetCount > 3 ? 30 : 0;
+    const topOffset = (isMobile ? 140 : 120) + extraOffset;
     const availableHeight = canvasHeight - topOffset - 50; // 50px для нижнего UI
 
     this.gridContainer.x = (canvasWidth - gridWidth) / 2;
@@ -134,8 +142,8 @@ export class PixiGame {
     // Рисуем фон поля
     this.drawBoardBackground();
 
-    // Создаём сетку
-    this.createGrid();
+    // Создаём сетку с валидацией (гарантируем наличие ходов)
+    await this.createValidGrid();
 
     // Настраиваем ввод
     this.setupInput();
@@ -151,9 +159,42 @@ export class PixiGame {
     const basePath = import.meta.env.BASE_URL || '/';
 
     for (const type of ITEM_TYPES) {
-      const path = `${basePath}images/${type}.png`;
-      this.textures[type] = await Assets.load(path);
+      try {
+        const path = `${basePath}images/${type}.png`;
+        this.textures[type] = await Assets.load(path);
+      } catch {
+        // Fallback: generate texture from emoji for items without PNG
+        this.textures[type] = this.createEmojiTexture(ITEM_DATA[type].emoji);
+      }
     }
+  }
+
+  private createEmojiTexture(emoji: string): Texture {
+    const canvas = document.createElement('canvas');
+    const size = 128;
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d')!;
+    ctx.font = `${Math.floor(size * 0.75)}px serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(emoji, size / 2, size / 2);
+    return Texture.from(canvas);
+  }
+
+  // Helper to draw asymmetric rounded rectangle (sci-fi style: small-big-small-big corners)
+  private drawSciFiRect(g: Graphics, x: number, y: number, w: number, h: number, r1: number, r2: number) {
+    // r1 = small radius (top-left, bottom-right), r2 = big radius (top-right, bottom-left)
+    g.moveTo(x + r1, y);
+    g.lineTo(x + w - r2, y);
+    g.quadraticCurveTo(x + w, y, x + w, y + r2);
+    g.lineTo(x + w, y + h - r1);
+    g.quadraticCurveTo(x + w, y + h, x + w - r1, y + h);
+    g.lineTo(x + r2, y + h);
+    g.quadraticCurveTo(x, y + h, x, y + h - r2);
+    g.lineTo(x, y + r1);
+    g.quadraticCurveTo(x, y, x + r1, y);
+    g.closePath();
   }
 
   private drawBoardBackground() {
@@ -161,14 +202,14 @@ export class PixiGame {
     const padding = 16;
     const size = this.gridSize * this.tileSize + padding * 2;
 
-    // Outer board frame with warm color
-    bg.roundRect(-padding, -padding, size, size, 24);
-    bg.fill({ color: 0xD4A574, alpha: 1 }); // Warm light brown
-    bg.stroke({ color: 0xC4956A, width: 3 });
+    // Outer board frame - dark sci-fi style with asymmetric corners
+    this.drawSciFiRect(bg, -padding, -padding, size, size, 8, 24);
+    bg.fill({ color: 0x1a2438, alpha: 0.75 });
+    bg.stroke({ color: 0x3a4a6a, width: 2 });
 
     this.gridContainer.addChild(bg);
 
-    // Draw individual cell backgrounds
+    // Draw individual cell backgrounds with dark theme and sci-fi corners
     const cellBg = new Graphics();
     const cellPadding = 2;
     const cellSize = this.tileSize - cellPadding * 2;
@@ -178,16 +219,45 @@ export class PixiGame {
         const x = col * this.tileSize + cellPadding;
         const y = row * this.tileSize + cellPadding;
 
-        // Alternate colors for checkerboard pattern
+        // Alternate colors for subtle checkerboard pattern - dark theme
         const isLight = (row + col) % 2 === 0;
-        const cellColor = isLight ? 0xF5E6D3 : 0xEDD9C4; // Light beige tones
+        const cellColor = isLight ? 0x2a3a5a : 0x243250;
 
-        cellBg.roundRect(x, y, cellSize, cellSize, 8);
-        cellBg.fill({ color: cellColor, alpha: 1 });
+        this.drawSciFiRect(cellBg, x, y, cellSize, cellSize, 4, 10);
+        cellBg.fill({ color: cellColor, alpha: 0.7 });
       }
     }
 
     this.gridContainer.addChild(cellBg);
+  }
+
+  // Создаёт сетку с гарантией наличия валидных ходов
+  private async createValidGrid(): Promise<void> {
+    const maxAttempts = 10;
+    let attempts = 0;
+
+    do {
+      // Очищаем предыдущую сетку если была
+      if (this.grid.length > 0) {
+        for (let row = 0; row < this.gridSize; row++) {
+          for (let col = 0; col < this.gridSize; col++) {
+            const tile = this.grid[row]?.[col];
+            if (tile) {
+              gsap.killTweensOf(tile.sprite);
+              gsap.killTweensOf(tile.container);
+              this.gridContainer.removeChild(tile.container);
+            }
+          }
+        }
+      }
+
+      this.createGrid();
+      attempts++;
+
+      // Ждём завершения анимации появления
+      await this.delay(this.gridSize * this.gridSize * 20 + 300);
+
+    } while (!this.findValidMove() && attempts < maxAttempts);
   }
 
   private createGrid() {
@@ -312,52 +382,82 @@ export class PixiGame {
 
     const isObstacle = type === 'obstacle';
 
-    // Фон тайла
+    // Фон тайла с sci-fi углами
     const bg = new Graphics();
-    bg.roundRect(-this.tileSize / 2 + 4, -this.tileSize / 2 + 4, this.tileSize - 8, this.tileSize - 8, 12);
+    const tileOffset = 4;
+    const tileBgSize = this.tileSize - 8;
+    this.drawSciFiRect(bg, -this.tileSize / 2 + tileOffset, -this.tileSize / 2 + tileOffset, tileBgSize, tileBgSize, 4, 12);
     if (isObstacle) {
-      // Темный фон для препятствий
-      bg.fill({ color: 0x4a5568 });
-      bg.stroke({ color: 0x2d3748, width: 3 });
+      // Космический тёмный фон для препятствий
+      bg.fill({ color: 0x1a2535, alpha: 0.9 });
+      bg.stroke({ color: 0x4a6a8a, width: 2 });
     } else {
-      bg.fill({ color: 0xffffff });
-      bg.stroke({ color: 0xf0f0f0, width: 2 });
+      // Светлый полупрозрачный фон для обычных тайлов
+      bg.fill({ color: 0xffffff, alpha: 0.95 });
+      bg.stroke({ color: 0xe0e5f0, width: 1 });
     }
     container.addChild(bg);
 
     // Спрайт (только для обычных тайлов)
     let sprite: Sprite;
     if (isObstacle) {
-      // Для препятствий создаем графику коробки
+      // Космический астероид / кристалл
       sprite = new Sprite();
       sprite.anchor.set(0.5);
 
-      const boxSize = this.spriteSize * 0.8;
-      const boxGraphic = new Graphics();
+      const size = this.spriteSize * 0.85;
+      const asteroidGraphic = new Graphics();
 
-      // Основа коробки (коричневая)
-      boxGraphic.roundRect(-boxSize/2, -boxSize/2, boxSize, boxSize, 6);
-      boxGraphic.fill({ color: 0x8B4513 });
-      boxGraphic.stroke({ color: 0x5D3A1A, width: 2 });
+      // Внешнее свечение (glow effect)
+      asteroidGraphic.circle(0, 0, size * 0.55);
+      asteroidGraphic.fill({ color: 0x4a90d9, alpha: 0.15 });
 
-      // Крышка коробки
-      boxGraphic.rect(-boxSize/2, -boxSize/2, boxSize, boxSize * 0.25);
-      boxGraphic.fill({ color: 0xA0522D });
-      boxGraphic.stroke({ color: 0x5D3A1A, width: 1 });
+      // Основная форма астероида (многоугольник)
+      const points = [
+        { x: 0, y: -size * 0.45 },           // top
+        { x: size * 0.35, y: -size * 0.25 }, // top-right
+        { x: size * 0.45, y: size * 0.1 },   // right
+        { x: size * 0.25, y: size * 0.4 },   // bottom-right
+        { x: -size * 0.2, y: size * 0.45 },  // bottom
+        { x: -size * 0.45, y: size * 0.15 }, // left
+        { x: -size * 0.35, y: -size * 0.3 }, // top-left
+      ];
 
-      // Лента по центру (вертикальная)
-      boxGraphic.rect(-boxSize * 0.1, -boxSize/2, boxSize * 0.2, boxSize);
-      boxGraphic.fill({ color: 0xDAA520 });
+      // Тёмная основа астероида
+      asteroidGraphic.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < points.length; i++) {
+        asteroidGraphic.lineTo(points[i].x, points[i].y);
+      }
+      asteroidGraphic.closePath();
+      asteroidGraphic.fill({ color: 0x2a3a4a });
+      asteroidGraphic.stroke({ color: 0x5a7a9a, width: 2 });
 
-      // Лента (горизонтальная)
-      boxGraphic.rect(-boxSize/2, -boxSize * 0.1, boxSize, boxSize * 0.2);
-      boxGraphic.fill({ color: 0xDAA520 });
+      // Светящиеся кристаллические грани
+      asteroidGraphic.moveTo(points[0].x, points[0].y);
+      asteroidGraphic.lineTo(0, 0);
+      asteroidGraphic.lineTo(points[1].x, points[1].y);
+      asteroidGraphic.closePath();
+      asteroidGraphic.fill({ color: 0x6ab0ff, alpha: 0.4 });
 
-      // Бантик в центре
-      boxGraphic.circle(0, 0, boxSize * 0.12);
-      boxGraphic.fill({ color: 0xFFD700 });
+      asteroidGraphic.moveTo(points[2].x, points[2].y);
+      asteroidGraphic.lineTo(0, 0);
+      asteroidGraphic.lineTo(points[3].x, points[3].y);
+      asteroidGraphic.closePath();
+      asteroidGraphic.fill({ color: 0x4a90d9, alpha: 0.3 });
 
-      container.addChild(boxGraphic);
+      // Центральное ядро
+      asteroidGraphic.circle(0, 0, size * 0.12);
+      asteroidGraphic.fill({ color: 0x8ac0ff, alpha: 0.8 });
+
+      // Маленькие "звёздочки" на поверхности
+      asteroidGraphic.circle(-size * 0.15, -size * 0.2, 2);
+      asteroidGraphic.fill({ color: 0xffffff, alpha: 0.9 });
+      asteroidGraphic.circle(size * 0.2, size * 0.15, 1.5);
+      asteroidGraphic.fill({ color: 0xffffff, alpha: 0.7 });
+      asteroidGraphic.circle(-size * 0.25, size * 0.1, 1);
+      asteroidGraphic.fill({ color: 0xffffff, alpha: 0.6 });
+
+      container.addChild(asteroidGraphic);
     } else {
       sprite = new Sprite(this.textures[type]);
       sprite.anchor.set(0.5);
@@ -513,7 +613,8 @@ export class PixiGame {
     }
 
     if (this.stats.moves <= 0) {
-      this.onGameOver();
+      this.vibrate([40, 30, 40, 30, 60]);
+      this.onGameOver({ ...this.stats });
     }
 
     this.isProcessing = false;
@@ -620,9 +721,9 @@ export class PixiGame {
               this.particles.emit(stageX, stageY, tile.type); // Двойные частицы
             }
 
-            // Если это курица - запускаем анимацию полёта к баскету
-            if (tile.type === 'chicken') {
-              this.flyToBasket(stageX, stageY);
+            // Собираем все типы предметов
+            if (tile.type !== 'obstacle') {
+              this.collectItem(stageX, stageY, tile.type);
             }
 
             // Анимация исчезновения
@@ -644,21 +745,179 @@ export class PixiGame {
       // Показываем комбо
       if (combo >= 2) {
         this.showComboText(combo);
+        // Haptic feedback для комбо
+        this.vibrate(combo >= 3 ? [30, 20, 30] : [20]);
+      } else if (matches.some(m => m.length >= 4)) {
+        // Haptic для длинных матчей
+        this.vibrate([15, 10, 15]);
       }
 
       this.onStatsUpdate({ ...this.stats });
 
       await this.delay(250);
 
-      // Падение элементов
-      await this.dropTiles();
+      // Цикл заполнения пустот
+      let hasMovement = true;
+      while (hasMovement) {
+        hasMovement = false;
 
-      // Заполняем пустоты
-      await this.fillEmptySpaces();
+        // 1. Падение вниз
+        const dropped = await this.dropTiles();
+        if (dropped) hasMovement = true;
+
+        // 2. Горизонтальный каскад (внутри уже есть цикл с падениями)
+        const pulled = await this.horizontalPull();
+        if (pulled) hasMovement = true;
+
+        // 3. Спавн новых тайлов сверху
+        const filled = await this.fillFromTop();
+        if (filled) hasMovement = true;
+      }
 
       // Ищем новые совпадения
       matches = this.findMatches();
     }
+
+    // Проверяем, есть ли доступные ходы
+    if (!this.findValidMove()) {
+      await this.performGeneralCleanup();
+    }
+  }
+
+  // "Генеральная уборка" - удаляем все элементы и создаём новые
+  private async performGeneralCleanup(): Promise<void> {
+    // Центр игрового поля
+    const fieldCenterX = this.gridContainer.x + (this.gridSize * this.tileSize) / 2;
+    const fieldCenterY = this.gridContainer.y + (this.gridSize * this.tileSize) / 2;
+
+    // Показываем текст по центру поля (медленная анимация)
+    this.showSpecialEffect(
+      fieldCenterX,
+      fieldCenterY,
+      'ГЕНЕРАЛЬНАЯ УБОРКА!',
+      0x00BFFF,
+      true  // slow mode
+    );
+
+    await this.delay(1500); // Ждём пока надпись покажется
+
+    // Удаляем все не-препятствия с анимацией
+    const removeAnimations: Promise<void>[] = [];
+
+    for (let row = 0; row < this.gridSize; row++) {
+      for (let col = 0; col < this.gridSize; col++) {
+        const tile = this.grid[row][col];
+        if (tile && tile.type !== 'obstacle') {
+          const delay = (row + col) * 0.03; // Волновой эффект
+
+          removeAnimations.push(
+            new Promise((resolve) => {
+              gsap.to(tile.container, {
+                alpha: 0,
+                rotation: Math.PI,
+                scale: 0,
+                duration: 0.3,
+                delay,
+                ease: 'back.in(2)',
+                onComplete: () => {
+                  this.gridContainer.removeChild(tile.container);
+                  resolve();
+                }
+              });
+            })
+          );
+
+          this.grid[row][col] = null;
+        }
+      }
+    }
+
+    await Promise.all(removeAnimations);
+    await this.delay(200);
+
+    // Заполняем поле новыми элементами (убедимся что есть ходы)
+    await this.refillBoardWithValidMoves();
+  }
+
+  // Заполняем поле новыми элементами, гарантируя наличие ходов
+  private async refillBoardWithValidMoves(): Promise<void> {
+    let attempts = 0;
+    const maxAttempts = 10;
+
+    do {
+      // Заполняем пустые ячейки
+      const animations: Promise<void>[] = [];
+
+      for (let col = 0; col < this.gridSize; col++) {
+        let emptyCount = 0;
+
+        for (let row = 0; row < this.gridSize; row++) {
+          if (!this.grid[row][col]) {
+            emptyCount++;
+            const type = this.getSmartRandomType(row, col);
+            const tile = this.createTile(type, row, col);
+            this.grid[row][col] = tile;
+
+            const startY = -this.tileSize * emptyCount;
+            tile.container.y = startY;
+            tile.container.alpha = 0;
+
+            const targetY = row * this.tileSize + this.tileSize / 2;
+            const delay = col * 0.05 + emptyCount * 0.03;
+
+            animations.push(
+              new Promise((resolve) => {
+                gsap.to(tile.container, { alpha: 1, duration: 0.1, delay });
+                gsap.to(tile.container, {
+                  y: targetY,
+                  duration: 0.25,
+                  delay,
+                  ease: 'bounce.out',
+                  onComplete: () => {
+                    this.startFloatingAnimation(tile);
+                    resolve();
+                  }
+                });
+              })
+            );
+          }
+        }
+      }
+
+      await Promise.all(animations);
+      attempts++;
+
+      // Проверяем на совпадения и убираем их
+      let matches = this.findMatches();
+      while (matches.length > 0) {
+        // Тихо убираем совпадения без анимации и очков
+        for (const match of matches) {
+          for (const pos of match) {
+            const tile = this.grid[pos.row][pos.col];
+            if (tile && tile.type !== 'obstacle') {
+              this.gridContainer.removeChild(tile.container);
+              this.grid[pos.row][pos.col] = null;
+            }
+          }
+        }
+        // Заполняем снова (включая ячейки под препятствиями)
+        await this.dropTiles();
+        await this.horizontalPull();
+        await this.fillFromTop();
+        matches = this.findMatches();
+      }
+
+      // После основного заполнения - убедимся что нет пустот под препятствиями
+      let hasEmpty = true;
+      while (hasEmpty) {
+        hasEmpty = false;
+        await this.dropTiles();
+        const pulled = await this.horizontalPull();
+        const filled = await this.fillFromTop();
+        if (pulled || filled) hasEmpty = true;
+      }
+
+    } while (!this.findValidMove() && attempts < maxAttempts);
   }
 
   private showComboText(combo: number) {
@@ -675,8 +934,8 @@ export class PixiGame {
 
     const label = new Text({ text, style });
     label.anchor.set(0.5);
-    label.x = 300;
-    label.y = 400;
+    label.x = this.gridContainer.x + (this.gridSize * this.tileSize) / 2;
+    label.y = this.gridContainer.y + (this.gridSize * this.tileSize) / 2;
     label.scale.set(0);
 
     this.uiContainer.addChild(label);
@@ -698,10 +957,10 @@ export class PixiGame {
     });
   }
 
-  private showSpecialEffect(x: number, y: number, text: string, color: number) {
+  private showSpecialEffect(x: number, y: number, text: string, color: number, slow = false) {
     // Вспышка
     const flash = new Graphics();
-    flash.circle(0, 0, 50);
+    flash.circle(0, 0, slow ? 80 : 50);
     flash.fill({ color, alpha: 0.5 });
     flash.x = x;
     flash.y = y;
@@ -709,9 +968,9 @@ export class PixiGame {
 
     gsap.to(flash, {
       alpha: 0,
-      width: 200,
-      height: 200,
-      duration: 0.4,
+      width: slow ? 300 : 200,
+      height: slow ? 300 : 200,
+      duration: slow ? 0.8 : 0.4,
       ease: 'power2.out',
       onComplete: () => {
         this.app.stage.removeChild(flash);
@@ -722,10 +981,10 @@ export class PixiGame {
     // Текст
     const style = new TextStyle({
       fontFamily: 'Oswald, sans-serif',
-      fontSize: 42,
+      fontSize: slow ? 36 : 42, // Чуть меньше чтобы влезло
       fontWeight: 'bold',
       fill: '#ffffff',
-      stroke: { color: color === 0xFFD700 ? '#B8860B' : '#8B0000', width: 6 },
+      stroke: { color: color === 0xFFD700 ? '#B8860B' : '#006994', width: 6 },
     });
 
     const label = new Text({ text, style });
@@ -735,17 +994,21 @@ export class PixiGame {
     label.scale.set(0);
     this.app.stage.addChild(label);
 
+    const scaleDuration = slow ? 0.5 : 0.3;
+    const holdDelay = slow ? 0.8 : 0.3;
+    const fadeOutDuration = slow ? 0.6 : 0.4;
+
     gsap.to(label.scale, {
       x: 1.3,
       y: 1.3,
-      duration: 0.3,
+      duration: scaleDuration,
       ease: 'back.out(2)',
       onComplete: () => {
         gsap.to(label, {
           alpha: 0,
           y: label.y - 40,
-          duration: 0.4,
-          delay: 0.3,
+          duration: fadeOutDuration,
+          delay: holdDelay,
           onComplete: () => {
             this.app.stage.removeChild(label);
             label.destroy();
@@ -755,9 +1018,16 @@ export class PixiGame {
     });
   }
 
-  private flyToBasket(startX: number, startY: number) {
-    // Создаём летящую курочку
-    const flyer = new Sprite(this.textures['chicken']);
+  private collectItem(startX: number, startY: number, itemType: string) {
+    // Сразу увеличиваем счётчик (до анимации, чтобы данные были актуальны при game over)
+    if (this.stats.collected[itemType] !== undefined) {
+      this.stats.collected[itemType]++;
+    }
+    this.onStatsUpdate({ ...this.stats });
+
+    // Создаём летящий предмет для визуального эффекта
+    const texture = this.textures[itemType] || this.textures['drumstick'];
+    const flyer = new Sprite(texture);
     flyer.anchor.set(0.5);
     flyer.width = this.tileSize * 0.6;
     flyer.height = this.tileSize * 0.6;
@@ -780,16 +1050,14 @@ export class PixiGame {
       onComplete: () => {
         this.app.stage.removeChild(flyer);
         flyer.destroy();
-        // Увеличиваем счётчик и вызываем callback
-        this.stats.wingsCollected++;
-        this.onStatsUpdate({ ...this.stats });
         this.onBasketHit();
       }
     });
   }
 
-  private async dropTiles(): Promise<void> {
+  private async dropTiles(): Promise<boolean> {
     const animations: Promise<void>[] = [];
+    let hasMoved = false;
 
     for (let col = 0; col < this.gridSize; col++) {
       // Find all obstacles in this column
@@ -820,19 +1088,18 @@ export class PixiGame {
       // Drop tiles within each segment
       for (const segment of segments) {
         let emptyRow = segment.bottom;
-        let dropIndex = 0;
 
         for (let row = segment.bottom; row >= segment.top; row--) {
           const tile = this.grid[row][col];
           if (tile && tile.type !== 'obstacle') {
             if (row !== emptyRow) {
+              hasMoved = true;
               const dropDistance = emptyRow - row;
               this.grid[emptyRow][col] = tile;
               this.grid[row][col] = null;
               tile.row = emptyRow;
 
               const targetY = emptyRow * this.tileSize + this.tileSize / 2;
-              const delay = dropIndex * 0.03;
               const duration = 0.15 + dropDistance * 0.05;
 
               animations.push(
@@ -840,7 +1107,6 @@ export class PixiGame {
                   gsap.to(tile.container, {
                     y: targetY,
                     duration,
-                    delay,
                     ease: 'power2.in',
                     onComplete: () => {
                       gsap.to(tile.container, {
@@ -860,7 +1126,6 @@ export class PixiGame {
                   });
                 })
               );
-              dropIndex++;
             }
             emptyRow--;
           }
@@ -869,62 +1134,177 @@ export class PixiGame {
     }
 
     await Promise.all(animations);
+    return hasMoved;
   }
 
-  private async fillEmptySpaces(): Promise<void> {
+  // Проверяет, заблокирована ли ячейка препятствием сверху
+  private isBlockedFromTop(row: number, col: number): boolean {
+    for (let r = 0; r < row; r++) {
+      if (this.grid[r][col]?.type === 'obstacle') {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Проверяет, есть ли пустота ВЫШЕ данной строки в колонке (до препятствия или верха)
+  private hasEmptyAbove(row: number, col: number): boolean {
+    for (let r = row - 1; r >= 0; r--) {
+      const cell = this.grid[r][col];
+      if (cell?.type === 'obstacle') return false; // Упёрлись в препятствие
+      if (!cell) return true; // Нашли пустоту
+    }
+    return false;
+  }
+
+  // Проверяет, может ли тайл быть источником для горизонтального перемещения
+  private canBeHorizontalSource(row: number, col: number): boolean {
+    const cell = this.grid[row][col];
+    return cell !== null && cell.type !== 'obstacle';
+  }
+
+  // Находит ближайшую колонку с тайлом, который можно сдвинуть к целевой позиции
+  // Возвращает колонку источника или -1 если не найдено
+  private findHorizontalSource(row: number, targetCol: number): number {
+    // Ищем слева - идём до края или до препятствия
+    for (let col = targetCol - 1; col >= 0; col--) {
+      const cell = this.grid[row][col];
+      if (cell?.type === 'obstacle') break; // Стена - дальше не ищем
+      if (cell && !this.isBlockedFromTop(row, col)) {
+        return col; // Нашли тайл в незаблокированной колонке
+      }
+    }
+
+    // Ищем справа
+    for (let col = targetCol + 1; col < this.gridSize; col++) {
+      const cell = this.grid[row][col];
+      if (cell?.type === 'obstacle') break;
+      if (cell && !this.isBlockedFromTop(row, col)) {
+        return col;
+      }
+    }
+
+    return -1;
+  }
+
+  // Горизонтальное перетекание - каскадное заполнение пустот под препятствиями
+  private async horizontalPull(): Promise<boolean> {
+    let totalMoved = false;
+    let iterationMoved = true;
+
+    // Повторяем пока есть движение (каскад)
+    while (iterationMoved) {
+      iterationMoved = false;
+      const animations: Promise<void>[] = [];
+
+      // Проходим снизу вверх, слева направо
+      for (let row = this.gridSize - 1; row >= 0; row--) {
+        for (let col = 0; col < this.gridSize; col++) {
+          // Ищем пустую ячейку, которая заблокирована сверху
+          if (!this.grid[row][col] && this.isBlockedFromTop(row, col)) {
+            // Сначала пробуем соседние ячейки (быстрее)
+            let sourceCol = -1;
+            if (col > 0 && this.canBeHorizontalSource(row, col - 1)) {
+              sourceCol = col - 1;
+            } else if (col < this.gridSize - 1 && this.canBeHorizontalSource(row, col + 1)) {
+              sourceCol = col + 1;
+            }
+
+            // Если соседи пустые/заблокированы, ищем дальше - ближайшую незаблокированную колонку
+            if (sourceCol === -1) {
+              sourceCol = this.findHorizontalSource(row, col);
+            }
+
+            if (sourceCol !== -1) {
+              iterationMoved = true;
+              totalMoved = true;
+
+              const tile = this.grid[row][sourceCol]!;
+              this.grid[row][col] = tile;
+              this.grid[row][sourceCol] = null;
+              tile.col = col;
+
+              const targetX = col * this.tileSize + this.tileSize / 2;
+
+              animations.push(
+                new Promise((resolve) => {
+                  gsap.to(tile.container, {
+                    x: targetX,
+                    duration: 0.12,
+                    ease: 'power2.out',
+                    onComplete: resolve
+                  });
+                })
+              );
+            }
+          }
+        }
+      }
+
+      // Ждём завершения анимаций этой итерации
+      if (animations.length > 0) {
+        await Promise.all(animations);
+      }
+
+      // После горизонтального сдвига:
+      // 1. Падение вниз в исходных колонках
+      // 2. Заполнение новыми тайлами сверху (чтобы было что тянуть дальше)
+      if (iterationMoved) {
+        await this.dropTiles();
+        await this.fillFromTop();
+      }
+    }
+
+    return totalMoved;
+  }
+
+  // Заполнение ТОЛЬКО сверху (row 0)
+  private async fillFromTop(): Promise<boolean> {
     const animations: Promise<void>[] = [];
+    let hasFilled = false;
 
     for (let col = 0; col < this.gridSize; col++) {
-      // Find obstacles and create segments
-      const obstacleRows: number[] = [];
-      for (let row = 0; row < this.gridSize; row++) {
-        if (this.grid[row][col]?.type === 'obstacle') {
-          obstacleRows.push(row);
-        }
-      }
+      // Проверяем, что колонка не начинается с препятствия
+      if (this.grid[0][col]?.type === 'obstacle') continue;
 
-      // Only fill from top of grid down to first obstacle (or bottom if no obstacles)
-      const firstObstacle = obstacleRows.length > 0 ? Math.min(...obstacleRows) : this.gridSize;
-
+      // Считаем пустые ячейки сверху (до первого препятствия или тайла)
       let emptyCount = 0;
-      const emptyPositions: { row: number; count: number }[] = [];
-
-      // Find empty positions only above obstacles (new items fall from top)
-      for (let row = 0; row < firstObstacle; row++) {
-        if (!this.grid[row][col]) {
-          emptyCount++;
-          emptyPositions.push({ row, count: emptyCount });
-        }
+      for (let row = 0; row < this.gridSize; row++) {
+        if (this.grid[row][col]?.type === 'obstacle') break;
+        if (!this.grid[row][col]) emptyCount++;
+        else break; // Встретили тайл - дальше уже заполнено после dropTiles
       }
 
-      // Create and animate new tiles
-      for (const { row, count } of emptyPositions) {
+      if (emptyCount === 0) continue;
+
+      // Создаём новые тайлы для пустых верхних ячеек
+      for (let i = 0; i < emptyCount; i++) {
+        const row = emptyCount - 1 - i; // Заполняем снизу вверх в пустом сегменте
+        if (this.grid[row][col]) continue; // Уже есть тайл
+
+        hasFilled = true;
         const type = this.getSmartRandomType(row, col);
         const tile = this.createTile(type, row, col);
         this.grid[row][col] = tile;
 
-        // Start from above the grid
-        const startY = -this.tileSize * (emptyPositions.length - count + 1);
+        // Стартовая позиция над экраном
+        const startY = -this.tileSize * (i + 1);
         tile.container.y = startY;
         tile.container.alpha = 0;
 
         const targetY = row * this.tileSize + this.tileSize / 2;
-        const dropDistance = (targetY - startY) / this.tileSize;
-        const duration = 0.2 + dropDistance * 0.04;
-        const delay = count * 0.04;
+        const duration = 0.2 + (row + 1) * 0.04;
 
         animations.push(
           new Promise((resolve) => {
             gsap.to(tile.container, {
               alpha: 1,
               duration: 0.1,
-              delay
             });
 
             gsap.to(tile.container, {
               y: targetY,
               duration,
-              delay,
               ease: 'power2.in',
               onComplete: () => {
                 gsap.to(tile.container, {
@@ -951,6 +1331,15 @@ export class PixiGame {
     }
 
     await Promise.all(animations);
+    return hasFilled;
+  }
+
+  private vibrate(pattern: number | number[]) {
+    try {
+      navigator?.vibrate?.(pattern);
+    } catch {
+      // Vibration API not available
+    }
   }
 
   private delay(ms: number): Promise<void> {
@@ -1093,7 +1482,7 @@ export class PixiGame {
     }
   }
 
-  public reset() {
+  public async reset() {
     this.clearHint();
 
     // Удаляем все тайлы
@@ -1108,14 +1497,19 @@ export class PixiGame {
         }
       }
     }
+    this.grid = [];
 
     // Сбрасываем статистику
     const maxMoves = this.levelConfig?.maxMoves || 30;
-    this.stats = { score: 0, moves: maxMoves, wingsCollected: 0 };
+    this.stats = {
+      score: 0,
+      moves: maxMoves,
+      collected: { drumstick: 0, wing: 0, burger: 0, fries: 0, bucket: 0, ice_cream: 0, donut: 0, cappuccino: 0 }
+    };
     this.onStatsUpdate({ ...this.stats });
 
-    // Создаём новую сетку
-    this.createGrid();
+    // Создаём новую сетку с валидацией
+    await this.createValidGrid();
 
     // Перезапускаем таймер подсказки
     this.startHintTimer();
@@ -1123,7 +1517,33 @@ export class PixiGame {
 
   public destroy() {
     this.clearHint();
-    gsap.killTweensOf('*');
+    this.isProcessing = true; // Prevent any new animations
+
+    // Kill all tweens on all tiles explicitly
+    for (let row = 0; row < this.gridSize; row++) {
+      for (let col = 0; col < this.gridSize; col++) {
+        const tile = this.grid[row]?.[col];
+        if (tile) {
+          gsap.killTweensOf(tile.sprite);
+          gsap.killTweensOf(tile.sprite.scale);
+          gsap.killTweensOf(tile.container);
+          gsap.killTweensOf(tile.container.scale);
+        }
+      }
+    }
+
+    // Kill any remaining global tweens
+    gsap.killTweensOf(this.gridContainer);
+    gsap.killTweensOf(this.uiContainer);
+    gsap.killTweensOf(this.particleContainer);
+
+    // Destroy particles
+    this.particles.destroy();
+
+    // Clear grid reference
+    this.grid = [];
+
+    // Destroy the app
     this.app.destroy(true, { children: true });
   }
 }

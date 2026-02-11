@@ -29,14 +29,14 @@ describe('ApiClient', () => {
         json: () => Promise.resolve({ message: 'Registration successful', user_id: 1 }),
       });
 
-      const result = await api.register('test@example.com', 'testuser', 'password123');
+      const result = await api.register('test@example.com', 'testuser', 'password123', 'moscow', 'Москва');
 
       expect(result.data).toEqual({ message: 'Registration successful', user_id: 1 });
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/auth/register'),
         expect.objectContaining({
           method: 'POST',
-          body: JSON.stringify({ email: 'test@example.com', username: 'testuser', password: 'password123' }),
+          body: JSON.stringify({ email: 'test@example.com', username: 'testuser', password: 'password123', city: 'moscow', city_name: 'Москва', source: 'game' }),
         })
       );
     });
@@ -47,7 +47,7 @@ describe('ApiClient', () => {
         json: () => Promise.resolve({ error: 'Email already registered' }),
       });
 
-      const result = await api.register('existing@example.com', 'user', 'password');
+      const result = await api.register('existing@example.com', 'user', 'password', 'region', 'Казань');
 
       expect(result.error).toBe('Email already registered');
       expect(result.data).toBeUndefined();

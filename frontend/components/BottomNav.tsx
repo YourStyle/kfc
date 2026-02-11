@@ -22,26 +22,29 @@ export function BottomNav({ active, onNavigate }: BottomNavProps) {
         {navItems.map((item) => {
           const isActive = active === item.id;
           return (
-            <button
-              key={item.id}
-              style={{
-                ...styles.navItem,
-                ...(isActive ? styles.navItemActive : {}),
-              }}
-              onClick={() => onNavigate(item.id)}
-            >
-              {item.hasIcon && (
-                <RocketIcon size={18} color={isActive ? '#fff' : 'rgba(255,255,255,0.5)'} />
-              )}
-              <span
+            <div key={item.id} style={styles.navItemWrapper}>
+              {/* Neon glow under active item */}
+              {isActive && <div style={styles.neonGlow} />}
+              <button
                 style={{
-                  ...styles.label,
-                  ...(isActive ? styles.labelActive : {}),
+                  ...styles.navItem,
+                  ...(isActive ? styles.navItemActive : {}),
                 }}
+                onClick={() => onNavigate(item.id)}
               >
-                {item.label}
-              </span>
-            </button>
+                {item.hasIcon && (
+                  <RocketIcon size={18} color={isActive ? '#fff' : 'rgba(255,255,255,0.5)'} />
+                )}
+                <span
+                  style={{
+                    ...styles.label,
+                    ...(isActive ? styles.labelActive : {}),
+                  }}
+                >
+                  {item.label}
+                </span>
+              </button>
+            </div>
           );
         })}
       </div>
@@ -73,7 +76,23 @@ const styles: Record<string, React.CSSProperties> = {
     boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.08)',
     border: '1px solid rgba(255, 255, 255, 0.1)',
   },
+  navItemWrapper: {
+    position: 'relative',
+  },
+  neonGlow: {
+    position: 'absolute',
+    bottom: -4,
+    left: '50%',
+    transform: 'translateX(-50%)',
+    width: '60%',
+    height: 4,
+    background: 'linear-gradient(90deg, transparent, rgba(100, 180, 255, 0.6), transparent)',
+    borderRadius: 2,
+    filter: 'blur(3px)',
+    pointerEvents: 'none',
+  },
   navItem: {
+    position: 'relative',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -86,7 +105,8 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 6,
   },
   navItemActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    boxShadow: '0 4px 15px rgba(100, 180, 255, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
   },
   label: {
     fontSize: 14,
@@ -95,5 +115,6 @@ const styles: Record<string, React.CSSProperties> = {
   },
   labelActive: {
     color: '#fff',
+    textShadow: '0 0 10px rgba(100, 180, 255, 0.5)',
   },
 };

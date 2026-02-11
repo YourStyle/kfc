@@ -64,16 +64,22 @@ def create_app():
         try:
             redis_client = redis.from_url(redis_url)
             redis_client.ping()
-        except:
+            print("Redis connected successfully")
+
+            # Initialize Redis utilities
+            from app.utils.redis_cache import init_redis
+            init_redis(redis_client)
+        except Exception as e:
             redis_client = None
-            print("Warning: Redis not available, some features may be limited")
+            print(f"Warning: Redis not available ({e}), some features may be limited")
 
     # Register blueprints
-    from app.api import auth, levels, game, leaderboard
+    from app.api import auth, levels, game, leaderboard, quest
     app.register_blueprint(auth.bp, url_prefix='/api/auth')
     app.register_blueprint(levels.bp, url_prefix='/api/levels')
     app.register_blueprint(game.bp, url_prefix='/api/game')
     app.register_blueprint(leaderboard.bp, url_prefix='/api/leaderboard')
+    app.register_blueprint(quest.bp, url_prefix='/api/quest')
 
     # Health check
     @app.route('/api/health')
