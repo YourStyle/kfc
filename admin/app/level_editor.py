@@ -421,7 +421,7 @@ LEVEL_EDITOR_TEMPLATE = '''
 
                             <label class="form-label">Типы предметов</label>
                             <div class="item-type-list mb-4" id="itemTypeList"></div>
-                            <input type="hidden" name="item_types" id="itemTypes" value="{{ ','.join(current_level.item_types) if current_level and current_level.item_types else 'chicken,burger,fries,cola,bucket' }}">
+                            <input type="hidden" name="item_types" id="itemTypes" value="{{ ','.join(current_level.item_types) if current_level and current_level.item_types else 'drumstick,wing,burger,fries,bucket,ice_cream,donut,cappuccino' }}">
 
                             <label class="form-label">Предпросмотр <small class="text-muted">(клик по ячейке — установить препятствие)</small></label>
                             <div class="grid-container" id="gridPreview"></div>
@@ -494,11 +494,14 @@ LEVEL_EDITOR_TEMPLATE = '''
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const ITEMS = {
-            chicken: { emoji: '🍗', name: 'Курочка' },
+            drumstick: { emoji: '🍗', name: 'Ножка' },
+            wing: { emoji: '🍖', name: 'Крылышко' },
             burger: { emoji: '🍔', name: 'Бургер' },
-            fries: { emoji: '🍟', name: 'Картошка' },
-            cola: { emoji: '🥤', name: 'Кола' },
-            bucket: { emoji: '🧺', name: 'Баскет' }
+            fries: { emoji: '🍟', name: 'Картофель фри' },
+            bucket: { emoji: '🧺', name: 'Баскет' },
+            ice_cream: { emoji: '🍦', name: 'Мороженое' },
+            donut: { emoji: '🍩', name: 'Донат' },
+            cappuccino: { emoji: '☕', name: 'Капучино' }
         };
 
         let selectedItemTypes = [];
@@ -507,7 +510,7 @@ LEVEL_EDITOR_TEMPLATE = '''
 
         document.addEventListener('DOMContentLoaded', function() {
             const itemTypesValue = document.getElementById('itemTypes').value;
-            selectedItemTypes = itemTypesValue ? itemTypesValue.split(',') : ['chicken', 'burger', 'fries', 'cola', 'bucket'];
+            selectedItemTypes = itemTypesValue ? itemTypesValue.split(',') : ['drumstick', 'wing', 'burger', 'fries', 'bucket', 'ice_cream', 'donut', 'cappuccino'];
 
             try {
                 const targetsValue = document.getElementById('targetsJson').value;
@@ -744,7 +747,7 @@ def editor(level_id=None):
         level.max_moves = int(request.form.get('max_moves', 30))
 
         # item_types stored as PostgreSQL array
-        item_types_str = request.form.get('item_types', 'chicken,burger,fries,cola,bucket')
+        item_types_str = request.form.get('item_types', 'drumstick,wing,burger,fries,bucket,ice_cream,donut,cappuccino')
         level.item_types = [t.strip() for t in item_types_str.split(',') if t.strip()]
 
         level.is_active = request.form.get('is_active') == '1'

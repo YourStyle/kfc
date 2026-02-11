@@ -5,6 +5,10 @@ from app.models.user import User
 from app.models.user_activity import log_activity
 from app.services.email import send_verification_email
 from app.utils.timezone import now_moscow
+from app.utils.redis_cache import (
+    store_verification_code, get_verification_code, delete_verification_code,
+    rate_limit
+)
 from datetime import timedelta
 import random
 import string
@@ -17,12 +21,18 @@ def generate_verification_code():
 
 
 @bp.route('/register', methods=['POST'])
+@rate_limit(3, 3600)  # 3 registrations per hour per IP
 def register():
     data = request.get_json()
 
     email = data.get('email', '').strip().lower()
     password = data.get('password', '')
     username = data.get('username', '').strip()
+    city = data.get('city', 'region')  # 'moscow' или 'region'
+    city_name = data.get('city_name', '').strip()  # Полное название города
+    source = data.get('source', 'game')  # 'game' или 'quest'
+    if source not in ('game', 'quest'):
+        source = 'game'
 
     # Validation
     if not email or not password:
@@ -31,15 +41,25 @@ def register():
     if len(password) < 6:
         return jsonify({'error': 'Password must be at least 6 characters'}), 400
 
+    # Validate city
+    if city not in ('moscow', 'region'):
+        city = 'region'
+
     # Check if email exists
     if User.query.filter_by(email=email).first():
         return jsonify({'error': 'Email already registered'}), 400
 
-    # Create user
+    # Generate verification code
+    code = generate_verification_code()
+
+    # Create user (code stored in Redis with TTL, DB as fallback)
     user = User(
         email=email,
         username=username or email.split('@')[0],
-        verification_code=generate_verification_code(),
+        city=city,
+        city_name=city_name or None,
+        registration_source=source,
+        verification_code=code,  # DB fallback
         verification_expires_at=now_moscow() + timedelta(minutes=5)
     )
     user.set_password(password)
@@ -47,9 +67,12 @@ def register():
     db.session.add(user)
     db.session.commit()
 
+    # Store code in Redis (with 5 min TTL)
+    store_verification_code(email, code)
+
     # Send verification email
     try:
-        send_verification_email(user.email, user.verification_code)
+        send_verification_email(user.email, code)
     except Exception as e:
         print(f"Failed to send verification email: {e}")
 
@@ -63,6 +86,7 @@ def register():
 
 
 @bp.route('/verify', methods=['POST'])
+@rate_limit(10, 60)  # 10 attempts per minute
 def verify_email():
     data = request.get_json()
 
@@ -80,10 +104,15 @@ def verify_email():
     if user.is_verified:
         return jsonify({'error': 'Email already verified'}), 400
 
-    if user.verification_code != code:
+    # Check Redis first, then fallback to DB
+    redis_code = get_verification_code(email)
+    stored_code = redis_code or user.verification_code
+
+    if stored_code != code:
         return jsonify({'error': 'Invalid verification code'}), 400
 
-    if user.verification_expires_at and user.verification_expires_at < now_moscow():
+    # If using DB fallback, check expiration
+    if not redis_code and user.verification_expires_at and user.verification_expires_at < now_moscow():
         return jsonify({'error': 'Verification code expired'}), 400
 
     # Verify user
@@ -91,6 +120,9 @@ def verify_email():
     user.verification_code = None
     user.verification_expires_at = None
     db.session.commit()
+
+    # Clean up Redis
+    delete_verification_code(email)
 
     # Log activity
     log_activity(user.id, 'verify_email', request=request)
@@ -106,6 +138,7 @@ def verify_email():
 
 
 @bp.route('/resend-code', methods=['POST'])
+@rate_limit(3, 600)  # 3 resends per 10 minutes per IP
 def resend_verification_code():
     data = request.get_json()
     email = data.get('email', '').strip().lower()
@@ -122,13 +155,17 @@ def resend_verification_code():
         return jsonify({'error': 'Email already verified'}), 400
 
     # Generate new code
-    user.verification_code = generate_verification_code()
+    code = generate_verification_code()
+
+    # Store in Redis and DB (fallback)
+    store_verification_code(email, code)
+    user.verification_code = code
     user.verification_expires_at = now_moscow() + timedelta(minutes=5)
     db.session.commit()
 
     # Send email
     try:
-        send_verification_email(user.email, user.verification_code)
+        send_verification_email(user.email, code)
     except Exception as e:
         print(f"Failed to send verification email: {e}")
         return jsonify({'error': 'Failed to send email'}), 500
@@ -137,6 +174,7 @@ def resend_verification_code():
 
 
 @bp.route('/login', methods=['POST'])
+@rate_limit(5, 60)  # 5 login attempts per minute per IP
 def login():
     data = request.get_json()
 

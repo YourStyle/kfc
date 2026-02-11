@@ -95,7 +95,7 @@ def sample_level(app):
         grid_width=7,
         grid_height=7,
         max_moves=30,
-        targets={'collect': {'chicken': 5}, 'min_score': 100},
+        targets={'collect': {'drumstick': 5}, 'min_score': 100},
         is_active=True
     )
     db.session.add(level)

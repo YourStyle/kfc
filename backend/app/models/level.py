@@ -13,9 +13,9 @@ class Level(db.Model):
     grid_height = db.Column(db.Integer, default=7)
     max_moves = db.Column(db.Integer, default=30)
     # Store as JSON string for SQLite compatibility
-    _item_types = db.Column('item_types', db.Text, default='["chicken", "burger", "fries", "cola", "bucket"]')
+    _item_types = db.Column('item_types', db.Text, default='["drumstick", "wing", "burger", "fries", "bucket", "ice_cream", "donut", "cappuccino"]')
     targets = db.Column(db.JSON, nullable=False)
-    # targets example: {"collect": {"chicken": 10}, "combos": {"4_match": 2}, "min_score": 500}
+    # targets example: {"collect": {"drumstick": 10}, "combos": {"4_match": 2}, "min_score": 500}
     obstacles = db.Column(db.JSON, default=[])
     # obstacles example: [{"row": 3, "col": 3}, {"row": 3, "col": 4}]
     is_active = db.Column(db.Boolean, default=True)
@@ -25,7 +25,7 @@ class Level(db.Model):
     def item_types(self):
         if self._item_types:
             return json.loads(self._item_types) if isinstance(self._item_types, str) else self._item_types
-        return ['chicken', 'burger', 'fries', 'cola', 'bucket']
+        return ['drumstick', 'wing', 'burger', 'fries', 'bucket', 'ice_cream', 'donut', 'cappuccino']
 
     @item_types.setter
     def item_types(self, value):

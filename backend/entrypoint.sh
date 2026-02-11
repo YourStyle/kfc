@@ -10,8 +10,13 @@ while ! nc -z db 5432; do
 done
 echo "Database is ready!"
 
-# Create tables
-echo "Initializing database..."
+# Run migrations first (creates tables + seeds data)
+# Migrations are idempotent and handle pre-existing objects gracefully
+echo "Running migrations..."
+flask db upgrade
+
+# Fallback: create any tables not covered by migrations
+echo "Ensuring all tables exist..."
 python3 << EOF
 from app import create_app, db
 app = create_app()
