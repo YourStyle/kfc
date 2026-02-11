@@ -11,7 +11,7 @@ class GameSession(db.Model):
     score = db.Column(db.Integer, default=0)
     moves_used = db.Column(db.Integer, default=0)
     targets_met = db.Column(db.JSON)  # What targets were achieved
-    # Example: {"collect": {"chicken": 8, "burger": 3}, "combos": {"4_match": 1}}
+    # Example: {"collect": {"drumstick": 8, "burger": 3}, "combos": {"4_match": 1}}
     duration_seconds = db.Column(db.Integer)
     is_completed = db.Column(db.Boolean, default=False)
     is_won = db.Column(db.Boolean, default=False)

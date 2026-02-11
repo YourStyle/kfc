@@ -12,10 +12,16 @@ export const ROSTICS_WHITE = 0xFFFFFF;
 export const ROSTICS_BLACK = 0x000000;
 
 export const ITEM_DATA: Record<ItemType, { label: string; emoji: string; particleColor: number; particleType: 'feather' | 'bubble' | 'crumb' | 'slice'; isObstacle?: boolean }> = {
-  chicken: {
-    label: 'Курочка',
+  drumstick: {
+    label: 'Ножка',
     emoji: '🍗',
-    particleColor: 0xffffff,
+    particleColor: 0xD4A574,
+    particleType: 'feather'
+  },
+  wing: {
+    label: 'Крылышко',
+    emoji: '🍖',
+    particleColor: 0xC4956A,
     particleType: 'feather'
   },
   burger: {
@@ -25,16 +31,10 @@ export const ITEM_DATA: Record<ItemType, { label: string; emoji: string; particl
     particleType: 'crumb'
   },
   fries: {
-    label: 'Картошка',
+    label: 'Картофель фри',
     emoji: '🍟',
     particleColor: 0xFFD700,
     particleType: 'slice'
-  },
-  cola: {
-    label: 'Кола',
-    emoji: '🥤',
-    particleColor: 0xADD8E6,
-    particleType: 'bubble'
   },
   bucket: {
     label: 'Баскет',
@@ -42,7 +42,24 @@ export const ITEM_DATA: Record<ItemType, { label: string; emoji: string; particl
     particleColor: 0xE4002B,
     particleType: 'crumb'
   },
-  // Препятствие - блокирует ячейку
+  ice_cream: {
+    label: 'Мороженое',
+    emoji: '🍦',
+    particleColor: 0xFFC0CB,
+    particleType: 'bubble'
+  },
+  donut: {
+    label: 'Донат',
+    emoji: '🍩',
+    particleColor: 0xFF69B4,
+    particleType: 'crumb'
+  },
+  cappuccino: {
+    label: 'Капучино',
+    emoji: '☕',
+    particleColor: 0x8B4513,
+    particleType: 'bubble'
+  },
   obstacle: {
     label: 'Препятствие',
     emoji: '⬛',
@@ -52,8 +69,7 @@ export const ITEM_DATA: Record<ItemType, { label: string; emoji: string; particl
   }
 };
 
-// Используем только те предметы, для которых есть картинки
-export const ITEM_TYPES: ItemType[] = ['chicken', 'burger', 'fries', 'cola', 'bucket'];
+export const ITEM_TYPES: ItemType[] = ['drumstick', 'wing', 'burger', 'fries', 'bucket', 'ice_cream', 'donut', 'cappuccino'];
 
 export const TUTORIAL_STEPS = [
   {

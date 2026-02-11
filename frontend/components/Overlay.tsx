@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import html2canvas from 'html2canvas';
 import { TUTORIAL_STEPS, GAME_URL } from '../constants';
 
@@ -12,7 +12,7 @@ interface LevelTargets {
 interface OverlayProps {
   score: number;
   moves: number;
-  wingsCollected: number;
+  collected: Record<string, number>;
   isGameOver: boolean;
   onReset: () => void;
   basketShaking?: boolean;
@@ -22,29 +22,108 @@ interface OverlayProps {
   earnedStars?: number;
   onNextLevel?: () => void;
   hasNextLevel?: boolean;
+  completionPercent?: number;
 }
 
 const ITEM_NAMES: Record<string, string> = {
-  chicken: 'Крылышки',
+  drumstick: 'Ножки',
+  wing: 'Крылышки',
   burger: 'Бургеры',
-  fries: 'Картошка',
-  drink: 'Напитки',
-  sauce: 'Соусы',
+  fries: 'Картофель фри',
+  bucket: 'Баскеты',
+  ice_cream: 'Мороженое',
+  donut: 'Донаты',
+  cappuccino: 'Капучино',
 };
 
-const Overlay: React.FC<OverlayProps> = ({ score, moves, wingsCollected, isGameOver, onReset, basketShaking = false, levelName, targets, onBackToMenu, earnedStars = 0, onNextLevel, hasNextLevel = false }) => {
+const TUTORIAL_COMPLETED_KEY = 'rostics_tutorial_completed';
+
+const Overlay: React.FC<OverlayProps> = ({ score, moves, collected, isGameOver, onReset, basketShaking = false, levelName, targets, onBackToMenu, earnedStars = 0, onNextLevel, hasNextLevel = false, completionPercent = 0 }) => {
+  // Общее количество собранных предметов
+  const totalCollected = Object.values(collected).reduce((sum, val) => sum + val, 0);
   const [tutorialStep, setTutorialStep] = useState(0);
-  const [showTutorial, setShowTutorial] = useState(true);
+  // Показываем туториал только если пользователь его ещё не прошёл
+  const [showTutorial, setShowTutorial] = useState(() => {
+    return !localStorage.getItem(TUTORIAL_COMPLETED_KEY);
+  });
   const [isSharing, setIsSharing] = useState(false);
   const shareCardRef = useRef<HTMLDivElement>(null);
 
-  // Используем переданный basketShaking
+  // Animated score counter for HUD
+  const [displayScore, setDisplayScore] = useState(score);
+  const prevScoreRef = useRef(score);
+  const rafRef = useRef(0);
+
+  // Animated score counter for game over
+  const [displayFinalScore, setDisplayFinalScore] = useState(0);
+  const finalRafRef = useRef(0);
+
   const isShaking = basketShaking;
+
+  // Animate HUD score changes
+  useEffect(() => {
+    const from = prevScoreRef.current;
+    const to = score;
+    if (from === to) return;
+
+    const start = performance.now();
+    const duration = 600;
+
+    const tick = (now: number) => {
+      const elapsed = now - start;
+      const t = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
+      setDisplayScore(Math.round(from + (to - from) * eased));
+      if (t < 1) {
+        rafRef.current = requestAnimationFrame(tick);
+      } else {
+        prevScoreRef.current = to;
+        rafRef.current = 0;
+      }
+    };
+
+    cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(tick);
+
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = 0;
+    };
+  }, [score]);
+
+  // Animate game over final score
+  useEffect(() => {
+    if (!isGameOver) {
+      setDisplayFinalScore(0);
+      return;
+    }
+    const start = performance.now();
+    const duration = 1200;
+    const tick = (now: number) => {
+      const elapsed = now - start;
+      const t = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setDisplayFinalScore(Math.round(score * eased));
+      if (t < 1) {
+        finalRafRef.current = requestAnimationFrame(tick);
+      } else {
+        finalRafRef.current = 0;
+      }
+    };
+    cancelAnimationFrame(finalRafRef.current);
+    finalRafRef.current = requestAnimationFrame(tick);
+    return () => {
+      cancelAnimationFrame(finalRafRef.current);
+      finalRafRef.current = 0;
+    };
+  }, [isGameOver, score]);
 
   const nextStep = () => {
     if (tutorialStep < TUTORIAL_STEPS.length - 1) {
       setTutorialStep(tutorialStep + 1);
     } else {
+      // Сохраняем что туториал пройден
+      localStorage.setItem(TUTORIAL_COMPLETED_KEY, 'true');
       setShowTutorial(false);
     }
   };
@@ -61,7 +140,7 @@ const Overlay: React.FC<OverlayProps> = ({ score, moves, wingsCollected, isGameO
     setIsSharing(true);
     try {
       const canvas = await html2canvas(shareCardRef.current, {
-        backgroundColor: '#ffffff',
+        backgroundColor: '#0a0f1e',
         scale: 2,
       });
 
@@ -70,19 +149,17 @@ const Overlay: React.FC<OverlayProps> = ({ score, moves, wingsCollected, isGameO
 
         const file = new File([blob], 'rostics-score.png', { type: 'image/png' });
 
-        // Проверяем поддержку Web Share API
         if (navigator.share && navigator.canShare?.({ files: [file] })) {
           try {
             await navigator.share({
               title: "Мой результат в ROSTIC'S Kitchen!",
-              text: `Я набрал ${score.toLocaleString()} очков и собрал ${wingsCollected} крылышек! 🍗`,
+              text: `Я набрал ${score.toLocaleString()} очков и собрал ${totalCollected} предметов! 🍗`,
               files: [file],
             });
           } catch (err) {
-            // Пользователь отменил шеринг
+            // User cancelled sharing
           }
         } else {
-          // Fallback: скачать изображение
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
@@ -99,43 +176,42 @@ const Overlay: React.FC<OverlayProps> = ({ score, moves, wingsCollected, isGameO
   };
 
   return (
-    <div className="absolute inset-0 pointer-events-none flex flex-col items-center p-4 select-none">
+    <div style={styles.container}>
       {/* Tutorial Overlay */}
       {showTutorial && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-xl pointer-events-auto flex items-center justify-center z-[100] p-6">
-          <div className="bg-white border-8 border-red-600 rounded-[50px] p-8 text-center max-w-sm w-full shadow-2xl animate-in zoom-in duration-300 flex flex-col" style={{ minHeight: '480px' }}>
-            {/* Контент с фиксированной высотой */}
-            <div className="flex-1 flex flex-col justify-center">
-              <div className="text-8xl mb-6">{TUTORIAL_STEPS[tutorialStep].icon}</div>
-              <h2 className="text-4xl font-black text-red-600 mb-4 uppercase italic leading-tight">
+        <div style={styles.tutorialOverlay}>
+          <div style={styles.tutorialModal}>
+            <div style={styles.tutorialContent}>
+              <div style={styles.tutorialIcon}>{TUTORIAL_STEPS[tutorialStep].icon}</div>
+              <h2 style={styles.tutorialTitle}>
                 {TUTORIAL_STEPS[tutorialStep].title}
               </h2>
-              <p className="text-gray-600 font-bold text-lg leading-relaxed min-h-[72px]">
+              <p style={styles.tutorialText}>
                 {TUTORIAL_STEPS[tutorialStep].text}
               </p>
             </div>
 
-            {/* Пагинация - более яркие неактивные точки */}
-            <div className="flex justify-center gap-2 mb-6">
-                {TUTORIAL_STEPS.map((_, i) => (
-                    <div key={i} className={`h-2 rounded-full transition-all ${i === tutorialStep ? 'bg-red-600 w-12' : 'bg-gray-400 w-8'}`} />
-                ))}
+            {/* Pagination */}
+            <div style={styles.pagination}>
+              {TUTORIAL_STEPS.map((_, i) => (
+                <div
+                  key={i}
+                  style={{
+                    ...styles.paginationDot,
+                    ...(i === tutorialStep ? styles.paginationDotActive : {}),
+                  }}
+                />
+              ))}
             </div>
 
-            {/* Кнопки */}
-            <div className="flex gap-3">
+            {/* Buttons */}
+            <div style={styles.tutorialButtons}>
               {tutorialStep > 0 && (
-                <button
-                  onClick={prevStep}
-                  className="bg-white hover:bg-gray-50 text-red-600 font-black py-5 px-6 rounded-[30px] text-2xl border-4 border-red-600 shadow-[0_6px_0_rgb(180,0,30)] transition-all active:translate-y-1 active:shadow-[0_2px_0_rgb(180,0,30)]"
-                >
+                <button onClick={prevStep} style={styles.tutorialBackButton}>
                   ←
                 </button>
               )}
-              <button
-                onClick={nextStep}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-black py-5 px-8 rounded-[30px] text-2xl shadow-[0_8px_0_rgb(150,0,20)] transition-all active:translate-y-2 active:shadow-none uppercase italic"
-              >
+              <button onClick={nextStep} style={styles.tutorialNextButton}>
                 {tutorialStep === TUTORIAL_STEPS.length - 1 ? 'ПОГНАЛИ!' : 'ДАЛЕЕ'}
               </button>
             </div>
@@ -144,77 +220,86 @@ const Overlay: React.FC<OverlayProps> = ({ score, moves, wingsCollected, isGameO
       )}
 
       {/* Top Section: Branding */}
-      <div className="mt-2 mb-4 flex items-center gap-3">
+      <div style={styles.topSection}>
         {onBackToMenu && (
-          <button
-            onClick={onBackToMenu}
-            className="pointer-events-auto w-10 h-10 bg-white rounded-full flex items-center justify-center text-red-600 font-black text-xl shadow-lg border-2 border-red-600 hover:bg-red-50 transition-all"
-          >
+          <button onClick={onBackToMenu} style={styles.backButton}>
             ←
           </button>
         )}
-        <div className="bg-red-600 px-8 py-2 rounded-full text-white font-black shadow-[0_4px_0_rgb(150,0,20)] transform -rotate-1 tracking-wider border-2 border-white text-lg">
+        <div style={styles.levelBadge}>
           {levelName || 'КУХНЯ ROSTIC\'S'}
         </div>
       </div>
 
       {/* Stats Bar */}
-      <div className="w-full max-w-md flex justify-between items-stretch gap-2 pointer-events-auto">
-        <div className={`flex-1 bg-white border-b-4 border-gray-200 shadow-lg rounded-3xl p-2 flex items-center justify-center gap-2 transition-transform ${isShaking ? 'scale-105' : ''}`}>
+      <div style={styles.statsBar}>
+        <div style={{
+          ...styles.statCard,
+          ...(isShaking ? styles.statCardShaking : {}),
+        }}>
           <img
             src={`${import.meta.env.BASE_URL}images/bucket.png`}
             alt="Корзина"
-            className="w-10 h-10 object-contain"
-            style={isShaking ? { animation: 'shake 0.5s ease-in-out' } : {}}
+            style={{
+              ...styles.bucketImage,
+              ...(isShaking ? { animation: 'shake 0.5s ease-in-out' } : {}),
+            }}
           />
-          <div className="flex flex-col">
-            <span className="text-[10px] font-bold uppercase text-red-600 leading-none">Крылышки</span>
-            <span
-              className={`text-xl font-black leading-none transition-all duration-200 ${isShaking ? 'scale-125 text-red-600' : 'text-black'}`}
-              style={isShaking ? { animation: 'pulse 0.3s ease-in-out' } : {}}
-            >
-              {wingsCollected}
+          <div style={styles.statContent}>
+            <span style={styles.statLabel}>Собрано</span>
+            <span style={{
+              ...styles.statValue,
+              ...(isShaking ? styles.statValueHighlight : {}),
+            }}>
+              {totalCollected}
             </span>
           </div>
         </div>
 
-        <div className="flex-1 bg-white border-b-4 border-gray-200 shadow-lg rounded-3xl p-2 flex flex-col items-center justify-center">
-          <span className="text-[10px] font-bold uppercase text-gray-400 leading-none">Ходы</span>
-          <span className={`text-2xl font-black leading-none ${moves <= 5 ? 'text-red-600 animate-pulse' : 'text-black'}`}>
-            {moves}
-          </span>
+        <div style={styles.statCard}>
+          <div style={styles.statContent}>
+            <span style={styles.statLabel}>Ходы</span>
+            <span style={{
+              ...styles.statValue,
+              ...(moves <= 5 ? styles.statValueWarning : {}),
+            }}>
+              {moves}
+            </span>
+          </div>
         </div>
 
-        <div className="flex-1 bg-red-600 border-b-4 border-red-800 shadow-lg rounded-3xl p-2 flex flex-col items-center justify-center text-white">
-          <span className="text-[10px] font-bold uppercase opacity-80 leading-none">Счёт</span>
-          <span className="text-xl font-black leading-none">{score.toLocaleString()}</span>
+        <div style={styles.statCardHighlight}>
+          <div style={styles.statContent}>
+            <span style={styles.statLabelLight}>Счёт</span>
+            <span style={styles.statValueLight}>{displayScore.toLocaleString()}</span>
+          </div>
         </div>
       </div>
 
       {/* Targets Display */}
       {targets && (
-        <div className="w-full max-w-md mt-2 bg-white/90 rounded-2xl p-2 shadow-md">
-          <div className="flex flex-wrap justify-center gap-2 text-xs">
+        <div style={styles.targetsContainer}>
+          <div style={styles.targetsInner}>
             {targets.collect && Object.entries(targets.collect).map(([item, required]) => {
-              const current = item === 'chicken' ? wingsCollected : 0;
+              const current = collected[item] || 0;
               const completed = current >= required;
               return (
                 <div
                   key={item}
-                  className={`px-3 py-1 rounded-full font-bold ${
-                    completed ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
-                  }`}
+                  style={{
+                    ...styles.targetPill,
+                    ...(completed ? styles.targetPillCompleted : {}),
+                  }}
                 >
                   {completed ? '✓' : ''} {ITEM_NAMES[item] || item}: {current}/{required}
                 </div>
               );
             })}
             {targets.min_score && (
-              <div
-                className={`px-3 py-1 rounded-full font-bold ${
-                  score >= targets.min_score ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
-                }`}
-              >
+              <div style={{
+                ...styles.targetPill,
+                ...(score >= targets.min_score ? styles.targetPillCompleted : {}),
+              }}>
                 {score >= targets.min_score ? '✓' : ''} Очки: {score}/{targets.min_score}
               </div>
             )}
@@ -224,85 +309,94 @@ const Overlay: React.FC<OverlayProps> = ({ score, moves, wingsCollected, isGameO
 
       {/* Game Over Screen */}
       {isGameOver && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md pointer-events-auto flex items-center justify-center z-50 p-6">
-          <div ref={shareCardRef} className="bg-white border-8 border-red-600 rounded-[50px] p-8 text-center max-w-sm w-full shadow-2xl">
-            <div className="text-7xl mb-4 drop-shadow-lg">🍗🔥</div>
-
-            {/* Stars Display */}
-            {earnedStars > 0 && (
-              <div className="flex justify-center gap-2 mb-4">
-                {[1, 2, 3].map((star) => (
-                  <span
-                    key={star}
-                    className={`text-5xl transition-all ${
-                      star <= earnedStars
-                        ? 'text-yellow-400 drop-shadow-lg animate-bounce'
-                        : 'text-gray-300'
-                    }`}
-                    style={{ animationDelay: `${star * 0.1}s` }}
-                  >
-                    ★
-                  </span>
-                ))}
+        <div style={styles.gameOverOverlay}>
+          <div ref={shareCardRef} style={styles.gameOverModal}>
+            {/* Circular Progress */}
+            <div className="game-over-stagger-0" style={styles.progressCircleContainer}>
+              <svg width="120" height="120" viewBox="0 0 120 120">
+                {/* Background circle */}
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="52"
+                  fill="none"
+                  stroke="rgba(255, 255, 255, 0.1)"
+                  strokeWidth="8"
+                />
+                {/* Progress circle */}
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="52"
+                  fill="none"
+                  stroke={earnedStars > 0 ? '#22c55e' : '#E4002B'}
+                  strokeWidth="8"
+                  strokeLinecap="round"
+                  strokeDasharray={`${completionPercent * 3.27} 327`}
+                  transform="rotate(-90 60 60)"
+                  style={{ transition: 'stroke-dasharray 0.5s ease' }}
+                />
+              </svg>
+              <div style={styles.progressCircleText}>
+                <span style={styles.progressPercent}>{completionPercent}%</span>
               </div>
-            )}
+            </div>
 
-            <h2 className="text-4xl font-black text-red-600 mb-2 leading-tight uppercase italic">
+            <h2 className="game-over-stagger-1" style={styles.gameOverTitle}>
               {earnedStars > 0 ? 'УРОВЕНЬ ПРОЙДЕН!' : 'СМЕНА ОКОНЧЕНА!'}
             </h2>
-            <p className="text-gray-500 font-bold mb-6 uppercase tracking-widest text-sm">
-              {earnedStars >= 3 ? 'Превосходно!' : earnedStars >= 2 ? 'Отличная работа!' : earnedStars >= 1 ? 'Хороший результат!' : 'Попробуй ещё раз!'}
+            <p className="game-over-stagger-2" style={styles.gameOverSubtitle}>
+              {earnedStars >= 3 ? 'Превосходно!' : earnedStars >= 2 ? 'Отличная работа!' : earnedStars >= 1 ? 'Хороший результат!' : completionPercent >= 75 ? 'Почти получилось!' : completionPercent >= 50 ? 'Неплохо, но можно лучше!' : 'Попробуй ещё раз!'}
             </p>
 
-            <div className="grid grid-cols-2 gap-3 mb-6">
-              <div className="bg-gray-100 rounded-3xl p-4 border-b-4 border-gray-200 flex flex-col items-center justify-center">
-                <div className="text-[10px] uppercase text-gray-500 font-black leading-none">Итоговый счёт</div>
-                <div className="text-2xl font-black text-black leading-none mt-1">{score.toLocaleString()}</div>
+            <div className="game-over-stagger-3" style={styles.resultsGrid}>
+              <div style={styles.resultCard}>
+                <div style={styles.resultLabel}>Итоговый счёт</div>
+                <div style={styles.resultValue}>{displayFinalScore.toLocaleString()}</div>
               </div>
-              <div className="bg-red-50 rounded-3xl p-4 border-b-4 border-red-200 flex flex-col items-center justify-center">
-                <div className="text-[10px] uppercase text-red-600 font-black leading-none">Собрано</div>
-                <div className="text-2xl font-black text-red-600 leading-none mt-1">{wingsCollected} 🍗</div>
+              <div style={styles.resultCardHighlight}>
+                <div style={styles.resultLabelHighlight}>Собрано</div>
+                <div style={styles.resultValueHighlight}>{totalCollected} 🍗</div>
               </div>
             </div>
 
-            <div className="bg-red-600 text-white text-xs font-bold py-2 px-4 rounded-full mb-2 inline-block">
+            <div className="game-over-stagger-4" style={styles.levelTag}>
               {levelName || 'КУХНЯ ROSTIC\'S'}
             </div>
-            <div className="text-gray-400 text-[10px] font-bold mb-6 break-all">
+            <div style={styles.gameUrl}>
               {GAME_URL}
             </div>
 
-            <div className="flex flex-col gap-3">
-              {/* Main actions row */}
-              {earnedStars > 0 && hasNextLevel && onNextLevel && (
-                <button
-                  onClick={onNextLevel}
-                  className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-black py-4 px-6 rounded-[20px] text-xl shadow-[0_6px_0_rgb(34,120,60)] transition-all active:translate-y-1 active:shadow-[0_2px_0_rgb(34,120,60)] uppercase"
-                >
-                  Следующий уровень →
-                </button>
-              )}
-
-              <div className="flex gap-3">
+            <div className="game-over-stagger-5" style={styles.gameOverButtons}>
+              {/* Ряд 1: Назад + Следующий уровень */}
+              <div style={styles.buttonRow}>
                 {onBackToMenu && (
-                  <button
-                    onClick={onBackToMenu}
-                    className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-black py-4 px-4 rounded-[20px] text-xl shadow-[0_6px_0_rgb(180,180,180)] transition-all active:translate-y-1 active:shadow-[0_2px_0_rgb(180,180,180)]"
-                  >
-                    ←
+                  <button onClick={onBackToMenu} style={styles.menuButton}>
+                    ← Меню
                   </button>
                 )}
+                {earnedStars > 0 && hasNextLevel && onNextLevel ? (
+                  <button onClick={onNextLevel} style={styles.nextLevelButton}>
+                    Далее →
+                  </button>
+                ) : (
+                  <div style={{ flex: 1 }} />
+                )}
+              </div>
+
+              {/* Ряд 2: Поделиться + Заново */}
+              <div style={styles.buttonRow}>
                 <button
                   onClick={handleShare}
                   disabled={isSharing}
-                  className="bg-white hover:bg-gray-50 text-red-600 font-black py-4 px-4 rounded-[20px] text-xl border-4 border-red-600 shadow-[0_6px_0_rgb(180,0,30)] transition-all active:translate-y-1 active:shadow-[0_2px_0_rgb(180,0,30)] disabled:opacity-50"
+                  style={{
+                    ...styles.shareButton,
+                    ...(isSharing ? { opacity: 0.5 } : {}),
+                  }}
                 >
-                  {isSharing ? '...' : '↗'}
+                  {isSharing ? '...' : 'Поделиться'}
                 </button>
-                <button
-                  onClick={onReset}
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white font-black py-4 px-6 rounded-[20px] text-xl shadow-[0_6px_0_rgb(150,0,20)] transition-all active:translate-y-1 active:shadow-[0_2px_0_rgb(150,0,20)] uppercase"
-                >
+                <button onClick={onReset} style={styles.retryButton}>
                   Заново
                 </button>
               </div>
@@ -311,13 +405,580 @@ const Overlay: React.FC<OverlayProps> = ({ score, moves, wingsCollected, isGameO
         </div>
       )}
 
-      <div className="mt-auto w-full flex justify-center pb-2">
-        <div className="bg-white/80 px-6 py-1 rounded-full border-2 border-red-600 text-red-600 font-black text-[10px] tracking-widest uppercase italic shadow-md">
-            ТАК ВКУСНО, ЧТО ПАЛЬЧИКИ ОБЛИЖЕШЬ
+      <div style={styles.bottomTagline}>
+        <div style={styles.taglineText}>
+          © ММК, 2026 &nbsp;|&nbsp; © Юнирест
         </div>
       </div>
     </div>
   );
 };
+
+const styles: Record<string, React.CSSProperties> = {
+  container: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    pointerEvents: 'none',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: 16,
+    userSelect: 'none',
+  },
+
+  // Tutorial styles
+  tutorialOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    pointerEvents: 'auto',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 100,
+    padding: 24,
+  },
+  tutorialModal: {
+    background: 'linear-gradient(180deg, rgba(20, 30, 50, 0.95) 0%, rgba(15, 25, 45, 0.98) 100%)',
+    border: '2px solid rgba(228, 0, 43, 0.5)',
+    borderRadius: 32,
+    padding: 32,
+    textAlign: 'center',
+    maxWidth: 360,
+    width: '100%',
+    boxShadow: '0 0 40px rgba(228, 0, 43, 0.2), 0 20px 60px rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    flexDirection: 'column',
+    minHeight: 480,
+  },
+  tutorialContent: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+  },
+  tutorialIcon: {
+    fontSize: 80,
+    marginBottom: 24,
+  },
+  tutorialTitle: {
+    fontSize: 28,
+    fontWeight: 800,
+    color: '#fff',
+    marginBottom: 16,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    margin: 0,
+  },
+  tutorialText: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontWeight: 600,
+    fontSize: 16,
+    lineHeight: 1.5,
+    minHeight: 72,
+    margin: 0,
+  },
+  pagination: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 24,
+  },
+  paginationDot: {
+    height: 8,
+    width: 32,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    transition: 'all 0.3s',
+  },
+  paginationDotActive: {
+    width: 48,
+    backgroundColor: '#E4002B',
+    boxShadow: '0 0 10px rgba(228, 0, 43, 0.5)',
+  },
+  tutorialButtons: {
+    display: 'flex',
+    gap: 12,
+  },
+  tutorialBackButton: {
+    background: 'rgba(255, 255, 255, 0.1)',
+    border: '2px solid rgba(255, 255, 255, 0.2)',
+    color: '#fff',
+    fontWeight: 800,
+    padding: '16px 24px',
+    borderRadius: 16,
+    fontSize: 24,
+    cursor: 'pointer',
+  },
+  tutorialNextButton: {
+    flex: 1,
+    background: 'linear-gradient(135deg, #FF5555 0%, #E4002B 50%, #B8001F 100%)',
+    border: 'none',
+    color: '#fff',
+    fontWeight: 800,
+    padding: '16px 32px',
+    borderRadius: '8px 20px 8px 20px',
+    fontSize: 20,
+    cursor: 'pointer',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    boxShadow: '0 0 25px rgba(228, 0, 43, 0.4), 0 4px 15px rgba(0, 0, 0, 0.3)',
+  },
+
+  // Top section
+  topSection: {
+    marginTop: 4,
+    marginBottom: 6,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
+  },
+  backButton: {
+    pointerEvents: 'auto',
+    width: 40,
+    height: 40,
+    background: 'rgba(30, 40, 60, 0.8)',
+    backdropFilter: 'blur(10px)',
+    WebkitBackdropFilter: 'blur(10px)',
+    borderRadius: 20,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#fff',
+    fontWeight: 800,
+    fontSize: 20,
+    border: '1px solid rgba(255, 255, 255, 0.15)',
+    cursor: 'pointer',
+    boxShadow: '0 4px 15px rgba(0, 0, 0, 0.3)',
+  },
+  levelBadge: {
+    background: 'linear-gradient(135deg, #FF5555 0%, #E4002B 100%)',
+    padding: '10px 24px',
+    borderRadius: 20,
+    color: '#fff',
+    fontWeight: 800,
+    boxShadow: '0 0 20px rgba(228, 0, 43, 0.4), 0 4px 15px rgba(0, 0, 0, 0.3)',
+    letterSpacing: 1,
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    fontSize: 14,
+  },
+
+  // Stats bar
+  statsBar: {
+    width: '100%',
+    maxWidth: 400,
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'stretch',
+    gap: 8,
+    pointerEvents: 'auto',
+  },
+  statCard: {
+    flex: 1,
+    background: 'rgba(30, 40, 60, 0.8)',
+    backdropFilter: 'blur(15px)',
+    WebkitBackdropFilter: 'blur(15px)',
+    borderRadius: 16,
+    padding: 8,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+    transition: 'transform 0.2s',
+  },
+  statCardShaking: {
+    transform: 'scale(1.05)',
+  },
+  statCardHighlight: {
+    flex: 1,
+    background: 'linear-gradient(135deg, rgba(228, 0, 43, 0.8) 0%, rgba(180, 0, 30, 0.8) 100%)',
+    backdropFilter: 'blur(15px)',
+    WebkitBackdropFilter: 'blur(15px)',
+    borderRadius: 16,
+    padding: 8,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: '1px solid rgba(255, 100, 100, 0.3)',
+    boxShadow: '0 0 20px rgba(228, 0, 43, 0.3), 0 4px 20px rgba(0, 0, 0, 0.3)',
+  },
+  bucketImage: {
+    width: 40,
+    height: 40,
+    objectFit: 'contain',
+  },
+  statContent: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
+  statLabel: {
+    fontSize: 10,
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    color: 'rgba(255, 255, 255, 0.5)',
+    lineHeight: 1,
+  },
+  statLabelLight: {
+    fontSize: 10,
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    color: 'rgba(255, 255, 255, 0.8)',
+    lineHeight: 1,
+  },
+  statValue: {
+    fontSize: 22,
+    fontWeight: 800,
+    color: '#fff',
+    lineHeight: 1,
+    marginTop: 2,
+    transition: 'all 0.2s',
+  },
+  statValueLight: {
+    fontSize: 20,
+    fontWeight: 800,
+    color: '#fff',
+    lineHeight: 1,
+    marginTop: 2,
+  },
+  statValueHighlight: {
+    transform: 'scale(1.25)',
+    color: '#ff6b6b',
+  },
+  statValueWarning: {
+    color: '#ff6b6b',
+    animation: 'movesWarning 0.8s ease-in-out infinite',
+  },
+
+  // Targets
+  targetsContainer: {
+    width: '100%',
+    maxWidth: 400,
+    marginTop: 4,
+    background: 'rgba(30, 40, 60, 0.7)',
+    backdropFilter: 'blur(10px)',
+    WebkitBackdropFilter: 'blur(10px)',
+    borderRadius: 12,
+    padding: '4px 6px',
+    border: '1px solid rgba(255, 255, 255, 0.08)',
+  },
+  targetsInner: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 4,
+    fontSize: 11,
+  },
+  targetPill: {
+    padding: '3px 8px',
+    borderRadius: 10,
+    fontWeight: 700,
+    background: 'rgba(255, 255, 255, 0.1)',
+    color: 'rgba(255, 255, 255, 0.7)',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+  },
+  targetPillCompleted: {
+    background: 'rgba(34, 197, 94, 0.2)',
+    color: '#4ade80',
+    border: '1px solid rgba(34, 197, 94, 0.3)',
+    boxShadow: '0 0 10px rgba(34, 197, 94, 0.2)',
+  },
+
+  // Game Over
+  gameOverOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    backdropFilter: 'blur(15px)',
+    WebkitBackdropFilter: 'blur(15px)',
+    pointerEvents: 'auto',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 50,
+    padding: 24,
+  },
+  gameOverModal: {
+    background: 'linear-gradient(180deg, rgba(20, 30, 50, 0.95) 0%, rgba(15, 25, 45, 0.98) 100%)',
+    border: '2px solid rgba(228, 0, 43, 0.5)',
+    borderRadius: 32,
+    padding: 32,
+    textAlign: 'center',
+    maxWidth: 360,
+    width: '100%',
+    boxShadow: '0 0 40px rgba(228, 0, 43, 0.2), 0 20px 60px rgba(0, 0, 0, 0.5)',
+  },
+  gameOverEmoji: {
+    fontSize: 64,
+    marginBottom: 16,
+  },
+  progressCircleContainer: {
+    position: 'relative',
+    width: 120,
+    height: 120,
+    margin: '0 auto 16px',
+  },
+  progressCircleText: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
+  progressPercent: {
+    fontSize: 32,
+    fontWeight: 800,
+    color: '#fff',
+  },
+  starsContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  star: {
+    fontSize: 48,
+    transition: 'all 0.3s',
+  },
+  starEarned: {
+    color: '#fbbf24',
+    textShadow: '0 0 20px rgba(251, 191, 36, 0.5)',
+    animation: 'bounce 1s infinite',
+  },
+  starEmpty: {
+    color: 'rgba(255, 255, 255, 0.2)',
+  },
+  gameOverTitle: {
+    fontSize: 28,
+    fontWeight: 800,
+    color: '#fff',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    margin: '0 0 8px 0',
+  },
+  gameOverSubtitle: {
+    color: 'rgba(255, 255, 255, 0.5)',
+    fontWeight: 700,
+    marginBottom: 24,
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+    fontSize: 12,
+    margin: '0 0 24px 0',
+  },
+  resultsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, 1fr)',
+    gap: 12,
+    marginBottom: 24,
+  },
+  resultCard: {
+    background: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 20,
+    padding: 16,
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  resultCardHighlight: {
+    background: 'rgba(228, 0, 43, 0.15)',
+    borderRadius: 20,
+    padding: 16,
+    border: '1px solid rgba(228, 0, 43, 0.3)',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 0 15px rgba(228, 0, 43, 0.1)',
+  },
+  resultLabel: {
+    fontSize: 10,
+    textTransform: 'uppercase',
+    color: 'rgba(255, 255, 255, 0.5)',
+    fontWeight: 800,
+    lineHeight: 1,
+  },
+  resultValue: {
+    fontSize: 24,
+    fontWeight: 800,
+    color: '#fff',
+    lineHeight: 1,
+    marginTop: 4,
+  },
+  resultLabelHighlight: {
+    fontSize: 10,
+    textTransform: 'uppercase',
+    color: '#ff6b6b',
+    fontWeight: 800,
+    lineHeight: 1,
+  },
+  resultValueHighlight: {
+    fontSize: 24,
+    fontWeight: 800,
+    color: '#ff6b6b',
+    lineHeight: 1,
+    marginTop: 4,
+  },
+  levelTag: {
+    background: 'linear-gradient(135deg, #FF5555 0%, #E4002B 100%)',
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: 700,
+    padding: '8px 16px',
+    borderRadius: 20,
+    display: 'inline-block',
+    marginBottom: 8,
+  },
+  gameUrl: {
+    color: 'rgba(255, 255, 255, 0.3)',
+    fontSize: 10,
+    fontWeight: 700,
+    marginBottom: 24,
+    wordBreak: 'break-all',
+  },
+  gameOverButtons: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 12,
+    width: '100%',
+  },
+  buttonRow: {
+    display: 'flex',
+    gap: 12,
+    width: '100%',
+  },
+  nextLevelButton: {
+    flex: 1,
+    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+    border: 'none',
+    color: '#fff',
+    fontWeight: 800,
+    padding: '14px 20px',
+    borderRadius: '8px 20px 8px 20px',
+    fontSize: 16,
+    cursor: 'pointer',
+    textTransform: 'uppercase',
+    boxShadow: '0 0 20px rgba(34, 197, 94, 0.3), 0 4px 15px rgba(0, 0, 0, 0.3)',
+  },
+  menuButton: {
+    flex: 1,
+    background: 'rgba(255, 255, 255, 0.1)',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    color: '#fff',
+    fontWeight: 800,
+    padding: '14px 20px',
+    borderRadius: 16,
+    fontSize: 14,
+    cursor: 'pointer',
+    textTransform: 'uppercase',
+  },
+  shareButton: {
+    flex: 1,
+    background: 'rgba(255, 255, 255, 0.1)',
+    border: '2px solid rgba(228, 0, 43, 0.5)',
+    color: '#ff6b6b',
+    fontWeight: 800,
+    padding: '14px 20px',
+    borderRadius: 16,
+    fontSize: 14,
+    cursor: 'pointer',
+    textTransform: 'uppercase',
+  },
+  retryButton: {
+    flex: 1,
+    background: 'linear-gradient(135deg, #FF5555 0%, #E4002B 50%, #B8001F 100%)',
+    border: 'none',
+    color: '#fff',
+    fontWeight: 800,
+    padding: '14px 20px',
+    borderRadius: '8px 20px 8px 20px',
+    fontSize: 16,
+    cursor: 'pointer',
+    textTransform: 'uppercase',
+    boxShadow: '0 0 20px rgba(228, 0, 43, 0.3), 0 4px 15px rgba(0, 0, 0, 0.3)',
+  },
+
+  // Bottom tagline
+  bottomTagline: {
+    marginTop: 'auto',
+    width: '100%',
+    display: 'flex',
+    justifyContent: 'center',
+    paddingBottom: 8,
+  },
+  taglineText: {
+    background: 'rgba(30, 40, 60, 0.8)',
+    backdropFilter: 'blur(10px)',
+    WebkitBackdropFilter: 'blur(10px)',
+    padding: '6px 20px',
+    borderRadius: 20,
+    border: '1px solid rgba(228, 0, 43, 0.3)',
+    color: '#ff6b6b',
+    fontWeight: 800,
+    fontSize: 10,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+};
+
+// Add animations
+const overlayStyleSheet = document.createElement('style');
+overlayStyleSheet.textContent = `
+  @keyframes movesWarning {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-4px) rotate(-3deg); }
+    40% { transform: translateX(4px) rotate(3deg); }
+    60% { transform: translateX(-3px) rotate(-2deg); }
+    80% { transform: translateX(3px) rotate(2deg); }
+  }
+
+  @keyframes gameOverStaggerIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .game-over-stagger-0 { animation: gameOverStaggerIn 0.4s ease-out 0.1s both; }
+  .game-over-stagger-1 { animation: gameOverStaggerIn 0.4s ease-out 0.2s both; }
+  .game-over-stagger-2 { animation: gameOverStaggerIn 0.4s ease-out 0.3s both; }
+  .game-over-stagger-3 { animation: gameOverStaggerIn 0.4s ease-out 0.4s both; }
+  .game-over-stagger-4 { animation: gameOverStaggerIn 0.4s ease-out 0.5s both; }
+  .game-over-stagger-5 { animation: gameOverStaggerIn 0.4s ease-out 0.6s both; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .game-over-stagger-0, .game-over-stagger-1, .game-over-stagger-2,
+    .game-over-stagger-3, .game-over-stagger-4, .game-over-stagger-5 {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
+`;
+if (!document.getElementById('overlay-styles')) {
+  overlayStyleSheet.id = 'overlay-styles';
+  document.head.appendChild(overlayStyleSheet);
+}
 
 export default Overlay;

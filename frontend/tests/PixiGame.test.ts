@@ -92,8 +92,8 @@ describe('PixiGame stats updates', () => {
     });
 
     it('should decrement moves regardless of item type matched', () => {
-      // This test ensures moves decrement for ANY match, not just chicken
-      const itemTypes = ['chicken', 'burger', 'fries', 'cola', 'bucket'];
+      // This test ensures moves decrement for ANY match, not just drumstick
+      const itemTypes = ['drumstick', 'wing', 'burger', 'fries', 'bucket', 'ice_cream', 'donut', 'cappuccino'];
 
       for (const itemType of itemTypes) {
         const stats = { score: 0, moves: 25, wingsCollected: 0 };
@@ -107,13 +107,13 @@ describe('PixiGame stats updates', () => {
           stats.score += 30; // Base points
 
           // Only chicken increments wingsCollected
-          if (matchedType === 'chicken') {
+          if (matchedType === 'drumstick') {
             stats.wingsCollected++;
           }
         }
 
         expect(stats.moves).toBe(24);
-        expect(stats.wingsCollected).toBe(itemType === 'chicken' ? 1 : 0);
+        expect(stats.wingsCollected).toBe(itemType === 'drumstick' ? 1 : 0);
       }
     });
   });

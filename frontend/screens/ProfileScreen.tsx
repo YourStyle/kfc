@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 
@@ -12,6 +12,10 @@ export function ProfileScreen({ onBack, onShowAuth }: ProfileScreenProps) {
   const [myRank, setMyRank] = useState<{ rank: number; total_players: number } | null>(null);
   const [completedLevels, setCompletedLevels] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [loaded, setLoaded] = useState(false);
+  const [displayScore, setDisplayScore] = useState(0);
+  const scoreRafRef = useRef(0);
+  const basePath = import.meta.env.BASE_URL || '/';
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -23,6 +27,7 @@ export function ProfileScreen({ onBack, onShowAuth }: ProfileScreenProps) {
 
   const loadStats = async () => {
     setIsLoading(true);
+    setLoaded(false);
 
     const [rankRes, progressRes] = await Promise.all([
       api.getMyRank(),
@@ -41,7 +46,33 @@ export function ProfileScreen({ onBack, onShowAuth }: ProfileScreenProps) {
     }
 
     setIsLoading(false);
+    setTimeout(() => setLoaded(true), 50);
   };
+
+  // Animated score counter
+  useEffect(() => {
+    const target = user?.total_score || 0;
+    if (target === 0) { setDisplayScore(0); return; }
+    const start = performance.now();
+    const duration = 900;
+
+    const tick = (now: number) => {
+      const elapsed = now - start;
+      const t = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setDisplayScore(Math.round(target * eased));
+      if (t < 1) {
+        scoreRafRef.current = requestAnimationFrame(tick);
+      } else {
+        scoreRafRef.current = 0;
+      }
+    };
+
+    cancelAnimationFrame(scoreRafRef.current);
+    scoreRafRef.current = requestAnimationFrame(tick);
+
+    return () => { cancelAnimationFrame(scoreRafRef.current); scoreRafRef.current = 0; };
+  }, [user?.total_score, loaded]);
 
   const handleLogout = async () => {
     await logout();
@@ -50,19 +81,28 @@ export function ProfileScreen({ onBack, onShowAuth }: ProfileScreenProps) {
   if (!isAuthenticated) {
     return (
       <div style={styles.container}>
+        <div className="profile-bg" style={{
+          ...styles.backgroundImage,
+          backgroundImage: `url(${basePath}images/background.png)`,
+        }} />
+
         <div style={styles.header}>
           <h1 style={styles.title}>Профиль</h1>
         </div>
 
-        <div style={styles.notLoggedIn}>
-          <div style={styles.notLoggedInIcon}>👤</div>
-          <h2 style={styles.notLoggedInTitle}>Войдите в аккаунт</h2>
-          <p style={styles.notLoggedInText}>
-            Чтобы видеть статистику и участвовать в рейтинге, необходимо войти или зарегистрироваться.
-          </p>
-          <button style={styles.loginButton} onClick={onShowAuth}>
-            Войти / Регистрация
-          </button>
+        <div style={styles.contentContainer}>
+          <div style={styles.contentPanel}>
+            <div style={styles.notLoggedIn}>
+              <div style={styles.notLoggedInIcon}>👤</div>
+              <h2 style={styles.notLoggedInTitle}>Войдите в аккаунт</h2>
+              <p style={styles.notLoggedInText}>
+                Чтобы видеть статистику и участвовать в рейтинге, необходимо войти или зарегистрироваться.
+              </p>
+              <button className="sci-fi-btn" style={styles.loginButton} onClick={onShowAuth}>
+                Войти / Регистрация
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -70,187 +110,332 @@ export function ProfileScreen({ onBack, onShowAuth }: ProfileScreenProps) {
 
   return (
     <div style={styles.container}>
+      <div className="profile-bg" style={{
+        ...styles.backgroundImage,
+        backgroundImage: `url(${basePath}images/background.png)`,
+      }} />
+
       <div style={styles.header}>
         <h1 style={styles.title}>Профиль</h1>
       </div>
 
-      {isLoading ? (
-        <div style={styles.loading}>Загрузка...</div>
-      ) : (
-        <div style={styles.content}>
-          {/* User Card */}
-          <div style={styles.userCard}>
-            <div style={styles.avatar}>
-              {user?.username?.charAt(0).toUpperCase() || '?'}
-            </div>
-            <div style={styles.userInfo}>
-              <div style={styles.username}>{user?.username}</div>
-              <div style={styles.email}>{user?.email}</div>
-            </div>
-          </div>
-
-          {/* Stats Grid */}
-          <div style={styles.statsGrid}>
-            <div style={styles.statCard}>
-              <div style={styles.statValue}>{user?.total_score?.toLocaleString() || 0}</div>
-              <div style={styles.statLabel}>Общий счёт</div>
-            </div>
-
-            <div style={styles.statCard}>
-              <div style={styles.statValue}>{completedLevels}</div>
-              <div style={styles.statLabel}>Пройдено уровней</div>
-            </div>
-
-            <div style={styles.statCard}>
-              <div style={styles.statValue}>
-                {myRank ? `#${myRank.rank}` : '-'}
+      <div style={styles.contentContainer}>
+        <div style={styles.contentPanel}>
+            <div style={styles.content}>
+              {/* User Card */}
+              <div className={`profile-stagger ${loaded ? 'profile-stagger-visible' : ''}`} style={{ ...styles.userCard, animationDelay: '0.1s' }}>
+                <div className="profile-avatar" style={styles.avatar}>
+                  {user?.username?.charAt(0).toUpperCase() || '?'}
+                </div>
+                <div style={styles.userInfo}>
+                  <div style={styles.username}>{user?.username}</div>
+                  <div style={styles.email}>{user?.email}</div>
+                  <div style={styles.city}>
+                    📍 {user?.city_name || (user?.city === 'moscow' ? 'Москва и МО' : 'Регион')}
+                  </div>
+                </div>
               </div>
-              <div style={styles.statLabel}>Место в рейтинге</div>
-            </div>
 
-            <div style={styles.statCard}>
-              <div style={styles.statValue}>
-                {myRank ? myRank.total_players : '-'}
+              {/* Stats Grid */}
+              <div style={styles.statsGrid}>
+                <div className={`profile-stagger ${loaded ? 'profile-stagger-visible' : ''}`} style={{ ...styles.statCard, animationDelay: '0.2s' }}>
+                  <div style={styles.statValue}>{displayScore.toLocaleString()}</div>
+                  <div style={styles.statLabel}>Общий счёт</div>
+                </div>
+
+                <div className={`profile-stagger ${loaded ? 'profile-stagger-visible' : ''}`} style={{ ...styles.statCard, animationDelay: '0.3s' }}>
+                  <div style={styles.statValue}>{completedLevels}</div>
+                  <div style={styles.statLabel}>Пройдено</div>
+                </div>
+
+                <div className={`profile-stagger ${loaded ? 'profile-stagger-visible' : ''}`} style={{ ...styles.statCard, animationDelay: '0.4s' }}>
+                  <div style={styles.statValue}>
+                    {myRank ? `#${myRank.rank}` : '-'}
+                  </div>
+                  <div style={styles.statLabel}>Место</div>
+                </div>
+
+                <div className={`profile-stagger ${loaded ? 'profile-stagger-visible' : ''}`} style={{ ...styles.statCard, animationDelay: '0.5s' }}>
+                  <div style={styles.statValue}>
+                    {myRank ? myRank.total_players : '-'}
+                  </div>
+                  <div style={styles.statLabel}>Игроков</div>
+                </div>
               </div>
-              <div style={styles.statLabel}>Всего игроков</div>
-            </div>
-          </div>
 
-          {/* Logout Button */}
-          <button style={styles.logoutButton} onClick={handleLogout}>
-            Выйти из аккаунта
-          </button>
+              {/* Logout Button */}
+              <button className={`profile-stagger profile-logout ${loaded ? 'profile-stagger-visible' : ''}`} style={{ ...styles.logoutButton, animationDelay: '0.6s' }} onClick={handleLogout}>
+                Выйти из аккаунта
+              </button>
+            </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
-    minHeight: '100vh',
-    backgroundColor: '#FFF5F5',
-    padding: '25px 20px 20px',
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    overflow: 'hidden',
+  },
+  backgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
+    zIndex: 0,
   },
   header: {
-    marginBottom: 30,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    padding: '20px 20px 15px',
+    textAlign: 'center',
   },
   title: {
-    color: '#E4002B',
+    color: '#fff',
     margin: 0,
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: 800,
-    textAlign: 'center',
-    fontFamily: "'Oswald', sans-serif",
+    fontFamily: "'Rajdhani', sans-serif",
+    letterSpacing: 2,
+    textShadow: '0 0 20px rgba(255, 100, 120, 0.4), 0 2px 10px rgba(0, 0, 0, 0.5)',
+    textTransform: 'uppercase',
+  },
+  contentContainer: {
+    position: 'absolute',
+    top: 70,
+    left: 0,
+    right: 0,
+    bottom: 80,
+    zIndex: 5,
+    display: 'flex',
+    justifyContent: 'center',
+    padding: '0 16px',
+  },
+  contentPanel: {
+    width: '100%',
+    maxWidth: 500,
+    background: 'linear-gradient(180deg, rgba(12, 18, 32, 0.92) 0%, rgba(18, 28, 48, 0.95) 100%)',
+    borderRadius: '16px 28px 16px 28px',
+    padding: '16px',
+    overflowY: 'auto',
+    overflowX: 'hidden',
+    border: '1px solid rgba(255, 100, 120, 0.25)',
+    boxShadow: '0 0 50px rgba(0, 0, 0, 0.5), 0 0 80px rgba(228, 0, 43, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
   },
   loading: {
     textAlign: 'center',
     padding: 40,
-    color: '#666',
+    color: 'rgba(255, 255, 255, 0.7)',
     fontSize: 18,
+    fontFamily: "'Rajdhani', sans-serif",
   },
   content: {
-    maxWidth: 500,
-    margin: '0 auto',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 14,
   },
   userCard: {
+    position: 'relative',
     display: 'flex',
     alignItems: 'center',
-    gap: 20,
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 20,
-    boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
-    marginBottom: 20,
+    gap: 16,
+    background: 'linear-gradient(135deg, rgba(25, 35, 55, 0.9) 0%, rgba(35, 50, 75, 0.85) 100%)',
+    backdropFilter: 'blur(15px)',
+    borderRadius: '10px 20px 10px 20px',
+    padding: 18,
+    border: '1px solid rgba(255, 100, 120, 0.3)',
+    boxShadow: '0 0 20px rgba(228, 0, 43, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
   },
   avatar: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: '#E4002B',
+    width: 64,
+    height: 64,
+    borderRadius: '12px 20px 12px 20px',
+    background: 'linear-gradient(135deg, #FF4D6D 0%, #E4002B 50%, #CC0025 100%)',
     color: '#fff',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: 'bold',
+    fontFamily: "'Orbitron', sans-serif",
+    boxShadow: '0 0 25px rgba(228, 0, 43, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
   },
   userInfo: {
     flex: 1,
   },
   username: {
     fontSize: 22,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 5,
+    fontWeight: 700,
+    color: '#fff',
+    marginBottom: 4,
+    fontFamily: "'Rajdhani', sans-serif",
+    textShadow: '0 0 10px rgba(255, 255, 255, 0.2)',
   },
   email: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 13,
+    color: 'rgba(255, 180, 200, 0.6)',
+  },
+  city: {
+    fontSize: 12,
+    color: 'rgba(140, 180, 240, 0.7)',
+    marginTop: 4,
+    fontFamily: "'Rajdhani', sans-serif",
+    fontWeight: 600,
+    letterSpacing: 0.5,
   },
   statsGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: 15,
-    marginBottom: 30,
+    gap: 10,
   },
   statCard: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 20,
+    position: 'relative',
+    background: 'linear-gradient(160deg, rgba(20, 30, 50, 0.9) 0%, rgba(30, 45, 70, 0.85) 100%)',
+    backdropFilter: 'blur(10px)',
+    borderRadius: '8px 16px 8px 16px',
+    padding: 16,
     textAlign: 'center',
-    boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
+    border: '1px solid rgba(100, 150, 220, 0.2)',
+    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.05)',
   },
   statValue: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#E4002B',
-    marginBottom: 5,
+    fontWeight: 800,
+    color: '#fff',
+    marginBottom: 4,
+    fontFamily: "'Orbitron', sans-serif",
+    textShadow: '0 0 15px rgba(100, 150, 220, 0.4)',
   },
   statLabel: {
-    fontSize: 12,
-    color: '#666',
+    fontSize: 10,
+    color: 'rgba(140, 180, 240, 0.7)',
     textTransform: 'uppercase',
+    letterSpacing: 1.5,
+    fontWeight: 600,
   },
   logoutButton: {
     width: '100%',
-    padding: 15,
-    borderRadius: 10,
-    border: '2px solid #ccc',
-    backgroundColor: '#fff',
-    color: '#666',
-    fontSize: 16,
+    padding: 14,
+    borderRadius: '6px 14px 6px 14px',
+    border: '1px solid rgba(255, 255, 255, 0.15)',
+    background: 'rgba(255, 255, 255, 0.05)',
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontSize: 14,
     cursor: 'pointer',
+    marginTop: 8,
+    fontFamily: "'Rajdhani', sans-serif",
+    letterSpacing: 1,
+    transition: 'all 0.2s ease',
   },
   notLoggedIn: {
     textAlign: 'center',
-    padding: 40,
-    maxWidth: 400,
-    margin: '0 auto',
+    padding: 30,
   },
   notLoggedInIcon: {
-    fontSize: 80,
-    marginBottom: 20,
+    fontSize: 60,
+    marginBottom: 16,
+    filter: 'drop-shadow(0 0 20px rgba(100, 150, 220, 0.4))',
   },
   notLoggedInTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: 700,
+    color: '#fff',
     marginBottom: 10,
+    marginTop: 0,
+    fontFamily: "'Rajdhani', sans-serif",
+    textShadow: '0 0 15px rgba(255, 255, 255, 0.2)',
   },
   notLoggedInText: {
-    color: '#666',
-    marginBottom: 30,
-    lineHeight: 1.5,
+    color: 'rgba(255, 255, 255, 0.6)',
+    marginBottom: 28,
+    lineHeight: 1.6,
+    fontSize: 14,
   },
   loginButton: {
-    padding: '15px 40px',
-    borderRadius: 10,
+    padding: '16px 44px',
     border: 'none',
-    backgroundColor: '#E4002B',
+    borderRadius: '8px 20px 8px 20px',
+    background: 'linear-gradient(135deg, #FF3D5A 0%, #E4002B 40%, #CC0025 100%)',
     color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 15,
+    fontWeight: 700,
     cursor: 'pointer',
+    boxShadow: '0 0 30px rgba(228, 0, 43, 0.5), 0 6px 20px rgba(0, 0, 0, 0.3)',
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+    fontFamily: "'Rajdhani', sans-serif",
+    transition: 'all 0.2s ease',
   },
 };
+
+// Add sci-fi button styles
+const profileStyleSheet = document.createElement('style');
+profileStyleSheet.textContent = `
+  @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&display=swap');
+
+  .sci-fi-btn {
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+  }
+  .sci-fi-btn:hover {
+    background: linear-gradient(135deg, #FF1744 0%, #E4002B 100%) !important;
+    box-shadow: 0 6px 28px rgba(228, 0, 43, 0.6) !important;
+    transform: translateY(-2px);
+  }
+  .sci-fi-btn:active {
+    transform: translateY(0);
+  }
+
+  /* Stagger entrance animation */
+  @keyframes profileStaggerIn {
+    from { opacity: 0; transform: translateY(18px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .profile-stagger { opacity: 0; }
+  .profile-stagger-visible { animation: profileStaggerIn 0.4s ease-out both; }
+
+  /* Avatar pulse glow */
+  @keyframes profileAvatarPulse {
+    0%, 100% { box-shadow: 0 0 25px rgba(228, 0, 43, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2); }
+    50% { box-shadow: 0 0 35px rgba(228, 0, 43, 0.7), 0 0 60px rgba(228, 0, 43, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); }
+  }
+  .profile-avatar {
+    animation: profileAvatarPulse 3s ease-in-out infinite;
+  }
+
+  /* Logout button hover */
+  .profile-logout:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 100, 120, 0.3) !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+    transform: translateY(-1px);
+  }
+
+  /* Mobile background for profile screen */
+  @media (max-width: 500px) {
+    .profile-bg {
+      background-image: url('/images/backgroundmob.png') !important;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .profile-stagger-visible { animation: none !important; opacity: 1 !important; transform: none !important; }
+    .profile-avatar { animation: none !important; }
+  }
+`;
+if (!document.getElementById('profile-styles')) {
+  profileStyleSheet.id = 'profile-styles';
+  document.head.appendChild(profileStyleSheet);
+}

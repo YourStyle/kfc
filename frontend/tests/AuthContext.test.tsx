@@ -32,7 +32,7 @@ const TestComponent = () => {
       </button>
       <button
         data-testid="register-btn"
-        onClick={() => register('new@example.com', 'newuser', 'password')}
+        onClick={() => register('new@example.com', 'newuser', 'password', 'moscow', 'Москва', 'game')}
       >
         Register
       </button>
@@ -201,7 +201,7 @@ describe('AuthContext', () => {
       screen.getByTestId('register-btn').click();
     });
 
-    expect(api.register).toHaveBeenCalledWith('new@example.com', 'newuser', 'password');
+    expect(api.register).toHaveBeenCalledWith('new@example.com', 'newuser', 'password', 'moscow', 'Москва', 'game');
   });
 
   it('should throw error when useAuth is used outside provider', () => {

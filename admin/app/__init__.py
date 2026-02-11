@@ -323,21 +323,35 @@ DASHBOARD_TEMPLATE = '''
         <div class="nav-section">Главная</div>
         <ul class="sidebar-nav">
             <li><a href="/admin" class="active"><i class="bi bi-grid-1x2"></i> Дашборд</a></li>
+            <li><a href="/admin/analytics/"><i class="bi bi-bar-chart-line"></i> Аналитика</a></li>
         </ul>
 
+        {% if admin_role in ('superadmin', 'game_admin', 'quest_admin') %}
         <div class="nav-section">Пользователи</div>
         <ul class="sidebar-nav">
             <li><a href="/admin/user/"><i class="bi bi-people"></i> Все пользователи</a></li>
             <li><a href="/admin/progress/"><i class="bi bi-graph-up"></i> Прогресс</a></li>
             <li><a href="/admin/activity/"><i class="bi bi-activity"></i> Активность</a></li>
         </ul>
+        {% endif %}
 
+        {% if admin_role in ('superadmin', 'game_admin') %}
         <div class="nav-section">Игра</div>
         <ul class="sidebar-nav">
             <li><a href="/admin/level/"><i class="bi bi-layers"></i> Уровни</a></li>
             <li><a href="/level-editor/"><i class="bi bi-grid-3x3-gap"></i> Конструктор</a></li>
             <li><a href="/admin/session/"><i class="bi bi-joystick"></i> Сессии</a></li>
         </ul>
+        {% endif %}
+
+        {% if admin_role in ('superadmin', 'quest_admin') %}
+        <div class="nav-section">Квест</div>
+        <ul class="sidebar-nav">
+            <li><a href="/admin/quest/pages/"><i class="bi bi-map"></i> Страницы квеста</a></li>
+            <li><a href="/admin/quest/promo/"><i class="bi bi-ticket-perforated"></i> Промокоды</a></li>
+            <li><a href="/admin/quest/progress/"><i class="bi bi-person-check"></i> Прогресс участников</a></li>
+        </ul>
+        {% endif %}
 
         <div class="nav-section">Система</div>
         <ul class="sidebar-nav">
@@ -536,7 +550,8 @@ class SecureAdminIndexView(AdminIndexView):
             total_sessions=total_sessions,
             total_score=total_score,
             active_codes=active_codes,
-            recent_users=recent_users
+            recent_users=recent_users,
+            admin_role=current_user.role if hasattr(current_user, 'role') and current_user.role else 'superadmin'
         )
 
 
@@ -583,6 +598,9 @@ def create_app():
 
     from app.custom_views import bp as custom_views_bp
     app.register_blueprint(custom_views_bp, url_prefix='/admin')
+
+    from app.quest_views import bp as quest_views_bp
+    app.register_blueprint(quest_views_bp)
 
     @app.route('/')
     def index():

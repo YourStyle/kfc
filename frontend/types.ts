@@ -1,5 +1,5 @@
 
-export type ItemType = 'chicken' | 'burger' | 'fries' | 'cola' | 'bucket' | 'obstacle';
+export type ItemType = 'drumstick' | 'wing' | 'burger' | 'fries' | 'bucket' | 'ice_cream' | 'donut' | 'cappuccino' | 'obstacle';
 export type BonusType = 'none' | 'row' | 'column' | 'color';
 
 export interface GridPos {
@@ -11,5 +11,5 @@ export interface GameState {
   score: number;
   moves: number;
   isGameOver: boolean;
-  wingsCollected: number;
+  collected: Record<string, number>;
 }

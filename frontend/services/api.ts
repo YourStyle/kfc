@@ -57,10 +57,10 @@ class ApiClient {
   }
 
   // Auth endpoints
-  async register(email: string, username: string, password: string) {
+  async register(email: string, username: string, password: string, city: 'moscow' | 'region', cityName: string, source: 'game' | 'quest' = 'game') {
     return this.request<{ message: string; user_id: number }>('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ email, username, password }),
+      body: JSON.stringify({ email, username, password, city, city_name: cityName, source }),
     });
   }
 
@@ -150,9 +150,11 @@ class ApiClient {
   }
 
   // Leaderboard endpoints
-  async getGlobalLeaderboard(limit = 100) {
+  async getGlobalLeaderboard(limit = 100, city?: 'moscow' | 'region') {
+    const params = new URLSearchParams({ limit: String(limit) });
+    if (city) params.append('city', city);
     return this.request<{ leaderboard: GlobalLeaderboardEntry[] }>(
-      `/leaderboard?limit=${limit}`
+      `/leaderboard?${params.toString()}`
     );
   }
 
@@ -163,9 +165,50 @@ class ApiClient {
   }
 
   async getMyRank() {
-    return this.request<{ rank: number; total_score: number; total_players: number }>(
-      '/leaderboard/my-rank'
-    );
+    return this.request<{
+      rank: number;
+      total_score: number;
+      total_players: number;
+      city: 'moscow' | 'region';
+      regional_rank: number;
+      regional_total_players: number;
+    }>('/leaderboard/my-rank');
+  }
+
+  // Quest endpoints
+  async getQuestPages() {
+    return this.request<{ pages: QuestPageSummary[] }>('/quest/pages');
+  }
+
+  async getQuestPage(slug: string) {
+    return this.request<{ page: QuestPageDetail }>(`/quest/pages/${slug}`);
+  }
+
+  async scanQuestQR(qrToken: string) {
+    return this.request<QuestScanResult>('/quest/scan', {
+      method: 'POST',
+      body: JSON.stringify({ qr_token: qrToken }),
+    });
+  }
+
+  async skipQuestQuestion() {
+    return this.request<QuestSkipResult>('/quest/skip', {
+      method: 'POST',
+    });
+  }
+
+  async getQuestProgress() {
+    return this.request<QuestProgressData>('/quest/progress');
+  }
+
+  async getQuestResult() {
+    return this.request<QuestResultData>('/quest/result');
+  }
+
+  async claimPromoCode() {
+    return this.request<PromoClaimResult>('/quest/claim-promo', {
+      method: 'POST',
+    });
   }
 }
 
@@ -174,8 +217,12 @@ export interface User {
   id: number;
   email: string;
   username: string;
+  city: 'moscow' | 'region';
+  city_name?: string;
   is_verified: boolean;
   total_score: number;
+  registration_source: 'game' | 'quest' | 'transferred';
+  quest_score: number;
   created_at: string;
 }
 
@@ -188,6 +235,7 @@ export interface Level {
   max_moves: number;
   item_types: string[];
   targets: LevelTargets;
+  obstacles: { row: number; col: number }[];
   is_active: boolean;
 }
 
@@ -237,6 +285,7 @@ export interface GlobalLeaderboardEntry {
   total_score: number;
   completed_levels: number;
   total_stars: number;
+  city?: 'moscow' | 'region';
 }
 
 export interface WeeklyLeaderboardEntry {
@@ -244,6 +293,78 @@ export interface WeeklyLeaderboardEntry {
   user_id: number;
   username: string;
   weekly_score: number;
+}
+
+// Quest types
+export interface QuestPageSummary {
+  id: number;
+  slug: string;
+  order: number;
+  title: string;
+  riddle_text: string;
+  fact_text?: string;
+  image_url?: string;
+  points: number;
+  is_active: boolean;
+}
+
+export interface QuestPageDetail extends QuestPageSummary {
+  description?: string;
+}
+
+export interface QuestScanResult {
+  is_correct: boolean;
+  points_earned: number;
+  total_quest_score: number;
+  fact_text?: string;
+  page: QuestPageSummary;
+  next_page_slug?: string;
+  quest_completed: boolean;
+}
+
+export interface QuestSkipResult {
+  skipped_page: string;
+  next_page_slug?: string;
+  quest_completed: boolean;
+  total_quest_score: number;
+}
+
+export interface QuestProgressEntry {
+  page_slug: string;
+  page_order: number;
+  page_title: string;
+  is_answered: boolean;
+  is_correct: boolean;
+  is_skipped: boolean;
+  points_earned: number;
+}
+
+export interface QuestProgressData {
+  progress: QuestProgressEntry[];
+  total_score: number;
+  total_pages: number;
+  answered_pages: number;
+  current_page_slug?: string;
+  quest_completed: boolean;
+}
+
+export interface QuestResultData {
+  total_score: number;
+  total_pages: number;
+  correct_answers: number;
+  skipped_answers: number;
+  answered_pages: number;
+  eligible_tier?: string;
+  eligible_discount?: string;
+  already_claimed: boolean;
+  claimed_code?: string;
+  claimed_tier?: string;
+}
+
+export interface PromoClaimResult {
+  code: string;
+  tier: string;
+  discount_label: string;
 }
 
 export const api = new ApiClient();

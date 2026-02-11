@@ -6,7 +6,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  register: (email: string, username: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (email: string, username: string, password: string, city: 'moscow' | 'region', cityName: string, source?: 'game' | 'quest') => Promise<{ success: boolean; error?: string }>;
   verify: (email: string, code: string) => Promise<{ success: boolean; error?: string }>;
   resendCode: (email: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
@@ -52,8 +52,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { success: false, error: 'Unknown error' };
   };
 
-  const register = async (email: string, username: string, password: string) => {
-    const { data, error } = await api.register(email, username, password);
+  const register = async (email: string, username: string, password: string, city: 'moscow' | 'region', cityName: string, source: 'game' | 'quest' = 'game') => {
+    const { data, error } = await api.register(email, username, password, city, cityName, source);
     if (error) {
       return { success: false, error };
     }

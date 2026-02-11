@@ -24,8 +24,11 @@ export class ParticleSystem {
 
   public emit(x: number, y: number, type: ItemType) {
     switch (type) {
-      case 'chicken':
+      case 'drumstick':
         this.emitFeathers(x, y);
+        break;
+      case 'wing':
+        this.emitWingFeathers(x, y);
         break;
       case 'burger':
         this.emitBurgerParts(x, y);
@@ -33,18 +36,24 @@ export class ParticleSystem {
       case 'fries':
         this.emitFries(x, y);
         break;
-      case 'cola':
-        this.emitBubbles(x, y);
-        break;
       case 'bucket':
         this.emitStars(x, y);
+        break;
+      case 'ice_cream':
+        this.emitIceCream(x, y);
+        break;
+      case 'donut':
+        this.emitSprinkles(x, y);
+        break;
+      case 'cappuccino':
+        this.emitSteam(x, y);
         break;
       default:
         this.emitGeneric(x, y, 0xE4002B);
     }
   }
 
-  // Курица - золотисто-коричневые перья
+  // Ножка — золотисто-коричневые перья
   private emitFeathers(x: number, y: number) {
     const featherColors = [0xD4A574, 0xC4956A, 0xE8C89E, 0xB8865A]; // Оттенки курочки
     for (let i = 0; i < 6; i++) {
@@ -188,67 +197,7 @@ export class ParticleSystem {
     }
   }
 
-  // Кола - пузырьки (летят вверх) и капли
-  private emitBubbles(x: number, y: number) {
-    // Пузырьки (летят вверх)
-    for (let i = 0; i < 8; i++) {
-      const g = new Graphics();
-      const size = 4 + Math.random() * 6;
-      g.circle(0, 0, size);
-      g.stroke({ color: 0xffffff, width: 2, alpha: 0.8 });
-      // Блик
-      g.circle(-size * 0.3, -size * 0.3, size * 0.3);
-      g.fill({ color: 0xffffff, alpha: 0.6 });
-
-      g.x = x + (Math.random() - 0.5) * 30;
-      g.y = y;
-      this.container.addChild(g);
-
-      this.particles.push({
-        graphics: g,
-        vx: (Math.random() - 0.5) * 40,
-        vy: -80 - Math.random() * 100,
-        gravity: -30, // Летят вверх!
-        life: 1,
-        maxLife: 1 + Math.random() * 0.5,
-        rotationSpeed: 0,
-        scaleDecay: 0.2
-      });
-    }
-
-    // Капли колы
-    for (let i = 0; i < 4; i++) {
-      const g = new Graphics();
-      // Капля
-      g.circle(0, 2, 4);
-      g.fill({ color: 0x3E2723 }); // Тёмно-коричневый
-      g.moveTo(0, -4);
-      g.lineTo(-3, 2);
-      g.lineTo(3, 2);
-      g.closePath();
-      g.fill({ color: 0x3E2723 });
-
-      g.x = x;
-      g.y = y;
-      this.container.addChild(g);
-
-      const angle = Math.random() * Math.PI * 2;
-      const speed = 100 + Math.random() * 60;
-
-      this.particles.push({
-        graphics: g,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 60,
-        gravity: 400,
-        life: 1,
-        maxLife: 0.6 + Math.random() * 0.3,
-        rotationSpeed: 0,
-        scaleDecay: 0.5
-      });
-    }
-  }
-
-  // Баскет - красные звёзды/искры
+  // Баскет — красные звёзды/искры
   private emitStars(x: number, y: number) {
     for (let i = 0; i < 8; i++) {
       const g = new Graphics();
@@ -283,6 +232,146 @@ export class ParticleSystem {
         maxLife: 0.8 + Math.random() * 0.4,
         rotationSpeed: (Math.random() - 0.5) * 12,
         scaleDecay: 0.3
+      });
+    }
+  }
+
+  // Крылышко — лёгкие золотые пёрышки (более мелкие, чем у ножки)
+  private emitWingFeathers(x: number, y: number) {
+    const colors = [0xE8C89E, 0xDEB887, 0xD2B48C, 0xC4956A];
+    for (let i = 0; i < 8; i++) {
+      const g = new Graphics();
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      g.ellipse(0, 0, 8, 3);
+      g.fill({ color });
+
+      g.x = x;
+      g.y = y;
+      g.rotation = Math.random() * Math.PI * 2;
+      this.container.addChild(g);
+
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 100 + Math.random() * 80;
+
+      this.particles.push({
+        graphics: g,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 120,
+        gravity: 40,
+        life: 1,
+        maxLife: 1.4 + Math.random() * 0.4,
+        rotationSpeed: (Math.random() - 0.5) * 6,
+        scaleDecay: 0.3
+      });
+    }
+  }
+
+  // Мороженое — холодные капли и снежинки
+  private emitIceCream(x: number, y: number) {
+    const colors = [0xFFC0CB, 0xFFFFFF, 0xADD8E6, 0xFFF0F5];
+    for (let i = 0; i < 7; i++) {
+      const g = new Graphics();
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const size = 3 + Math.random() * 4;
+      g.circle(0, 0, size);
+      g.fill({ color, alpha: 0.9 });
+
+      g.x = x + (Math.random() - 0.5) * 20;
+      g.y = y;
+      this.container.addChild(g);
+
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 60 + Math.random() * 60;
+
+      this.particles.push({
+        graphics: g,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 80,
+        gravity: 120,
+        life: 1,
+        maxLife: 1 + Math.random() * 0.5,
+        rotationSpeed: 0,
+        scaleDecay: 0.3
+      });
+    }
+  }
+
+  // Донат — цветные посыпки (sprinkles)
+  private emitSprinkles(x: number, y: number) {
+    const sprinkleColors = [0xFF69B4, 0xFF1493, 0xFFD700, 0x00CED1, 0xFF6347, 0x7B68EE];
+    for (let i = 0; i < 10; i++) {
+      const g = new Graphics();
+      const color = sprinkleColors[Math.floor(Math.random() * sprinkleColors.length)];
+      g.roundRect(-2, -5, 4, 10, 2);
+      g.fill({ color });
+
+      g.x = x;
+      g.y = y;
+      g.rotation = Math.random() * Math.PI;
+      this.container.addChild(g);
+
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 130 + Math.random() * 80;
+
+      this.particles.push({
+        graphics: g,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 100,
+        gravity: 400,
+        life: 1,
+        maxLife: 0.7 + Math.random() * 0.3,
+        rotationSpeed: (Math.random() - 0.5) * 12,
+        scaleDecay: 0.4
+      });
+    }
+  }
+
+  // Капучино — пар и кофейные капли
+  private emitSteam(x: number, y: number) {
+    // Пар (вверх)
+    for (let i = 0; i < 5; i++) {
+      const g = new Graphics();
+      const size = 6 + Math.random() * 6;
+      g.circle(0, 0, size);
+      g.fill({ color: 0xffffff, alpha: 0.4 });
+
+      g.x = x + (Math.random() - 0.5) * 20;
+      g.y = y;
+      this.container.addChild(g);
+
+      this.particles.push({
+        graphics: g,
+        vx: (Math.random() - 0.5) * 30,
+        vy: -60 - Math.random() * 60,
+        gravity: -20,
+        life: 1,
+        maxLife: 1.2 + Math.random() * 0.5,
+        rotationSpeed: 0,
+        scaleDecay: 0.2
+      });
+    }
+    // Кофейные капли
+    for (let i = 0; i < 4; i++) {
+      const g = new Graphics();
+      g.circle(0, 0, 3 + Math.random() * 3);
+      g.fill({ color: 0x8B4513 });
+
+      g.x = x;
+      g.y = y;
+      this.container.addChild(g);
+
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 80 + Math.random() * 60;
+
+      this.particles.push({
+        graphics: g,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 50,
+        gravity: 350,
+        life: 1,
+        maxLife: 0.6 + Math.random() * 0.3,
+        rotationSpeed: 0,
+        scaleDecay: 0.5
       });
     }
   }

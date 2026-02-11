@@ -60,7 +60,7 @@ class TestCompleteGame:
             'moves_used': 20,
             'duration_seconds': 120,
             'targets_met': {
-                'collect': {'chicken': 10},
+                'collect': {'drumstick': 10},
                 'score': 500
             }
         }, headers=auth_header)
@@ -85,7 +85,7 @@ class TestCompleteGame:
             'score': 50,
             'moves_used': 30,
             'targets_met': {
-                'collect': {'chicken': 2}  # Need 5
+                'collect': {'drumstick': 2}  # Need 5
             }
         }, headers=auth_header)
 
@@ -113,7 +113,7 @@ class TestCompleteGame:
         client.post('/api/game/complete', json={
             'session_id': session_id,
             'score': 100,
-            'targets_met': {'collect': {'chicken': 5}}
+            'targets_met': {'collect': {'drumstick': 5}}
         }, headers=auth_header)
 
         # Try to complete again
@@ -136,7 +136,7 @@ class TestCompleteGame:
             'session_id': session_id,
             'score': 100,
             'moves_used': 10,  # 20 moves remaining out of 30
-            'targets_met': {'collect': {'chicken': 5}, 'score': 100}
+            'targets_met': {'collect': {'drumstick': 5}, 'score': 100}
         }, headers=auth_header)
 
         assert response.status_code == 200
@@ -153,16 +153,16 @@ class TestCheckTargetsMet:
         """Test checking collect targets"""
         from app.api.game import check_targets_met
 
-        targets = {'collect': {'chicken': 5, 'burger': 3}}
-        met = {'collect': {'chicken': 5, 'burger': 3}}
+        targets = {'collect': {'drumstick': 5, 'burger': 3}}
+        met = {'collect': {'drumstick': 5, 'burger': 3}}
         assert check_targets_met(targets, met) is True
 
     def test_collect_targets_not_met(self, app):
         """Test checking collect targets not met"""
         from app.api.game import check_targets_met
 
-        targets = {'collect': {'chicken': 5}}
-        met = {'collect': {'chicken': 3}}
+        targets = {'collect': {'drumstick': 5}}
+        met = {'collect': {'drumstick': 3}}
         assert check_targets_met(targets, met) is False
 
     def test_min_score_target(self, app):

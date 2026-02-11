@@ -30,8 +30,8 @@ def init_db():
                     grid_width=7,
                     grid_height=7,
                     max_moves=20,
-                    item_types=['chicken', 'burger', 'fries'],
-                    targets={'collect': {'chicken': 5}, 'min_score': 500}
+                    item_types=['drumstick', 'burger', 'fries'],
+                    targets={'collect': {'drumstick': 5}, 'min_score': 500}
                 ),
                 Level(
                     name='Лёгкий старт',
@@ -39,8 +39,8 @@ def init_db():
                     grid_width=7,
                     grid_height=7,
                     max_moves=25,
-                    item_types=['chicken', 'burger', 'fries', 'drink'],
-                    targets={'collect': {'chicken': 10, 'burger': 5}, 'min_score': 1000}
+                    item_types=['drumstick', 'wing', 'burger', 'fries'],
+                    targets={'collect': {'drumstick': 10, 'burger': 5}, 'min_score': 1000}
                 ),
                 Level(
                     name='Комбо мастер',
@@ -48,7 +48,7 @@ def init_db():
                     grid_width=8,
                     grid_height=8,
                     max_moves=30,
-                    item_types=['chicken', 'burger', 'fries', 'drink', 'sauce'],
+                    item_types=['drumstick', 'wing', 'burger', 'fries', 'bucket'],
                     targets={'collect': {'fries': 15}, 'min_score': 2000}
                 ),
                 Level(
@@ -57,8 +57,8 @@ def init_db():
                     grid_width=8,
                     grid_height=8,
                     max_moves=35,
-                    item_types=['chicken', 'burger', 'fries', 'drink', 'sauce'],
-                    targets={'collect': {'chicken': 20, 'burger': 15, 'fries': 10}, 'min_score': 3000}
+                    item_types=['drumstick', 'wing', 'burger', 'fries', 'bucket', 'ice_cream'],
+                    targets={'collect': {'drumstick': 20, 'burger': 15, 'fries': 10}, 'min_score': 3000}
                 ),
                 Level(
                     name='Час пик',
@@ -66,8 +66,8 @@ def init_db():
                     grid_width=8,
                     grid_height=8,
                     max_moves=25,
-                    item_types=['chicken', 'burger', 'fries', 'drink', 'sauce'],
-                    targets={'collect': {'chicken': 25, 'drink': 15}, 'min_score': 5000}
+                    item_types=['drumstick', 'wing', 'burger', 'fries', 'bucket', 'ice_cream', 'donut', 'cappuccino'],
+                    targets={'collect': {'drumstick': 25, 'cappuccino': 15}, 'min_score': 5000}
                 ),
             ]
 

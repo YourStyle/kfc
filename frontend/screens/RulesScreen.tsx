@@ -5,116 +5,133 @@ interface RulesScreenProps {
 }
 
 export function RulesScreen({ onBack }: RulesScreenProps) {
+  const basePath = import.meta.env.BASE_URL || '/';
+
   return (
     <div style={styles.container}>
+      <div className="rules-bg" style={{
+        ...styles.backgroundImage,
+        backgroundImage: `url(${basePath}images/background.png)`,
+      }} />
+
       <div style={styles.header}>
         <h1 style={styles.title}>Правила игры</h1>
       </div>
 
-      <div style={styles.content}>
-        {/* How to Play */}
-        <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>🎮 Как играть</h2>
-          <div style={styles.rulesList}>
-            <div style={styles.rule}>
-              <span style={styles.ruleNumber}>1</span>
-              <p>Меняй местами соседние элементы, чтобы собрать 3 и более одинаковых в ряд</p>
-            </div>
-            <div style={styles.rule}>
-              <span style={styles.ruleNumber}>2</span>
-              <p>Совпавшие элементы исчезают, а сверху падают новые</p>
-            </div>
-            <div style={styles.rule}>
-              <span style={styles.ruleNumber}>3</span>
-              <p>Выполняй задание уровня до того, как закончатся ходы</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Combos */}
-        <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>💥 Комбо</h2>
-          <div style={styles.comboList}>
-            <div style={styles.combo}>
-              <span style={styles.comboIcon}>3️⃣</span>
-              <div>
-                <strong>3 в ряд</strong>
-                <p>Базовое совпадение</p>
+      <div style={styles.contentContainer}>
+        <div style={styles.contentPanel} className="hide-scrollbar">
+          {/* How to Play */}
+          <div style={styles.section}>
+            <h2 style={styles.sectionTitle}>🎮 Как играть</h2>
+            <div style={styles.rulesList}>
+              <div style={styles.rule}>
+                <span style={styles.ruleNumber}>1</span>
+                <p style={styles.ruleText}>Меняй местами соседние элементы, чтобы собрать 3 и более одинаковых в ряд</p>
               </div>
-            </div>
-            <div style={styles.combo}>
-              <span style={styles.comboIcon}>4️⃣</span>
-              <div>
-                <strong>4 в ряд</strong>
-                <p>Бонусные очки x2</p>
+              <div style={styles.rule}>
+                <span style={styles.ruleNumber}>2</span>
+                <p style={styles.ruleText}>Совпавшие элементы исчезают, а сверху падают новые</p>
               </div>
-            </div>
-            <div style={styles.combo}>
-              <span style={styles.comboIcon}>5️⃣</span>
-              <div>
-                <strong>5+ в ряд</strong>
-                <p>Бонусные очки x3</p>
+              <div style={styles.rule}>
+                <span style={styles.ruleNumber}>3</span>
+                <p style={styles.ruleText}>Выполняй задание уровня до того, как закончатся ходы</p>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Level Types */}
-        <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>🎯 Типы заданий</h2>
-          <div style={styles.taskList}>
-            <div style={styles.task}>
-              <span style={styles.taskIcon}>🍗</span>
-              <div>
-                <strong>Сбор предметов</strong>
-                <p>Собери определённое количество элементов</p>
+          {/* Combos */}
+          <div style={styles.section}>
+            <h2 style={styles.sectionTitle}>💥 Комбо</h2>
+            <div style={styles.comboList}>
+              <div style={styles.combo}>
+                <span style={styles.comboIcon}>3️⃣</span>
+                <div>
+                  <strong style={styles.comboTitle}>3 в ряд</strong>
+                  <p style={styles.comboDesc}>Базовое совпадение</p>
+                </div>
               </div>
-            </div>
-            <div style={styles.task}>
-              <span style={styles.taskIcon}>⭐</span>
-              <div>
-                <strong>Набор очков</strong>
-                <p>Набери минимальное количество очков</p>
+              <div style={styles.combo}>
+                <span style={styles.comboIcon}>4️⃣</span>
+                <div>
+                  <strong style={styles.comboTitle}>4 в ряд</strong>
+                  <p style={styles.comboDesc}>Бонусные очки x2</p>
+                </div>
+              </div>
+              <div style={styles.combo}>
+                <span style={styles.comboIcon}>5️⃣</span>
+                <div>
+                  <strong style={styles.comboTitle}>5+ в ряд</strong>
+                  <p style={styles.comboDesc}>Бонусные очки x3</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Stars */}
-        <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>⭐ Система звёзд</h2>
-          <div style={styles.starsList}>
-            <div style={styles.starItem}>
-              <span style={styles.stars}>★☆☆</span>
-              <span>Выполни задание</span>
-            </div>
-            <div style={styles.starItem}>
-              <span style={styles.stars}>★★☆</span>
-              <span>Набери x1.5 от минимума очков</span>
-            </div>
-            <div style={styles.starItem}>
-              <span style={styles.stars}>★★★</span>
-              <span>Набери x2 от минимума очков</span>
+          {/* Prizes */}
+          <div style={styles.section}>
+            <h2 style={styles.sectionTitle}>🎁 Призы</h2>
+            <p style={styles.text}>
+              Лучшие игроки по итогам акции получат призы от ROSTIC'S!
+              Рейтинг разделён на два региона — следи за своим местом.
+            </p>
+          </div>
+
+          {/* Moscow Prizes */}
+          <div style={styles.section}>
+            <h2 style={styles.sectionTitle}>🏙️ Москва и МО</h2>
+            <div style={styles.prizeList}>
+              <div style={styles.prizeItem}>
+                <div style={styles.prizePlace}>
+                  <span style={styles.prizePlaceIcon}>🥇</span>
+                  <span style={styles.prizePlaceText}>1–10 место</span>
+                </div>
+                <div style={styles.prizeDesc}>
+                  <strong style={styles.prizeTitle}>Встреча с космонавтом</strong>
+                  <p style={styles.prizeText}>
+                    Пригласительный билет на встречу с космонавтом Лавейкиным.
+                    Семейный билет: 1 взрослый + 1–2 ребёнка. Мерч-пакет вручается победителю.
+                  </p>
+                </div>
+              </div>
+              <div style={styles.prizeItem}>
+                <div style={styles.prizePlace}>
+                  <span style={styles.prizePlaceIcon}>🎖️</span>
+                  <span style={styles.prizePlaceText}>11–20 место</span>
+                </div>
+                <div style={styles.prizeDesc}>
+                  <strong style={styles.prizeTitle}>Промокод на скидку</strong>
+                  <p style={styles.prizeText}>Промокод на скидку ROSTIC'S</p>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Leaderboard */}
-        <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>🏆 Рейтинг</h2>
-          <p style={styles.text}>
-            Твой общий рейтинг складывается из лучших результатов на всех пройденных уровнях.
-            Соревнуйся с другими игроками и поднимайся в таблице лидеров!
-          </p>
-        </div>
-
-        {/* Prizes */}
-        <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>🎁 Призы</h2>
-          <p style={styles.text}>
-            Лучшие игроки по итогам акции получат призы от ROSTIC'S!
-            Следи за своим местом в рейтинге и набирай больше очков.
-          </p>
+          {/* Region Prizes */}
+          <div style={styles.section}>
+            <h2 style={styles.sectionTitle}>🌍 Регионы</h2>
+            <div style={styles.prizeList}>
+              <div style={styles.prizeItem}>
+                <div style={styles.prizePlace}>
+                  <span style={styles.prizePlaceIcon}>🥇</span>
+                  <span style={styles.prizePlaceText}>1–10 место</span>
+                </div>
+                <div style={styles.prizeDesc}>
+                  <strong style={styles.prizeTitle}>Повышенная скидка</strong>
+                  <p style={styles.prizeText}>Промокод с повышенной скидкой (QR-код)</p>
+                </div>
+              </div>
+              <div style={styles.prizeItem}>
+                <div style={styles.prizePlace}>
+                  <span style={styles.prizePlaceIcon}>🎖️</span>
+                  <span style={styles.prizePlaceText}>11–20 место</span>
+                </div>
+                <div style={styles.prizeDesc}>
+                  <strong style={styles.prizeTitle}>Промокод на скидку</strong>
+                  <p style={styles.prizeText}>Промокод на скидку ROSTIC'S (QR-код)</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -123,106 +140,236 @@ export function RulesScreen({ onBack }: RulesScreenProps) {
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
-    minHeight: '100vh',
-    backgroundColor: '#FFF5F5',
-    padding: '25px 20px 100px',
-    overflowY: 'auto',
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    overflow: 'hidden',
+  },
+  backgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
+    zIndex: 0,
   },
   header: {
-    marginBottom: 20,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    padding: '20px 20px 15px',
+    textAlign: 'center',
   },
   title: {
-    color: '#E4002B',
+    color: '#fff',
     margin: 0,
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: 800,
-    textAlign: 'center',
-    fontFamily: "'Oswald', sans-serif",
+    fontFamily: "'Rajdhani', sans-serif",
+    letterSpacing: 2,
+    textShadow: '0 0 20px rgba(255, 100, 120, 0.4), 0 2px 10px rgba(0, 0, 0, 0.5)',
+    textTransform: 'uppercase',
   },
-  content: {
-    maxWidth: 600,
-    margin: '0 auto',
+  contentContainer: {
+    position: 'absolute',
+    top: 70,
+    left: 0,
+    right: 0,
+    bottom: 80,
+    zIndex: 5,
+    display: 'flex',
+    justifyContent: 'center',
+    padding: '0 16px',
+    overflow: 'hidden',
+  },
+  contentPanel: {
+    width: '100%',
+    maxWidth: 500,
+    height: '100%',
+    background: 'linear-gradient(180deg, rgba(12, 18, 32, 0.92) 0%, rgba(18, 28, 48, 0.95) 100%)',
+    borderRadius: '16px 28px 16px 28px',
+    padding: '16px',
+    overflowY: 'auto',
+    overflowX: 'hidden',
+    border: '1px solid rgba(255, 100, 120, 0.25)',
+    boxShadow: '0 0 50px rgba(0, 0, 0, 0.5), 0 0 80px rgba(228, 0, 43, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 14,
+    boxSizing: 'border-box',
+    // iOS smooth scrolling
+    WebkitOverflowScrolling: 'touch',
+    // Prevent pull-to-refresh
+    overscrollBehavior: 'contain',
+    // Enable touch scrolling
+    touchAction: 'pan-y',
   },
   section: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 20,
-    marginBottom: 15,
-    boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
+    background: 'linear-gradient(160deg, rgba(20, 30, 50, 0.9) 0%, rgba(30, 45, 70, 0.85) 100%)',
+    backdropFilter: 'blur(15px)',
+    borderRadius: '10px 18px 10px 18px',
+    padding: 16,
+    border: '1px solid rgba(100, 150, 220, 0.2)',
+    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.05)',
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#E4002B',
+    fontSize: 20,
+    fontWeight: 700,
+    color: '#fff',
     marginTop: 0,
-    marginBottom: 15,
+    marginBottom: 14,
+    fontFamily: "'Rajdhani', sans-serif",
+    letterSpacing: 1,
+    textShadow: '0 0 15px rgba(255, 255, 255, 0.15)',
   },
   rulesList: {
     display: 'flex',
     flexDirection: 'column',
-    gap: 15,
+    gap: 12,
   },
   rule: {
     display: 'flex',
     alignItems: 'flex-start',
-    gap: 15,
+    gap: 12,
   },
   ruleNumber: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: '#E4002B',
+    width: 32,
+    height: 32,
+    minWidth: 32,
+    borderRadius: '6px 12px 6px 12px',
+    background: 'linear-gradient(135deg, #FF4D6D 0%, #E4002B 50%, #CC0025 100%)',
     color: '#fff',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     fontWeight: 'bold',
+    fontSize: 15,
     flexShrink: 0,
+    fontFamily: "'Orbitron', sans-serif",
+    boxShadow: '0 0 15px rgba(228, 0, 43, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+    marginTop: 2,
+  },
+  ruleText: {
+    color: 'rgba(220, 230, 255, 0.85)',
+    margin: 0,
+    fontSize: 16,
+    lineHeight: 1.6,
+    fontFamily: "'Rajdhani', sans-serif",
+    fontWeight: 500,
   },
   comboList: {
     display: 'flex',
     flexDirection: 'column',
-    gap: 12,
+    gap: 10,
   },
   combo: {
     display: 'flex',
     alignItems: 'center',
-    gap: 15,
+    gap: 12,
+    background: 'linear-gradient(160deg, rgba(25, 35, 55, 0.7) 0%, rgba(35, 50, 75, 0.6) 100%)',
+    padding: '10px 14px',
+    borderRadius: '8px 14px 8px 14px',
+    border: '1px solid rgba(100, 150, 220, 0.15)',
   },
   comboIcon: {
     fontSize: 24,
+    filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))',
   },
-  taskList: {
+  comboTitle: {
+    color: '#fff',
+    display: 'block',
+    marginBottom: 2,
+    fontFamily: "'Rajdhani', sans-serif",
+    fontWeight: 700,
+    fontSize: 17,
+  },
+  comboDesc: {
+    color: 'rgba(140, 180, 240, 0.7)',
+    margin: 0,
+    fontSize: 15,
+    fontFamily: "'Rajdhani', sans-serif",
+    letterSpacing: 0.5,
+    fontWeight: 500,
+  },
+  text: {
+    color: 'rgba(200, 220, 255, 0.75)',
+    lineHeight: 1.6,
+    margin: 0,
+    fontSize: 16,
+    fontFamily: "'Rajdhani', sans-serif",
+    fontWeight: 500,
+  },
+  prizeList: {
     display: 'flex',
     flexDirection: 'column',
     gap: 12,
   },
-  task: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 15,
-  },
-  taskIcon: {
-    fontSize: 28,
-  },
-  starsList: {
+  prizeItem: {
     display: 'flex',
     flexDirection: 'column',
-    gap: 10,
+    gap: 8,
+    background: 'linear-gradient(160deg, rgba(25, 35, 55, 0.7) 0%, rgba(35, 50, 75, 0.6) 100%)',
+    padding: '12px 14px',
+    borderRadius: '8px 14px 8px 14px',
+    border: '1px solid rgba(100, 150, 220, 0.15)',
   },
-  starItem: {
+  prizePlace: {
     display: 'flex',
     alignItems: 'center',
-    gap: 15,
+    gap: 8,
   },
-  stars: {
-    fontSize: 20,
-    color: '#FFD700',
-    minWidth: 60,
+  prizePlaceIcon: {
+    fontSize: 18,
+    filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))',
   },
-  text: {
-    color: '#666',
-    lineHeight: 1.6,
+  prizePlaceText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: 700,
+    fontFamily: "'Orbitron', sans-serif",
+    textShadow: '0 0 10px rgba(255, 215, 0, 0.3)',
+  },
+  prizeDesc: {
+    paddingLeft: 26,
+  },
+  prizeTitle: {
+    color: '#fff',
+    display: 'block',
+    marginBottom: 4,
+    fontFamily: "'Rajdhani', sans-serif",
+    fontWeight: 700,
+    fontSize: 16,
+  },
+  prizeText: {
+    color: 'rgba(140, 180, 240, 0.7)',
     margin: 0,
+    fontSize: 15,
+    lineHeight: 1.6,
+    fontFamily: "'Rajdhani', sans-serif",
+    fontWeight: 500,
   },
 };
+
+// Add font import
+const rulesStyleSheet = document.createElement('style');
+rulesStyleSheet.textContent = `
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800&family=Rajdhani:wght@400;500;600;700&display=swap');
+
+  /* Mobile background for rules screen */
+  @media (max-width: 500px) {
+    .rules-bg {
+      background-image: url('/images/backgroundmob.png') !important;
+    }
+  }
+`;
+if (!document.getElementById('rules-styles')) {
+  rulesStyleSheet.id = 'rules-styles';
+  document.head.appendChild(rulesStyleSheet);
+}
