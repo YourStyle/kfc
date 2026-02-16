@@ -376,7 +376,7 @@ const styles: Record<string, React.CSSProperties> = {
   primaryButton: {
     width: '100%',
     padding: '18px 28px',
-    background: 'linear-gradient(135deg, #FF4D6D 0%, #ED1C29 50%, #C41420 100%)',
+    background: '#ED1C29',
     color: '#fff',
     border: 'none',
     borderRadius: 12,
@@ -487,7 +487,7 @@ styleSheet.textContent = `
     left: 100%;
   }
   .cta-button:hover {
-    background: linear-gradient(135deg, #FF6080 0%, #FF1744 50%, #ED1C29 100%) !important;
+    background: #ED1C29 !important;
     box-shadow: 0 0 50px rgba(228, 0, 43, 0.7), 0 10px 35px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
     transform: translateY(-3px);
   }

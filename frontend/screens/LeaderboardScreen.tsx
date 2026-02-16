@@ -382,7 +382,7 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: 10,
   },
   tabActive: {
-    background: 'linear-gradient(135deg, #FF4D6D 0%, #ED1C29 50%, #D41820 100%)',
+    background: '#ED1C29',
     color: '#fff',
     boxShadow: '0 0 25px rgba(228, 0, 43, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
   },
@@ -591,7 +591,7 @@ const styles: Record<string, React.CSSProperties> = {
     width: 45,
     height: 45,
     borderRadius: '10px 16px 10px 16px',
-    background: 'linear-gradient(135deg, #FF4D6D 0%, #ED1C29 50%, #D41820 100%)',
+    background: '#ED1C29',
     color: '#fff',
     display: 'flex',
     alignItems: 'center',

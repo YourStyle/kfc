@@ -92,6 +92,9 @@ export class PixiGame {
   }
 
   private async init(container: HTMLElement) {
+    // Preload brand fonts for Canvas 2D rendering (PixiJS Text)
+    await document.fonts.ready;
+
     // Определяем мобильное устройство
     const isMobile = window.innerWidth <= 600;
 
@@ -205,10 +208,10 @@ export class PixiGame {
     const padding = 16;
     const size = this.gridSize * this.tileSize + padding * 2;
 
-    // Outer board frame - dark sci-fi style with asymmetric corners
+    // Outer board frame
     this.drawSciFiRect(bg, -padding, -padding, size, size, 8, 24);
-    bg.fill({ color: 0x1a2438, alpha: 0.75 });
-    bg.stroke({ color: 0x3a4a6a, width: 2 });
+    bg.fill({ color: 0x1a1a1a, alpha: 0.85 });
+    bg.stroke({ color: 0x3a3a3a, width: 2 });
 
     this.gridContainer.addChild(bg);
 
@@ -222,9 +225,9 @@ export class PixiGame {
         const x = col * this.tileSize + cellPadding;
         const y = row * this.tileSize + cellPadding;
 
-        // Alternate colors for subtle checkerboard pattern - dark theme
+        // Alternate colors for subtle checkerboard pattern - brand dark theme
         const isLight = (row + col) % 2 === 0;
-        const cellColor = isLight ? 0x2a3a5a : 0x243250;
+        const cellColor = isLight ? 0x252525 : 0x1e1e1e;
 
         this.drawSciFiRect(cellBg, x, y, cellSize, cellSize, 4, 10);
         cellBg.fill({ color: cellColor, alpha: 0.7 });
@@ -400,17 +403,17 @@ export class PixiGame {
     const tileBgSize = this.tileSize - 8;
     this.drawSciFiRect(bg, -this.tileSize / 2 + tileOffset, -this.tileSize / 2 + tileOffset, tileBgSize, tileBgSize, 4, 12);
     if (isObstacle) {
-      // Космический тёмный фон для препятствий
-      bg.fill({ color: 0x1a2535, alpha: 0.9 });
-      bg.stroke({ color: 0x4a6a8a, width: 2 });
+      // Тёмный фон для препятствий
+      bg.fill({ color: 0x1a1a1a, alpha: 0.9 });
+      bg.stroke({ color: 0x555555, width: 2 });
     } else if (isFigurineType) {
-      // Золотистый фон для фигурок
-      bg.fill({ color: 0x2a2a1a, alpha: 0.8 });
-      bg.stroke({ color: 0xFFD700, width: 2 });
+      // Красный фон для фигурок (бренд)
+      bg.fill({ color: 0x2a1a1a, alpha: 0.8 });
+      bg.stroke({ color: 0xED1C29, width: 2 });
     } else {
       // Прозрачный фон с лёгкой рамкой для обычных тайлов
       bg.fill({ color: 0x000000, alpha: 0 });
-      bg.stroke({ color: 0x4a6080, width: 1.5, alpha: 0.5 });
+      bg.stroke({ color: 0x444444, width: 1.5, alpha: 0.5 });
     }
     container.addChild(bg);
 
@@ -418,7 +421,7 @@ export class PixiGame {
     if (isFigurineType) {
       const glow = new Graphics();
       glow.circle(0, 0, this.spriteSize * 0.6);
-      glow.fill({ color: 0xFFD700, alpha: 0.15 });
+      glow.fill({ color: 0xED1C29, alpha: 0.15 });
       container.addChild(glow);
 
       // Notify about figurine appearance
@@ -437,7 +440,7 @@ export class PixiGame {
 
       // Внешнее свечение (glow effect)
       asteroidGraphic.circle(0, 0, size * 0.55);
-      asteroidGraphic.fill({ color: 0x4a90d9, alpha: 0.15 });
+      asteroidGraphic.fill({ color: 0x666666, alpha: 0.15 });
 
       // Основная форма астероида (многоугольник)
       const points = [
@@ -456,25 +459,25 @@ export class PixiGame {
         asteroidGraphic.lineTo(points[i].x, points[i].y);
       }
       asteroidGraphic.closePath();
-      asteroidGraphic.fill({ color: 0x2a3a4a });
-      asteroidGraphic.stroke({ color: 0x5a7a9a, width: 2 });
+      asteroidGraphic.fill({ color: 0x2a2a2a });
+      asteroidGraphic.stroke({ color: 0x555555, width: 2 });
 
-      // Светящиеся кристаллические грани
+      // Светящиеся грани
       asteroidGraphic.moveTo(points[0].x, points[0].y);
       asteroidGraphic.lineTo(0, 0);
       asteroidGraphic.lineTo(points[1].x, points[1].y);
       asteroidGraphic.closePath();
-      asteroidGraphic.fill({ color: 0x6ab0ff, alpha: 0.4 });
+      asteroidGraphic.fill({ color: 0xED1C29, alpha: 0.25 });
 
       asteroidGraphic.moveTo(points[2].x, points[2].y);
       asteroidGraphic.lineTo(0, 0);
       asteroidGraphic.lineTo(points[3].x, points[3].y);
       asteroidGraphic.closePath();
-      asteroidGraphic.fill({ color: 0x4a90d9, alpha: 0.3 });
+      asteroidGraphic.fill({ color: 0xF4A698, alpha: 0.2 });
 
       // Центральное ядро
       asteroidGraphic.circle(0, 0, size * 0.12);
-      asteroidGraphic.fill({ color: 0x8ac0ff, alpha: 0.8 });
+      asteroidGraphic.fill({ color: 0xED1C29, alpha: 0.6 });
 
       // Маленькие "звёздочки" на поверхности
       asteroidGraphic.circle(-size * 0.15, -size * 0.2, 2);
@@ -762,7 +765,7 @@ export class PixiGame {
           const centerX = this.gridContainer.x + centerTile.container.x;
           const centerY = this.gridContainer.y + centerTile.container.y;
           if (match.length === 4) {
-            this.showSpecialEffect(centerX, centerY, 'ХРУСТЯЩЕ!', 0xFFD700);
+            this.showSpecialEffect(centerX, centerY, 'ХРУСТЯЩЕ!', 0xF4A698);
           } else if (match.length >= 5) {
             this.showSpecialEffect(centerX, centerY, 'ГОРЯЧО!', 0xED1C29);
           }
@@ -828,7 +831,7 @@ export class PixiGame {
           this.particles.emit(stageX, stageY, tile.type);
           this.particles.emit(stageX, stageY, tile.type);
           this.collectItem(stageX, stageY, tile.type);
-          this.showSpecialEffect(stageX, stageY, 'БОНУС!', 0xFFD700);
+          this.showSpecialEffect(stageX, stageY, 'БОНУС!', 0xED1C29);
 
           gsap.to(tile.container.scale, {
             x: 0, y: 0, duration: 0.3, ease: 'back.in(2)',
@@ -892,7 +895,7 @@ export class PixiGame {
       fieldCenterX,
       fieldCenterY,
       'ГЕНЕРАЛЬНАЯ УБОРКА!',
-      0x00BFFF,
+      0xED1C29,
       true  // slow mode
     );
 
@@ -1081,7 +1084,7 @@ export class PixiGame {
       fontSize: slow ? 36 : 42, // Чуть меньше чтобы влезло
       fontWeight: 'bold',
       fill: '#ffffff',
-      stroke: { color: color === 0xFFD700 ? '#B8860B' : '#006994', width: 6 },
+      stroke: { color: '#151515', width: 6 },
     });
 
     const label = new Text({ text, style });

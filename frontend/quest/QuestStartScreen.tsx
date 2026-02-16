@@ -41,21 +41,18 @@ const QuestStartScreen: React.FC = () => {
             <div style={styles.cornerBL} />
             <div style={styles.cornerBR} />
 
-            {/* Logo */}
+            {/* Logos */}
             <div style={{
               ...styles.logoContainer,
               opacity: logoVisible ? 1 : 0,
               transform: logoVisible ? 'translateY(0)' : 'translateY(-20px)',
             }}>
-              <img src={`${basePath}images/logoRost.png`} alt="ROSTIC'S" style={styles.logo} />
+              <div style={styles.logosRow}>
+                <img src={`${basePath}images/logoRost.png`} alt="ROSTIC'S" style={styles.logo} />
+                <div style={styles.logoDivider} />
+                <img src={`${basePath}images/logoMk.png`} alt="Музей Космонавтики" style={styles.logoMk} />
+              </div>
               <div className="quest-logo-glow" style={styles.logoGlow} />
-            </div>
-
-            {/* Co-branding */}
-            <div style={styles.branding}>
-              <div style={styles.dividerLine} />
-              <span style={styles.brandSub}>Музей Космонавтики</span>
-              <div style={styles.dividerLine} />
             </div>
 
             {/* Title */}
@@ -160,7 +157,7 @@ const QuestStartScreen: React.FC = () => {
             opacity: buttonsVisible ? 1 : 0,
           }}>
             <span style={styles.footerText}>
-              {user ? `Добро пожаловать, ${user.username}!` : '© ММК, 2026  |  © Юнирест'}
+              {user ? `Добро пожаловать, ${user.username}!` : '© Музей космонавтики, 2026  |  © Юнирест'}
             </span>
           </div>
         </div>
@@ -230,12 +227,26 @@ const styles: Record<string, React.CSSProperties> = {
     transition: 'all 0.6s cubic-bezier(0.34,1.56,0.64,1)',
     transitionDelay: '0.1s',
   },
+  logosRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+  },
   logo: {
-    width: 180,
+    width: 120,
     height: 'auto',
-    display: 'block',
-    margin: '0 auto',
     filter: 'drop-shadow(0 0 25px rgba(228,0,43,0.5))',
+  },
+  logoDivider: {
+    width: 1,
+    height: 50,
+    background: 'linear-gradient(180deg, transparent, rgba(255,120,140,0.5), transparent)',
+  },
+  logoMk: {
+    width: 100,
+    height: 'auto',
+    filter: 'drop-shadow(0 0 15px rgba(140,140,220,0.4)) brightness(2)',
   },
   logoGlow: {
     position: 'absolute',
@@ -245,27 +256,6 @@ const styles: Record<string, React.CSSProperties> = {
     background: 'radial-gradient(ellipse, rgba(228,0,43,0.35) 0%, transparent 70%)',
     zIndex: -1,
     animation: 'questLogoGlow 3s ease-in-out infinite',
-  },
-  branding: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-    marginBottom: 20,
-  },
-  brandSub: {
-    fontSize: 12,
-    fontWeight: 700,
-    color: 'rgba(255,120,140,0.7)',
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-    fontFamily: "'RosticsCeraPro', sans-serif",
-    whiteSpace: 'nowrap',
-  },
-  dividerLine: {
-    width: 40,
-    height: 1,
-    background: 'linear-gradient(90deg, transparent, rgba(255,120,140,0.5), transparent)',
   },
   taglineContainer: {
     marginBottom: 24,
@@ -371,7 +361,7 @@ const styles: Record<string, React.CSSProperties> = {
   ruleNumber: {
     width: 32, height: 32,
     minWidth: 32,
-    background: 'linear-gradient(135deg, #FF4D6D 0%, #ED1C29 100%)',
+    background: '#ED1C29',
     borderRadius: '6px 10px 6px 10px',
     display: 'flex',
     alignItems: 'center',
@@ -443,7 +433,7 @@ const styles: Record<string, React.CSSProperties> = {
   primaryButton: {
     width: '100%',
     padding: '18px 28px',
-    background: 'linear-gradient(135deg, #FF4D6D 0%, #ED1C29 50%, #C41420 100%)',
+    background: '#ED1C29',
     color: '#fff',
     border: 'none',
     borderRadius: '10px 24px 10px 24px',
@@ -518,7 +508,7 @@ if (!document.getElementById(questStartStyleId)) {
     }
     .quest-cta-button:hover::before { left: 100%; }
     .quest-cta-button:hover {
-      background: linear-gradient(135deg, #FF6080 0%, #FF1744 50%, #ED1C29 100%) !important;
+      background: #ED1C29 !important;
       box-shadow: 0 0 50px rgba(228,0,43,0.7), 0 10px 35px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.3) !important;
       transform: translateY(-3px);
     }
