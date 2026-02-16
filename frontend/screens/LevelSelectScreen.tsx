@@ -551,7 +551,7 @@ const styles: Record<string, React.CSSProperties> = {
     top: 4,
     left: 4,
     bottom: 4,
-    background: 'linear-gradient(90deg, #ED1C29 0%, #FF4D6D 60%, #FF8090 100%)',
+    background: '#ED1C29',
     borderRadius: 10,
     boxShadow: '0 0 12px rgba(228, 0, 43, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.25)',
     transition: 'width 0.5s ease-out',
@@ -593,7 +593,7 @@ const styles: Record<string, React.CSSProperties> = {
     left: 0,
     right: 0,
     bottom: 0,
-    background: 'linear-gradient(135deg, #FF3D5A 0%, #ED1C29 40%, #D41820 100%)',
+    background: '#ED1C29',
     borderRadius: 12,
     boxShadow: '0 0 25px rgba(228, 0, 43, 0.6), 0 6px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
   },
@@ -743,7 +743,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 500,
   },
   authButton: {
-    background: 'linear-gradient(135deg, #ED1C29 0%, #D41820 100%)',
+    background: '#ED1C29',
     color: '#fff',
     border: 'none',
     padding: '12px 20px',
@@ -833,7 +833,7 @@ styleSheet.textContent = `
 
   /* Play button hover */
   .play-btn:hover .btn-bg {
-    background: linear-gradient(135deg, #FF4D6D 0%, #FF1744 40%, #ED1C29 100%) !important;
+    background: #ED1C29 !important;
     box-shadow: 0 0 40px rgba(228, 0, 43, 0.8), 0 8px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
   }
   .play-btn:active .btn-bg {

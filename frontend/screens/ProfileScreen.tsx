@@ -263,7 +263,7 @@ const styles: Record<string, React.CSSProperties> = {
     width: 64,
     height: 64,
     borderRadius: 16,
-    background: 'linear-gradient(135deg, #FF4D6D 0%, #ED1C29 50%, #D41820 100%)',
+    background: '#ED1C29',
     color: '#fff',
     display: 'flex',
     alignItems: 'center',
@@ -368,7 +368,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '16px 44px',
     border: 'none',
     borderRadius: 12,
-    background: 'linear-gradient(135deg, #FF3D5A 0%, #ED1C29 40%, #D41820 100%)',
+    background: '#ED1C29',
     color: '#fff',
     fontSize: 15,
     fontWeight: 700,
@@ -389,7 +389,7 @@ profileStyleSheet.textContent = `
   .sci-fi-btn {
   }
   .sci-fi-btn:hover {
-    background: linear-gradient(135deg, #FF1744 0%, #ED1C29 100%) !important;
+    background: #ED1C29 !important;
     box-shadow: 0 6px 28px rgba(228, 0, 43, 0.6) !important;
     transform: translateY(-2px);
   }

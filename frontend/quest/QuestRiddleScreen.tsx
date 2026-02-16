@@ -447,7 +447,7 @@ const QuestRiddleScreen: React.FC = () => {
           flex: 1;
           min-width: 200px;
           padding: 16px 24px;
-          background: linear-gradient(135deg, #FF4D6D, #ED1C29, #C41420);
+          background: #ED1C29;
           border: none;
           border-radius: 10px 24px 10px 24px;
           font-family: 'RosticsCeraPro', sans-serif;
@@ -614,7 +614,7 @@ const QuestRiddleScreen: React.FC = () => {
           height: 80px;
           margin: 0 auto 24px;
           border-radius: 50%;
-          background: linear-gradient(135deg, #ED1C29, #C41420);
+          background: #ED1C29;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -685,7 +685,7 @@ const QuestRiddleScreen: React.FC = () => {
           height: 80px;
           margin: 0 auto 24px;
           border-radius: 50%;
-          background: linear-gradient(135deg, #ef4444, #dc2626);
+          background: #ED1C29;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -1022,7 +1022,7 @@ const QuestRiddleScreen: React.FC = () => {
 
       {/* Copyright */}
       <div className="quest-copyright">
-        © ММК, 2026 &nbsp;|&nbsp; © Юнирест
+        © Музей космонавтики, 2026 &nbsp;|&nbsp; © Юнирест
       </div>
 
       {/* Skip Confirm Modal */}
