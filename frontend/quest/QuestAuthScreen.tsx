@@ -285,7 +285,11 @@ export function QuestAuthScreen() {
         <div style={styles.cornerBottomLeft} />
         <div style={styles.cornerBottomRight} />
 
-        <div className="quest-auth-logo" style={styles.logo}>ROSTIC'S КУХНЯ</div>
+        <div className="quest-auth-logo" style={styles.logoRow}>
+          <img src={`${basePath}images/logoRost.png`} alt="ROSTIC'S" style={styles.logoImg} />
+          <div style={styles.logoRowDivider} />
+          <img src={`${basePath}images/logoMk.png`} alt="Музей Космонавтики" style={styles.logoMkImg} />
+        </div>
 
         {mode === 'login' && (
           <form onSubmit={handleLogin} className={`quest-auth-form ${formAnimating ? 'quest-auth-form-exit' : 'quest-auth-form-enter'}`} style={styles.form}>
@@ -491,7 +495,7 @@ export function QuestAuthScreen() {
           </form>
         )}
       </div>
-      <div style={styles.copyright}>© ММК, 2026 &nbsp;|&nbsp; © Юнирест</div>
+      <div style={styles.copyright}>© Музей космонавтики, 2026 &nbsp;|&nbsp; © Юнирест</div>
     </div>
   );
 }
@@ -575,19 +579,29 @@ const styles: Record<string, React.CSSProperties> = {
     borderRight: '3px solid rgba(255, 120, 140, 0.7)',
     borderRadius: '0 0 36px 0',
   },
-  logo: {
-    textAlign: 'center',
-    background: 'linear-gradient(135deg, #FF4D6D 0%, #ED1C29 50%, #C41420 100%)',
-    color: '#fff',
-    padding: '16px 32px',
-    borderRadius: '10px 24px 10px 24px',
-    fontWeight: 'bold',
-    fontSize: 20,
+  logoRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 14,
     marginBottom: 28,
-    letterSpacing: 2.5,
-    fontFamily: "'RosticsCeraCondensed', sans-serif",
-    textTransform: 'uppercase',
-    boxShadow: '0 0 30px rgba(228, 0, 43, 0.6), inset 0 2px 0 rgba(255, 255, 255, 0.25)',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  logoImg: {
+    width: 100,
+    height: 'auto',
+    filter: 'drop-shadow(0 0 20px rgba(228,0,43,0.5))',
+  },
+  logoRowDivider: {
+    width: 1,
+    height: 44,
+    background: 'linear-gradient(180deg, transparent, rgba(255,120,140,0.5), transparent)',
+  },
+  logoMkImg: {
+    width: 80,
+    height: 'auto',
+    filter: 'drop-shadow(0 0 12px rgba(140,140,220,0.4)) brightness(2)',
   },
   form: {
     display: 'flex',
@@ -679,7 +693,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: 18,
     border: 'none',
     borderRadius: '10px 24px 10px 24px',
-    background: 'linear-gradient(135deg, #FF4D6D 0%, #ED1C29 50%, #C41420 100%)',
+    background: '#ED1C29',
     color: '#fff',
     fontSize: 17,
     fontWeight: 700,
@@ -779,7 +793,7 @@ const styles: Record<string, React.CSSProperties> = {
     boxShadow: '0 0 12px rgba(228, 0, 43, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
   },
   checkboxCustomChecked: {
-    background: 'linear-gradient(135deg, #FF4D6D 0%, #ED1C29 50%, #C41420 100%)',
+    background: '#ED1C29',
     border: '2px solid #F4A698',
     boxShadow: '0 0 25px rgba(228, 0, 43, 0.6), inset 0 2px 0 rgba(255, 255, 255, 0.25)',
   },
@@ -979,7 +993,7 @@ questAuthStyleSheet.textContent = `
     left: 100%;
   }
   .quest-sci-fi-btn:hover {
-    background: linear-gradient(135deg, #FF6080 0%, #FF1744 50%, #ED1C29 100%) !important;
+    background: #ED1C29 !important;
     box-shadow: 0 0 40px rgba(228, 0, 43, 0.8), inset 0 2px 0 rgba(255, 255, 255, 0.3) !important;
     transform: translateY(-2px);
   }

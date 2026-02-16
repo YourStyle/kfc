@@ -113,6 +113,18 @@ services:
     networks:
       - rostics-network
 
+  # Sakura Fest Landing Page
+  landing:
+    build:
+      context: ./landing
+      dockerfile: Dockerfile
+    container_name: rostics-landing
+    restart: unless-stopped
+    ports:
+      - "${LANDING_PORT:-3002}:80"
+    networks:
+      - rostics-network
+
   # Nginx Reverse Proxy (for production)
   nginx:
     image: nginx:alpine

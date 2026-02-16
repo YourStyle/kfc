@@ -529,7 +529,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   logo: {
     textAlign: 'center',
-    background: 'linear-gradient(135deg, #FF4D6D 0%, #ED1C29 50%, #D41820 100%)',
+    background: '#ED1C29',
     color: '#fff',
     padding: '14px 28px',
     borderRadius: 12,
@@ -625,7 +625,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: 18,
     border: 'none',
     borderRadius: 12,
-    background: 'linear-gradient(135deg, #FF4D6D 0%, #ED1C29 50%, #D41820 100%)',
+    background: '#ED1C29',
     color: '#fff',
     fontSize: 17,
     fontWeight: 700,
@@ -716,7 +716,7 @@ const styles: Record<string, React.CSSProperties> = {
     boxShadow: '0 0 10px rgba(228, 0, 43, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
   },
   checkboxCustomChecked: {
-    background: 'linear-gradient(135deg, #FF4D6D 0%, #ED1C29 50%, #D41820 100%)',
+    background: '#ED1C29',
     border: '2px solid #FF4D6D',
     boxShadow: '0 0 20px rgba(228, 0, 43, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
   },
@@ -870,7 +870,7 @@ authStyleSheet.textContent = `
     left: 100%;
   }
   .sci-fi-btn:hover {
-    background: linear-gradient(135deg, #FF6080 0%, #FF1744 50%, #ED1C29 100%) !important;
+    background: #ED1C29 !important;
     box-shadow: 0 0 35px rgba(228, 0, 43, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
     transform: translateY(-2px);
   }

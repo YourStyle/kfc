@@ -244,7 +244,7 @@ const styles: Record<string, React.CSSProperties> = {
     height: 32,
     minWidth: 32,
     borderRadius: 8,
-    background: 'linear-gradient(135deg, #FF4D6D 0%, #ED1C29 50%, #D41820 100%)',
+    background: '#ED1C29',
     color: '#fff',
     display: 'flex',
     alignItems: 'center',

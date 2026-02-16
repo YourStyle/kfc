@@ -368,8 +368,15 @@ const QuestResultScreen: React.FC = () => {
           </button>
         </div>
 
+        {/* Partner Logos */}
+        <div className="quest-partner-logos">
+          <img src="/images/logoRost.png" alt="ROSTIC'S" className="quest-partner-logo-rost" />
+          <div className="quest-partner-divider"></div>
+          <img src="/images/logoMk.png" alt="Музей Космонавтики" className="quest-partner-logo-mk" />
+        </div>
+
         <div className="quest-copyright">
-          © ММК, 2026 &nbsp;|&nbsp; © Юнирест
+          © Музей космонавтики, 2026 &nbsp;|&nbsp; © Юнирест
         </div>
       </div>
 
@@ -744,7 +751,7 @@ const QuestResultScreen: React.FC = () => {
 
         .progress-bar-fill {
           height: 100%;
-          background: linear-gradient(90deg, #ED1C29 0%, #ff4d6d 50%, #ff8090 100%);
+          background: #ED1C29;
           transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1) 1s;
           box-shadow: 0 0 20px rgba(228, 0, 43, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
           position: relative;
@@ -945,7 +952,7 @@ const QuestResultScreen: React.FC = () => {
         }
 
         .primary-button {
-          background: linear-gradient(135deg, #ff4d6d 0%, #ED1C29 50%, #C41420 100%);
+          background: #ED1C29;
           color: #fff;
           box-shadow: 0 4px 20px rgba(228, 0, 43, 0.4);
           position: relative;
@@ -1013,9 +1020,36 @@ const QuestResultScreen: React.FC = () => {
           flex-shrink: 0;
         }
 
+        .quest-partner-logos {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 16px;
+          margin-top: 32px;
+          animation: fadeInUp 0.8s ease-out 1.4s both;
+        }
+
+        .quest-partner-logo-rost {
+          width: 80px;
+          height: auto;
+          filter: drop-shadow(0 0 15px rgba(228,0,43,0.4));
+        }
+
+        .quest-partner-divider {
+          width: 1px;
+          height: 40px;
+          background: linear-gradient(180deg, transparent, rgba(255,120,140,0.5), transparent);
+        }
+
+        .quest-partner-logo-mk {
+          width: 64px;
+          height: auto;
+          filter: drop-shadow(0 0 10px rgba(140,140,220,0.3)) brightness(2);
+        }
+
         .quest-copyright {
           text-align: center;
-          margin-top: 24px;
+          margin-top: 16px;
           font-family: 'RosticsCeraPro', sans-serif;
           font-size: 11px;
           color: rgba(255, 255, 255, 0.4);
