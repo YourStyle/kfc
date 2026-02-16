@@ -5,14 +5,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ROSTIC'S Kitchen Match-3</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&display=swap');
+        /* ROSTIC'S CERA — brand fonts */
+        @font-face { font-family: 'RosticsCeraPro'; src: url('/fonts/RosticsCeraPro-Regular.woff') format('woff'); font-weight: 400; font-style: normal; font-display: swap; }
+        @font-face { font-family: 'RosticsCeraPro'; src: url('/fonts/RosticsCeraPro-Medium.woff') format('woff'); font-weight: 500; font-style: normal; font-display: swap; }
+        @font-face { font-family: 'RosticsCeraPro'; src: url('/fonts/RosticsCeraPro-Black.woff') format('woff'); font-weight: 900; font-style: normal; font-display: swap; }
+        @font-face { font-family: 'RosticsCeraCondensed'; src: url('/fonts/RosticsCeraProCondensed-Regular.woff') format('woff'); font-weight: 400; font-style: normal; font-display: swap; }
+        @font-face { font-family: 'RosticsCeraCondensed'; src: url('/fonts/RosticsCeraProCondensed-Medium.woff') format('woff'); font-weight: 500; font-style: normal; font-display: swap; }
+        @font-face { font-family: 'RosticsCeraCondensed'; src: url('/fonts/RosticsCeraProCondensed-Bold.woff') format('woff'); font-weight: 700; font-style: normal; font-display: swap; }
+        @font-face { font-family: 'RosticsCeraCondensed'; src: url('/fonts/RosticsCeraProCondensed-Black.woff') format('woff'); font-weight: 900; font-style: normal; font-display: swap; }
+
         body {
             margin: 0;
             padding: 0;
-            background-color: #FFF5F5;
-            font-family: 'Oswald', sans-serif;
+            background-color: #FFFFFF;
+            font-family: 'RosticsCeraPro', 'Verdana', sans-serif;
         }
         /* Prevent scroll only during game */
         body.game-active {

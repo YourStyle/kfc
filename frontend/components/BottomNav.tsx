@@ -68,7 +68,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    background: 'linear-gradient(180deg, rgba(35, 45, 65, 0.95) 0%, rgba(25, 35, 55, 0.98) 100%)',
+    background: 'linear-gradient(180deg, rgba(30, 30, 30, 0.95) 0%, rgba(21, 21, 21, 0.98) 100%)',
     backdropFilter: 'blur(20px)',
     WebkitBackdropFilter: 'blur(20px)',
     borderRadius: 20,
@@ -86,7 +86,7 @@ const styles: Record<string, React.CSSProperties> = {
     transform: 'translateX(-50%)',
     width: '60%',
     height: 4,
-    background: 'linear-gradient(90deg, transparent, rgba(100, 180, 255, 0.6), transparent)',
+    background: 'linear-gradient(90deg, transparent, rgba(237, 28, 41, 0.6), transparent)',
     borderRadius: 2,
     filter: 'blur(3px)',
     pointerEvents: 'none',
@@ -106,7 +106,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   navItemActive: {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    boxShadow: '0 4px 15px rgba(100, 180, 255, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+    boxShadow: '0 4px 15px rgba(237, 28, 41, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
   },
   label: {
     fontSize: 14,
@@ -115,6 +115,6 @@ const styles: Record<string, React.CSSProperties> = {
   },
   labelActive: {
     color: '#fff',
-    textShadow: '0 0 10px rgba(100, 180, 255, 0.5)',
+    textShadow: '0 0 10px rgba(237, 28, 41, 0.5)',
   },
 };

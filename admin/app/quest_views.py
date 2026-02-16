@@ -1,11 +1,16 @@
 """Quest management views for admin panel"""
-from flask import Blueprint, render_template_string, redirect, url_for, request, flash
+import io
+import os
+from flask import Blueprint, render_template_string, redirect, url_for, request, flash, send_file
 from flask_login import login_required, current_user
 from functools import wraps
 from datetime import datetime
 from app import db
 from app.models import QuestPage, QuestProgress, PromoCodePool, PromoCode, User
 from sqlalchemy import func, distinct
+import segno
+import base64
+from markupsafe import escape
 
 bp = Blueprint('quest_admin', __name__, url_prefix='/admin/quest')
 
@@ -245,6 +250,7 @@ QUEST_BASE_TEMPLATE = '''
             <li><a href="/admin/quest/pages/" {% if active_page == 'quest_pages' %}class="active"{% endif %}><i class="bi bi-file-text"></i> Страницы квеста</a></li>
             <li><a href="/admin/quest/promo/" {% if active_page == 'quest_promo' %}class="active"{% endif %}><i class="bi bi-ticket-perforated"></i> Промокоды</a></li>
             <li><a href="/admin/quest/progress/" {% if active_page == 'quest_progress' %}class="active"{% endif %}><i class="bi bi-trophy"></i> Прогресс участников</a></li>
+            <li><a href="/admin/quest/qr-codes/" {% if active_page == 'quest_qr' %}class="active"{% endif %}><i class="bi bi-qr-code"></i> QR-коды</a></li>
         </ul>
         {% endif %}
         <div class="nav-section">Система</div>
@@ -1137,3 +1143,166 @@ def quest_progress_reset(user_id):
         flash(f'Ошибка при сбросе прогресса: {str(e)}', 'danger')
 
     return redirect(url_for('quest_admin.quest_progress_list'))
+
+
+# ============== QR CODE GENERATION ==============
+def _generate_qr_svg(data: str) -> str:
+    """Generate QR code as SVG string"""
+    qr = segno.make(data, error='M')
+    buf = io.BytesIO()
+    qr.save(buf, kind='svg', scale=4, border=2, dark='#1e293b')
+    return buf.getvalue().decode('utf-8')
+
+
+def _get_frontend_url() -> str:
+    return os.environ.get('FRONTEND_URL', 'https://yourstyle.github.io/kfc')
+
+
+@bp.route('/qr-codes/')
+@require_role('quest_admin', 'superadmin')
+def qr_codes_page():
+    """Page showing all quest pages with QR codes in a printable grid"""
+    pages = QuestPage.query.filter_by(is_active=True).order_by(QuestPage.order).all()
+    frontend_url = _get_frontend_url()
+
+    cards_html = ''
+    for page in pages:
+        qr_url = f'{frontend_url}/spacequest/scan/{page.qr_token}'
+        svg_str = _generate_qr_svg(qr_url)
+        svg_b64 = base64.b64encode(svg_str.encode('utf-8')).decode('ascii')
+        safe_title = escape(page.title)
+        safe_token = escape(page.qr_token)
+
+        cards_html += f'''
+        <div class="qr-card">
+            <div class="qr-card-header">
+                <span class="qr-hall">#{page.order}</span>
+                <span class="qr-title">{safe_title}</span>
+            </div>
+            <div class="qr-image">
+                <img src="data:image/svg+xml;base64,{svg_b64}" alt="QR for {safe_title}" />
+            </div>
+            <div class="qr-card-footer">
+                <code class="qr-token">{safe_token}</code>
+                <a href="/admin/quest/qr-codes/download/{page.id}" class="btn btn-sm btn-outline-secondary no-print">
+                    <i class="bi bi-download"></i> SVG
+                </a>
+            </div>
+        </div>
+        '''
+
+    content = f'''
+    <style>
+        .qr-grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 24px;
+            margin-top: 16px;
+        }}
+        .qr-card {{
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            break-inside: avoid;
+        }}
+        .qr-card-header {{
+            margin-bottom: 12px;
+        }}
+        .qr-hall {{
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            font-weight: 700;
+            font-size: 0.8rem;
+            padding: 2px 10px;
+            border-radius: 6px;
+            margin-right: 8px;
+        }}
+        .qr-title {{
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 0.95rem;
+        }}
+        .qr-image {{
+            margin: 12px auto;
+            max-width: 200px;
+        }}
+        .qr-image img {{
+            width: 100%;
+            height: auto;
+        }}
+        .qr-card-footer {{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-top: 8px;
+        }}
+        .qr-token {{
+            font-size: 0.75rem;
+            color: #64748b;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }}
+
+        @media print {{
+            .sidebar {{ display: none !important; }}
+            .main-content {{ margin-left: 0 !important; padding: 0 !important; }}
+            .page-header .btn {{ display: none !important; }}
+            .no-print {{ display: none !important; }}
+            .qr-grid {{
+                grid-template-columns: repeat(3, 1fr);
+                gap: 16px;
+            }}
+            .qr-card {{
+                border: 1px solid #ccc;
+                box-shadow: none;
+                padding: 12px;
+            }}
+            .qr-image {{ max-width: 160px; }}
+        }}
+    </style>
+
+    <div class="page-header">
+        <h1 class="page-title"><i class="bi bi-qr-code me-2"></i>QR-коды квеста</h1>
+        <button class="btn btn-primary no-print" onclick="window.print()">
+            <i class="bi bi-printer me-2"></i>Печать
+        </button>
+    </div>
+
+    <div class="card no-print" style="margin-bottom: 16px;">
+        <div class="card-body">
+            <small class="text-muted">
+                <i class="bi bi-info-circle me-1"></i>
+                QR-коды ведут на <code>{frontend_url}/spacequest/scan/{{token}}</code>.
+                Активных страниц: <strong>{len(pages)}</strong>.
+                Нажмите «Печать» для вывода на принтер.
+            </small>
+        </div>
+    </div>
+
+    <div class="qr-grid">
+        {cards_html}
+    </div>
+    '''
+
+    return render_quest_page('QR-коды квеста', 'quest_qr', content)
+
+
+@bp.route('/qr-codes/download/<int:page_id>')
+@require_role('quest_admin', 'superadmin')
+def qr_code_download(page_id):
+    """Download individual QR code as SVG file"""
+    page = QuestPage.query.get_or_404(page_id)
+    frontend_url = _get_frontend_url()
+    qr_url = f'{frontend_url}/spacequest/scan/{page.qr_token}'
+
+    svg_str = _generate_qr_svg(qr_url)
+    buf = io.BytesIO(svg_str.encode('utf-8'))
+    buf.seek(0)
+
+    filename = f'qr_{page.slug}.svg'
+    return send_file(buf, mimetype='image/svg+xml', as_attachment=True, download_name=filename)

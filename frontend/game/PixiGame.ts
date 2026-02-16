@@ -1,6 +1,6 @@
 import { Application, Container, Sprite, Graphics, Texture, Assets, Text, TextStyle } from 'pixi.js';
 import gsap from 'gsap';
-import { ITEM_TYPES, ITEM_DATA } from '../constants';
+import { ITEM_TYPES, ITEM_DATA, FIGURINE_TYPES, FIGURINE_SPAWN_CHANCE } from '../constants';
 import { ItemType, GridPos } from '../types';
 import { ParticleSystem } from './PixiParticles';
 
@@ -35,7 +35,7 @@ export class PixiGame {
   private stats = {
     score: 0,
     moves: 30,
-    collected: { drumstick: 0, wing: 0, burger: 0, fries: 0, bucket: 0, ice_cream: 0, donut: 0, cappuccino: 0 }
+    collected: { drumstick: 0, wing: 0, burger: 0, fries: 0, bucket: 0, ice_cream: 0, donut: 0, cappuccino: 0, belka: 0, strelka: 0, sputnik: 0, vostok: 0, spaceship: 0 }
   };
   private dragStart: GridPos | null = null;
   private particles: ParticleSystem;
@@ -50,6 +50,7 @@ export class PixiGame {
   private onGameOver: (finalStats: { score: number; moves: number; collected: Record<string, number> }) => void;
   private onAssetsLoaded: () => void;
   private onBasketHit: () => void;
+  private onFigurineAppeared: (type: string) => void;
   private levelConfig?: LevelConfig;
   private activeItemTypes: ItemType[] = ITEM_TYPES;
 
@@ -59,12 +60,14 @@ export class PixiGame {
     onGameOver: (finalStats: { score: number; moves: number; collected: Record<string, number> }) => void,
     onAssetsLoaded: () => void,
     onBasketHit: () => void,
+    onFigurineAppeared: (type: string) => void,
     levelConfig?: LevelConfig
   ) {
     this.onStatsUpdate = onStatsUpdate;
     this.onGameOver = onGameOver;
     this.onAssetsLoaded = onAssetsLoaded;
     this.onBasketHit = onBasketHit;
+    this.onFigurineAppeared = onFigurineAppeared;
     this.levelConfig = levelConfig;
 
     // Apply level config if provided
@@ -158,7 +161,7 @@ export class PixiGame {
   private async loadAssets() {
     const basePath = import.meta.env.BASE_URL || '/';
 
-    for (const type of ITEM_TYPES) {
+    for (const type of [...ITEM_TYPES, ...FIGURINE_TYPES]) {
       try {
         const path = `${basePath}images/${type}.png`;
         this.textures[type] = await Assets.load(path);
@@ -292,6 +295,10 @@ export class PixiGame {
   }
 
   private getRandomType(row: number, col: number): ItemType {
+    // Попробуем спавнить фигурку
+    const figurine = this.trySpawnFigurine();
+    if (figurine) return figurine;
+
     const available = [...this.activeItemTypes];
 
     // Избегаем начальных совпадений
@@ -300,13 +307,13 @@ export class PixiGame {
     if (col >= 2) {
       const left1 = this.grid[row]?.[col - 1]?.type;
       const left2 = this.grid[row]?.[col - 2]?.type;
-      if (left1 && left1 === left2) toRemove.push(left1);
+      if (left1 && left1 === left2 && !this.isFigurine(left1)) toRemove.push(left1);
     }
 
     if (row >= 2) {
       const up1 = this.grid[row - 1]?.[col]?.type;
       const up2 = this.grid[row - 2]?.[col]?.type;
-      if (up1 && up1 === up2) toRemove.push(up1);
+      if (up1 && up1 === up2 && !this.isFigurine(up1)) toRemove.push(up1);
     }
 
     const filtered = available.filter(t => !toRemove.includes(t));
@@ -317,6 +324,10 @@ export class PixiGame {
 
   // Умный выбор типа для заполнения пустот - уменьшает вероятность каскадов
   private getSmartRandomType(row: number, col: number): ItemType {
+    // Попробуем спавнить фигурку
+    const figurine = this.trySpawnFigurine();
+    if (figurine) return figurine;
+
     // 25% шанс полностью случайного выбора (разрешаем некоторые каскады)
     if (Math.random() < 0.25) {
       return this.activeItemTypes[Math.floor(Math.random() * this.activeItemTypes.length)];
@@ -381,6 +392,7 @@ export class PixiGame {
     container.y = row * this.tileSize + this.tileSize / 2;
 
     const isObstacle = type === 'obstacle';
+    const isFigurineType = this.isFigurine(type);
 
     // Фон тайла с sci-fi углами
     const bg = new Graphics();
@@ -391,12 +403,27 @@ export class PixiGame {
       // Космический тёмный фон для препятствий
       bg.fill({ color: 0x1a2535, alpha: 0.9 });
       bg.stroke({ color: 0x4a6a8a, width: 2 });
+    } else if (isFigurineType) {
+      // Золотистый фон для фигурок
+      bg.fill({ color: 0x2a2a1a, alpha: 0.8 });
+      bg.stroke({ color: 0xFFD700, width: 2 });
     } else {
-      // Светлый полупрозрачный фон для обычных тайлов
-      bg.fill({ color: 0xffffff, alpha: 0.95 });
-      bg.stroke({ color: 0xe0e5f0, width: 1 });
+      // Прозрачный фон с лёгкой рамкой для обычных тайлов
+      bg.fill({ color: 0x000000, alpha: 0 });
+      bg.stroke({ color: 0x4a6080, width: 1.5, alpha: 0.5 });
     }
     container.addChild(bg);
+
+    // Свечение для фигурок
+    if (isFigurineType) {
+      const glow = new Graphics();
+      glow.circle(0, 0, this.spriteSize * 0.6);
+      glow.fill({ color: 0xFFD700, alpha: 0.15 });
+      container.addChild(glow);
+
+      // Notify about figurine appearance
+      setTimeout(() => this.onFigurineAppeared(type), 0);
+    }
 
     // Спрайт (только для обычных тайлов)
     let sprite: Sprite;
@@ -466,7 +493,7 @@ export class PixiGame {
       container.addChild(sprite);
     }
 
-    // Интерактивность (не для препятствий)
+    // Интерактивность (не для препятствий; фигурки интерактивны - их можно менять)
     if (!isObstacle) {
       container.eventMode = 'static';
       container.cursor = 'pointer';
@@ -569,6 +596,29 @@ export class PixiGame {
     return this.levelConfig.obstacles.some(o => o.row === row && o.col === col);
   }
 
+  private isFigurine(type: ItemType): boolean {
+    return FIGURINE_TYPES.includes(type);
+  }
+
+  private countFigurinesOnField(): number {
+    let count = 0;
+    for (let row = 0; row < this.gridSize; row++) {
+      for (let col = 0; col < this.gridSize; col++) {
+        const tile = this.grid[row]?.[col];
+        if (tile && this.isFigurine(tile.type)) {
+          count++;
+        }
+      }
+    }
+    return count;
+  }
+
+  private trySpawnFigurine(): ItemType | null {
+    if (this.countFigurinesOnField() >= 1) return null;
+    if (Math.random() >= FIGURINE_SPAWN_CHANCE) return null;
+    return FIGURINE_TYPES[Math.floor(Math.random() * FIGURINE_TYPES.length)];
+  }
+
   private async trySwap(from: GridPos, to: GridPos) {
     this.isProcessing = true;
     this.clearHint();
@@ -640,15 +690,15 @@ export class PixiGame {
     for (let row = 0; row < this.gridSize; row++) {
       for (let col = 0; col < this.gridSize; col++) {
         const tile = this.grid[row][col];
-        // Skip empty cells and obstacles
-        if (!tile || tile.type === 'obstacle') continue;
+        // Skip empty cells, obstacles, and figurines (figurines don't match)
+        if (!tile || tile.type === 'obstacle' || this.isFigurine(tile.type)) continue;
 
         // Горизонтальная проверка
         if (col <= this.gridSize - 3) {
           const match: GridPos[] = [{ row, col }];
           for (let c = col + 1; c < this.gridSize; c++) {
             const nextTile = this.grid[row][c];
-            if (nextTile && nextTile.type !== 'obstacle' && nextTile.type === tile.type) {
+            if (nextTile && nextTile.type !== 'obstacle' && !this.isFigurine(nextTile.type) && nextTile.type === tile.type) {
               match.push({ row, col: c });
             } else break;
           }
@@ -666,7 +716,7 @@ export class PixiGame {
           const match: GridPos[] = [{ row, col }];
           for (let r = row + 1; r < this.gridSize; r++) {
             const nextTile = this.grid[r][col];
-            if (nextTile && nextTile.type !== 'obstacle' && nextTile.type === tile.type) {
+            if (nextTile && nextTile.type !== 'obstacle' && !this.isFigurine(nextTile.type) && nextTile.type === tile.type) {
               match.push({ row: r, col });
             } else break;
           }
@@ -690,6 +740,14 @@ export class PixiGame {
     while (matches.length > 0) {
       combo++;
 
+      // Собираем все позиции матчей для проверки смежных фигурок
+      const allMatchedPositions = new Set<string>();
+      for (const match of matches) {
+        for (const pos of match) {
+          allMatchedPositions.add(`${pos.row},${pos.col}`);
+        }
+      }
+
       // Удаляем совпадения
       for (const match of matches) {
         const points = match.length * 10 * combo;
@@ -706,7 +764,7 @@ export class PixiGame {
           if (match.length === 4) {
             this.showSpecialEffect(centerX, centerY, 'ХРУСТЯЩЕ!', 0xFFD700);
           } else if (match.length >= 5) {
-            this.showSpecialEffect(centerX, centerY, 'ГОРЯЧО!', 0xE4002B);
+            this.showSpecialEffect(centerX, centerY, 'ГОРЯЧО!', 0xED1C29);
           }
         }
 
@@ -739,6 +797,45 @@ export class PixiGame {
 
             this.grid[pos.row][pos.col] = null;
           }
+        }
+      }
+
+      // Проверяем фигурки, смежные с удалёнными тайлами — собираем их
+      const adjacentDirs = [{ dr: -1, dc: 0 }, { dr: 1, dc: 0 }, { dr: 0, dc: -1 }, { dr: 0, dc: 1 }];
+      const figurinesToCollect = new Set<string>();
+      for (const key of allMatchedPositions) {
+        const [r, c] = key.split(',').map(Number);
+        for (const { dr, dc } of adjacentDirs) {
+          const nr = r + dr, nc = c + dc;
+          const fKey = `${nr},${nc}`;
+          if (nr >= 0 && nr < this.gridSize && nc >= 0 && nc < this.gridSize && !allMatchedPositions.has(fKey)) {
+            const tile = this.grid[nr]?.[nc];
+            if (tile && this.isFigurine(tile.type)) {
+              figurinesToCollect.add(fKey);
+            }
+          }
+        }
+      }
+
+      for (const fKey of figurinesToCollect) {
+        const [r, c] = fKey.split(',').map(Number);
+        const tile = this.grid[r][c];
+        if (tile) {
+          const stageX = this.gridContainer.x + tile.container.x;
+          const stageY = this.gridContainer.y + tile.container.y;
+
+          this.stats.score += 50;
+          this.particles.emit(stageX, stageY, tile.type);
+          this.particles.emit(stageX, stageY, tile.type);
+          this.collectItem(stageX, stageY, tile.type);
+          this.showSpecialEffect(stageX, stageY, 'БОНУС!', 0xFFD700);
+
+          gsap.to(tile.container.scale, {
+            x: 0, y: 0, duration: 0.3, ease: 'back.in(2)',
+            onComplete: () => this.gridContainer.removeChild(tile.container)
+          });
+
+          this.grid[r][c] = null;
         }
       }
 
@@ -925,10 +1022,10 @@ export class PixiGame {
     const text = texts[Math.min(combo, 5)];
 
     const style = new TextStyle({
-      fontFamily: 'Oswald, sans-serif',
+      fontFamily: 'RosticsCeraCondensed, sans-serif',
       fontSize: 48,
       fontWeight: 'bold',
-      fill: '#E4002B',
+      fill: '#ED1C29',
       stroke: { color: '#ffffff', width: 6 },
     });
 
@@ -980,7 +1077,7 @@ export class PixiGame {
 
     // Текст
     const style = new TextStyle({
-      fontFamily: 'Oswald, sans-serif',
+      fontFamily: 'RosticsCeraCondensed, sans-serif',
       fontSize: slow ? 36 : 42, // Чуть меньше чтобы влезло
       fontWeight: 'bold',
       fill: '#ffffff',
@@ -1417,18 +1514,18 @@ export class PixiGame {
 
   private checkForMatchAt(row: number, col: number): boolean {
     const tile = this.grid[row][col];
-    if (!tile || tile.type === 'obstacle') return false;
+    if (!tile || tile.type === 'obstacle' || this.isFigurine(tile.type)) return false;
 
     // Горизонтальная проверка
     let hCount = 1;
     for (let c = col - 1; c >= 0; c--) {
       const t = this.grid[row][c];
-      if (t && t.type !== 'obstacle' && t.type === tile.type) hCount++;
+      if (t && t.type !== 'obstacle' && !this.isFigurine(t.type) && t.type === tile.type) hCount++;
       else break;
     }
     for (let c = col + 1; c < this.gridSize; c++) {
       const t = this.grid[row][c];
-      if (t && t.type !== 'obstacle' && t.type === tile.type) hCount++;
+      if (t && t.type !== 'obstacle' && !this.isFigurine(t.type) && t.type === tile.type) hCount++;
       else break;
     }
     if (hCount >= 3) return true;
@@ -1437,12 +1534,12 @@ export class PixiGame {
     let vCount = 1;
     for (let r = row - 1; r >= 0; r--) {
       const t = this.grid[r][col];
-      if (t && t.type !== 'obstacle' && t.type === tile.type) vCount++;
+      if (t && t.type !== 'obstacle' && !this.isFigurine(t.type) && t.type === tile.type) vCount++;
       else break;
     }
     for (let r = row + 1; r < this.gridSize; r++) {
       const t = this.grid[r][col];
-      if (t && t.type !== 'obstacle' && t.type === tile.type) vCount++;
+      if (t && t.type !== 'obstacle' && !this.isFigurine(t.type) && t.type === tile.type) vCount++;
       else break;
     }
     if (vCount >= 3) return true;
@@ -1504,7 +1601,7 @@ export class PixiGame {
     this.stats = {
       score: 0,
       moves: maxMoves,
-      collected: { drumstick: 0, wing: 0, burger: 0, fries: 0, bucket: 0, ice_cream: 0, donut: 0, cappuccino: 0 }
+      collected: { drumstick: 0, wing: 0, burger: 0, fries: 0, bucket: 0, ice_cream: 0, donut: 0, cappuccino: 0, belka: 0, strelka: 0, sputnik: 0, vostok: 0, spaceship: 0 }
     };
     this.onStatsUpdate({ ...this.stats });
 

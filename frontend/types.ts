@@ -1,5 +1,5 @@
 
-export type ItemType = 'drumstick' | 'wing' | 'burger' | 'fries' | 'bucket' | 'ice_cream' | 'donut' | 'cappuccino' | 'obstacle';
+export type ItemType = 'drumstick' | 'wing' | 'burger' | 'fries' | 'bucket' | 'ice_cream' | 'donut' | 'cappuccino' | 'belka' | 'strelka' | 'sputnik' | 'vostok' | 'spaceship' | 'obstacle';
 export type BonusType = 'none' | 'row' | 'column' | 'color';
 
 export interface GridPos {

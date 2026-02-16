@@ -1,7 +1,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import App from './App';
 import QuestApp from './quest/QuestApp';
@@ -17,8 +17,10 @@ root.render(
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/kfc-quest/*" element={<QuestApp />} />
-          <Route path="/*" element={<App />} />
+          <Route path="/spacequest/*" element={<QuestApp />} />
+          <Route path="/match3/*" element={<App />} />
+          <Route path="/" element={<Navigate to="/match3" replace />} />
+          <Route path="*" element={<Navigate to="/match3" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

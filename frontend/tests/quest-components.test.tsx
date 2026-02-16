@@ -143,7 +143,7 @@ describe('QuestStartScreen', () => {
     expect(screen.getByText('Начать квест')).toBeInTheDocument();
   });
 
-  it('navigates to /kfc-quest/auth when not authenticated and button clicked', () => {
+  it('navigates to /spacequest/auth when not authenticated and button clicked', () => {
     mockUseAuth.mockReturnValue({
       isAuthenticated: false,
       isLoading: false,
@@ -159,10 +159,10 @@ describe('QuestStartScreen', () => {
     const startButton = screen.getByText('Начать квест');
     fireEvent.click(startButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith('/kfc-quest/auth');
+    expect(mockNavigate).toHaveBeenCalledWith('/spacequest/auth');
   });
 
-  it('navigates to /kfc-quest/play when authenticated and button clicked', () => {
+  it('navigates to /spacequest/play when authenticated and button clicked', () => {
     mockUseAuth.mockReturnValue({
       isAuthenticated: true,
       isLoading: false,
@@ -178,7 +178,7 @@ describe('QuestStartScreen', () => {
     const startButton = screen.getByText('Начать квест');
     fireEvent.click(startButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith('/kfc-quest/play');
+    expect(mockNavigate).toHaveBeenCalledWith('/spacequest/play');
   });
 
   it('displays user greeting when authenticated', () => {
@@ -372,7 +372,7 @@ describe('QuestScanHandler', () => {
     expect(screen.getByText('Вернуться к загадке')).toBeInTheDocument();
   });
 
-  it('navigates to /kfc-quest/auth when auth button clicked', async () => {
+  it('navigates to /spacequest/auth when auth button clicked', async () => {
     mockUseAuth.mockReturnValue({
       isAuthenticated: false,
       isLoading: false,
@@ -390,10 +390,10 @@ describe('QuestScanHandler', () => {
     const authButton = screen.getByText('Войти / Зарегистрироваться');
     fireEvent.click(authButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith('/kfc-quest/auth?return=/kfc-quest/scan/test-token-123');
+    expect(mockNavigate).toHaveBeenCalledWith('/spacequest/auth?return=/spacequest/scan/test-token-123');
   });
 
-  it('navigates to /kfc-quest/play when clicking "Следующая загадка"', async () => {
+  it('navigates to /spacequest/play when clicking "Следующая загадка"', async () => {
     mockUseAuth.mockReturnValue({
       isAuthenticated: true,
       isLoading: false,
@@ -423,10 +423,10 @@ describe('QuestScanHandler', () => {
     const nextButton = screen.getByText('Следующая загадка');
     fireEvent.click(nextButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith('/kfc-quest/play');
+    expect(mockNavigate).toHaveBeenCalledWith('/spacequest/play');
   });
 
-  it('navigates to /kfc-quest/result when quest is completed', async () => {
+  it('navigates to /spacequest/result when quest is completed', async () => {
     mockUseAuth.mockReturnValue({
       isAuthenticated: true,
       isLoading: false,
@@ -456,7 +456,7 @@ describe('QuestScanHandler', () => {
     const resultButton = screen.getByText('Посмотреть результаты');
     fireEvent.click(resultButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith('/kfc-quest/result');
+    expect(mockNavigate).toHaveBeenCalledWith('/spacequest/result');
   });
 
   it('navigates back to riddle when error button clicked', async () => {
@@ -484,7 +484,7 @@ describe('QuestScanHandler', () => {
     const backButton = screen.getByText('Вернуться к загадке');
     fireEvent.click(backButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith('/kfc-quest/play');
+    expect(mockNavigate).toHaveBeenCalledWith('/spacequest/play');
   });
 
   it('shows loading while auth is loading', () => {

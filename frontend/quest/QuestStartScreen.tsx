@@ -17,7 +17,7 @@ const QuestStartScreen: React.FC = () => {
   }, []);
 
   const handleStartQuest = () => {
-    navigate(user ? '/kfc-quest/play' : '/kfc-quest/auth');
+    navigate(user ? '/spacequest/play' : '/spacequest/auth');
   };
 
   return (
@@ -77,7 +77,7 @@ const QuestStartScreen: React.FC = () => {
               transform: contentVisible ? 'translateY(0)' : 'translateY(15px)',
             }}>
               {[
-                { icon: '🔍', label: '5 загадок' },
+                { icon: '🔍', label: '20 загадок' },
                 { icon: '📱', label: 'QR-коды' },
                 { icon: '🎁', label: 'Призы' },
               ].map((f, i) => (
@@ -128,9 +128,9 @@ const QuestStartScreen: React.FC = () => {
             </h2>
             <div style={styles.prizesGrid}>
               {[
-                { pts: '50', label: 'Золото', reward: 'Скидка 15%', color: '#FFD700', bg: 'rgba(255, 215, 0, 0.12)' },
-                { pts: '40+', label: 'Серебро', reward: 'Скидка 10%', color: '#C0C0C0', bg: 'rgba(192, 192, 192, 0.1)' },
-                { pts: '30+', label: 'Бронза', reward: 'Пирожок за 1₽', color: '#CD7F32', bg: 'rgba(205, 127, 50, 0.1)' },
+                { pts: '200', label: 'Золото', reward: 'Скидка 15%', color: '#FFD700', bg: 'rgba(255, 215, 0, 0.12)' },
+                { pts: '160+', label: 'Серебро', reward: 'Скидка 10%', color: '#C0C0C0', bg: 'rgba(192, 192, 192, 0.1)' },
+                { pts: '120+', label: 'Бронза', reward: 'Пирожок за 1₽', color: '#CD7F32', bg: 'rgba(205, 127, 50, 0.1)' },
               ].map((tier, i) => (
                 <div key={i} className="quest-prize-card" style={{ ...styles.prizeCard, background: tier.bg, borderColor: `${tier.color}44` }} data-color={tier.color}>
                   <div>
@@ -259,7 +259,7 @@ const styles: Record<string, React.CSSProperties> = {
     color: 'rgba(255,120,140,0.7)',
     textTransform: 'uppercase',
     letterSpacing: 2,
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     whiteSpace: 'nowrap',
   },
   dividerLine: {
@@ -279,7 +279,7 @@ const styles: Record<string, React.CSSProperties> = {
     margin: '0 0 12px 0',
     textTransform: 'uppercase',
     letterSpacing: 3,
-    fontFamily: "'Oswald', sans-serif",
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
     textShadow: '0 0 30px rgba(255,255,255,0.2), 0 2px 10px rgba(0,0,0,0.5)',
     lineHeight: 1.2,
   },
@@ -289,7 +289,7 @@ const styles: Record<string, React.CSSProperties> = {
     lineHeight: 1.7,
     margin: '0 auto',
     maxWidth: 340,
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     fontWeight: 500,
   },
   features: {
@@ -323,7 +323,7 @@ const styles: Record<string, React.CSSProperties> = {
     color: 'rgba(180,200,230,0.8)',
     textTransform: 'uppercase',
     letterSpacing: 1.5,
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
   },
 
   // Section cards
@@ -348,7 +348,7 @@ const styles: Record<string, React.CSSProperties> = {
     margin: '0 0 16px 0',
     textTransform: 'uppercase',
     letterSpacing: 2,
-    fontFamily: "'Oswald', sans-serif",
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
     display: 'flex',
     alignItems: 'center',
     gap: 10,
@@ -371,7 +371,7 @@ const styles: Record<string, React.CSSProperties> = {
   ruleNumber: {
     width: 32, height: 32,
     minWidth: 32,
-    background: 'linear-gradient(135deg, #FF4D6D 0%, #E4002B 100%)',
+    background: 'linear-gradient(135deg, #FF4D6D 0%, #ED1C29 100%)',
     borderRadius: '6px 10px 6px 10px',
     display: 'flex',
     alignItems: 'center',
@@ -379,7 +379,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 14,
     fontWeight: 700,
     color: '#fff',
-    fontFamily: "'Orbitron', sans-serif",
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
     boxShadow: '0 0 15px rgba(228,0,43,0.3)',
     flexShrink: 0,
     marginTop: 2,
@@ -388,7 +388,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 16,
     color: 'rgba(200,215,240,0.85)',
     lineHeight: 1.6,
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     fontWeight: 500,
     minHeight: 52,
     display: 'flex',
@@ -413,7 +413,7 @@ const styles: Record<string, React.CSSProperties> = {
   prizePoints: {
     fontSize: 22,
     fontWeight: 800,
-    fontFamily: "'Orbitron', sans-serif",
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
     textShadow: '0 0 15px currentColor',
   },
   prizeLabel: {
@@ -421,7 +421,7 @@ const styles: Record<string, React.CSSProperties> = {
     color: 'rgba(140,180,240,0.6)',
     textTransform: 'uppercase',
     letterSpacing: 1,
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     fontWeight: 600,
     marginTop: 2,
   },
@@ -429,7 +429,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 14,
     fontWeight: 600,
     color: 'rgba(255,255,255,0.9)',
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     textAlign: 'right',
   },
 
@@ -443,7 +443,7 @@ const styles: Record<string, React.CSSProperties> = {
   primaryButton: {
     width: '100%',
     padding: '18px 28px',
-    background: 'linear-gradient(135deg, #FF4D6D 0%, #E4002B 50%, #B8001F 100%)',
+    background: 'linear-gradient(135deg, #FF4D6D 0%, #ED1C29 50%, #C41420 100%)',
     color: '#fff',
     border: 'none',
     borderRadius: '10px 24px 10px 24px',
@@ -451,7 +451,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 700,
     cursor: 'pointer',
     boxShadow: '0 0 35px rgba(228,0,43,0.5), 0 8px 25px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2)',
-    fontFamily: "'Oswald', sans-serif",
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
     textTransform: 'uppercase',
     letterSpacing: 2,
     transition: 'all 0.3s ease',
@@ -474,7 +474,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 11,
     color: 'rgba(255,255,255,0.4)',
     letterSpacing: 1,
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
   },
 };
 
@@ -484,7 +484,7 @@ if (!document.getElementById(questStartStyleId)) {
   const sheet = document.createElement('style');
   sheet.id = questStartStyleId;
   sheet.textContent = `
-    @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
+    /* @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap'); */
 
     @keyframes questLogoGlow {
       0%, 100% { opacity: 0.6; transform: translate(-50%,-50%) scale(1); }
@@ -518,7 +518,7 @@ if (!document.getElementById(questStartStyleId)) {
     }
     .quest-cta-button:hover::before { left: 100%; }
     .quest-cta-button:hover {
-      background: linear-gradient(135deg, #FF6080 0%, #FF1744 50%, #E4002B 100%) !important;
+      background: linear-gradient(135deg, #FF6080 0%, #FF1744 50%, #ED1C29 100%) !important;
       box-shadow: 0 0 50px rgba(228,0,43,0.7), 0 10px 35px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.3) !important;
       transform: translateY(-3px);
     }

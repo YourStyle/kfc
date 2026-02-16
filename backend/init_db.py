@@ -23,51 +23,69 @@ def init_db():
         # Check if levels exist
         if Level.query.count() == 0:
             # Seed levels
+            all_items = ['drumstick', 'wing', 'burger', 'fries', 'bucket', 'ice_cream', 'donut', 'cappuccino']
             levels = [
                 Level(
-                    name='Обучение',
+                    name='Первый вкус',
                     order=1,
                     grid_width=7,
                     grid_height=7,
-                    max_moves=20,
-                    item_types=['drumstick', 'burger', 'fries'],
-                    targets={'collect': {'drumstick': 5}, 'min_score': 500}
+                    max_moves=25,
+                    item_types=all_items,
+                    targets={'collect': {'drumstick': 10}, 'min_score': 500}
                 ),
                 Level(
-                    name='Лёгкий старт',
+                    name='Острые крылышки',
                     order=2,
                     grid_width=7,
                     grid_height=7,
-                    max_moves=25,
-                    item_types=['drumstick', 'wing', 'burger', 'fries'],
-                    targets={'collect': {'drumstick': 10, 'burger': 5}, 'min_score': 1000}
+                    max_moves=22,
+                    item_types=all_items,
+                    targets={'collect': {'drumstick': 12, 'fries': 8}, 'min_score': 800}
                 ),
                 Level(
-                    name='Комбо мастер',
+                    name='Золотое ведёрко',
                     order=3,
-                    grid_width=8,
-                    grid_height=8,
-                    max_moves=30,
-                    item_types=['drumstick', 'wing', 'burger', 'fries', 'bucket'],
-                    targets={'collect': {'fries': 15}, 'min_score': 2000}
+                    grid_width=7,
+                    grid_height=7,
+                    max_moves=24,
+                    item_types=all_items,
+                    targets={'collect': {'bucket': 5, 'drumstick': 15}, 'min_score': 1000},
+                    obstacles=[
+                        {'row': 2, 'col': 2}, {'row': 2, 'col': 4},
+                        {'row': 4, 'col': 2}, {'row': 4, 'col': 4},
+                    ]
                 ),
                 Level(
-                    name='Большой заказ',
+                    name='Углы',
                     order=4,
-                    grid_width=8,
-                    grid_height=8,
-                    max_moves=35,
-                    item_types=['drumstick', 'wing', 'burger', 'fries', 'bucket', 'ice_cream'],
-                    targets={'collect': {'drumstick': 20, 'burger': 15, 'fries': 10}, 'min_score': 3000}
+                    grid_width=7,
+                    grid_height=7,
+                    max_moves=26,
+                    item_types=all_items,
+                    targets={'collect': {'burger': 10, 'wing': 10}, 'min_score': 1200},
+                    obstacles=[
+                        {'row': 1, 'col': 1}, {'row': 2, 'col': 1}, {'row': 1, 'col': 2},
+                        {'row': 1, 'col': 5}, {'row': 2, 'col': 5}, {'row': 1, 'col': 4},
+                        {'row': 5, 'col': 1}, {'row': 4, 'col': 1}, {'row': 5, 'col': 2},
+                        {'row': 5, 'col': 5}, {'row': 4, 'col': 5}, {'row': 5, 'col': 4},
+                    ]
                 ),
                 Level(
-                    name='Час пик',
+                    name='Полковник',
                     order=5,
-                    grid_width=8,
-                    grid_height=8,
-                    max_moves=25,
-                    item_types=['drumstick', 'wing', 'burger', 'fries', 'bucket', 'ice_cream', 'donut', 'cappuccino'],
-                    targets={'collect': {'drumstick': 25, 'cappuccino': 15}, 'min_score': 5000}
+                    grid_width=7,
+                    grid_height=7,
+                    max_moves=30,
+                    item_types=all_items,
+                    targets={'collect': {'drumstick': 20, 'bucket': 8, 'burger': 12}, 'min_score': 2000},
+                    obstacles=[
+                        {'row': 1, 'col': 1}, {'row': 1, 'col': 2},
+                        {'row': 1, 'col': 4}, {'row': 1, 'col': 5},
+                        {'row': 3, 'col': 3},
+                        {'row': 4, 'col': 1}, {'row': 4, 'col': 5},
+                        {'row': 5, 'col': 2}, {'row': 5, 'col': 3}, {'row': 5, 'col': 4},
+                    ]
                 ),
             ]
 
