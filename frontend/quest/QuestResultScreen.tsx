@@ -48,7 +48,7 @@ const QuestResultScreen: React.FC = () => {
             rafRef.current = requestAnimationFrame(tick);
           } else {
             // Show confetti if score is 30+
-            if (target >= 30) {
+            if (target >= 120) {
               setShowConfetti(true);
               setTimeout(() => setShowConfetti(false), 5000);
             }
@@ -73,11 +73,11 @@ const QuestResultScreen: React.FC = () => {
     };
   }, []);
 
-  // Get tier info based on score (50 = gold, 40 = silver, 30 = bronze)
+  // Get tier info based on score (200 = gold, 160 = silver, 120 = bronze)
   const getTier = (score: number): { name: string; color: string; label: string } | null => {
-    if (score >= 50) return { name: 'gold', color: '#FFD700', label: 'ЗОЛОТОЙ' };
-    if (score >= 40) return { name: 'silver', color: '#C0C0C0', label: 'СЕРЕБРЯНЫЙ' };
-    if (score >= 30) return { name: 'bronze', color: '#CD7F32', label: 'БРОНЗОВЫЙ' };
+    if (score >= 200) return { name: 'gold', color: '#FFD700', label: 'ЗОЛОТОЙ' };
+    if (score >= 160) return { name: 'silver', color: '#C0C0C0', label: 'СЕРЕБРЯНЫЙ' };
+    if (score >= 120) return { name: 'bronze', color: '#CD7F32', label: 'БРОНЗОВЫЙ' };
     return null;
   };
 
@@ -128,7 +128,7 @@ const QuestResultScreen: React.FC = () => {
         <div className="error-card">
           <h2>Ошибка</h2>
           <p>{error || 'Не удалось загрузить результаты'}</p>
-          <button onClick={() => navigate('/kfc-quest')} className="primary-button">
+          <button onClick={() => navigate('/spacequest')} className="primary-button">
             Вернуться к квесту
           </button>
         </div>
@@ -151,7 +151,7 @@ const QuestResultScreen: React.FC = () => {
                 left: `${Math.random() * 100}%`,
                 animationDelay: `${Math.random() * 3}s`,
                 animationDuration: `${3 + Math.random() * 2}s`,
-                backgroundColor: ['#FFD700', '#E4002B', '#FF4D6D', '#C0C0C0', '#CD7F32'][
+                backgroundColor: ['#FFD700', '#ED1C29', '#FF4D6D', '#C0C0C0', '#CD7F32'][
                   Math.floor(Math.random() * 5)
                 ],
               }}
@@ -337,17 +337,17 @@ const QuestResultScreen: React.FC = () => {
               </svg>
             </div>
             <h3>Продолжайте стараться!</h3>
-            <p>Наберите минимум 30 баллов, чтобы получить промокод</p>
-            <p className="score-diff">Вам не хватило всего {30 - result.total_score} баллов</p>
+            <p>Наберите минимум 120 баллов, чтобы получить промокод</p>
+            <p className="score-diff">Вам не хватило всего {120 - result.total_score} баллов</p>
           </div>
         )}
 
         {/* Navigation Buttons */}
         <div className="navigation-buttons">
-          <button onClick={() => navigate('/kfc-quest')} className="secondary-button">
+          <button onClick={() => navigate('/spacequest')} className="secondary-button">
             Вернуться к квесту
           </button>
-          <button onClick={() => navigate('/')} className="primary-button game-link">
+          <button onClick={() => navigate('/match3')} className="primary-button game-link">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
               <path
                 d="M15 3H21V9M9 21H3V15"
@@ -379,9 +379,9 @@ const QuestResultScreen: React.FC = () => {
           min-height: 100vh;
           background: linear-gradient(
             135deg,
-            rgba(12, 18, 32, 1) 0%,
+            rgba(21, 21, 21, 1) 0%,
             rgba(20, 28, 48, 1) 50%,
-            rgba(12, 18, 32, 1) 100%
+            rgba(21, 21, 21, 1) 100%
           );
           padding: 20px;
           display: flex;
@@ -418,7 +418,7 @@ const QuestResultScreen: React.FC = () => {
           width: 48px;
           height: 48px;
           border: 4px solid rgba(255, 255, 255, 0.1);
-          border-top-color: #e4002b;
+          border-top-color: #ED1C29;
           border-radius: 50%;
           animation: spin 1s linear infinite;
           margin-bottom: 20px;
@@ -441,15 +441,15 @@ const QuestResultScreen: React.FC = () => {
         }
 
         .error-card h2 {
-          font-family: 'Oswald', sans-serif;
+          font-family: 'RosticsCeraCondensed', sans-serif;
           font-size: 28px;
           font-weight: 700;
-          color: #e4002b;
+          color: #ED1C29;
           margin-bottom: 16px;
         }
 
         .error-card p {
-          font-family: 'Rajdhani', sans-serif;
+          font-family: 'RosticsCeraPro', sans-serif;
           font-size: 16px;
           color: rgba(255, 255, 255, 0.7);
           margin-bottom: 24px;
@@ -542,7 +542,7 @@ const QuestResultScreen: React.FC = () => {
           position: absolute;
           width: 24px;
           height: 24px;
-          border: 2px solid #e4002b;
+          border: 2px solid #ED1C29;
         }
 
         .corner-decoration.top-left {
@@ -579,7 +579,7 @@ const QuestResultScreen: React.FC = () => {
 
         /* Title */
         .result-title {
-          font-family: 'Oswald', sans-serif;
+          font-family: 'RosticsCeraCondensed', sans-serif;
           font-size: 32px;
           font-weight: 700;
           text-align: center;
@@ -620,7 +620,7 @@ const QuestResultScreen: React.FC = () => {
         }
 
         .score-label {
-          font-family: 'Rajdhani', sans-serif;
+          font-family: 'RosticsCeraPro', sans-serif;
           font-size: 12px;
           font-weight: 600;
           color: rgba(255, 255, 255, 0.6);
@@ -630,10 +630,10 @@ const QuestResultScreen: React.FC = () => {
         }
 
         .score-value {
-          font-family: 'Orbitron', monospace;
+          font-family: 'RosticsCeraCondensed', monospace;
           font-size: 72px;
           font-weight: 900;
-          color: #e4002b;
+          color: #ED1C29;
           text-shadow: 0 0 20px rgba(228, 0, 43, 0.6), 0 0 40px rgba(228, 0, 43, 0.4),
             0 0 60px rgba(228, 0, 43, 0.2);
           line-height: 1;
@@ -641,7 +641,7 @@ const QuestResultScreen: React.FC = () => {
         }
 
         .score-max {
-          font-family: 'Rajdhani', sans-serif;
+          font-family: 'RosticsCeraPro', sans-serif;
           font-size: 18px;
           font-weight: 500;
           color: rgba(255, 255, 255, 0.5);
@@ -698,7 +698,7 @@ const QuestResultScreen: React.FC = () => {
         }
 
         .stat-value {
-          font-family: 'Orbitron', monospace;
+          font-family: 'RosticsCeraCondensed', monospace;
           font-size: 28px;
           font-weight: 800;
           color: #fff;
@@ -707,7 +707,7 @@ const QuestResultScreen: React.FC = () => {
         }
 
         .stat-label {
-          font-family: 'Rajdhani', sans-serif;
+          font-family: 'RosticsCeraPro', sans-serif;
           font-size: 10px;
           font-weight: 600;
           color: rgba(255, 255, 255, 0.5);
@@ -724,7 +724,7 @@ const QuestResultScreen: React.FC = () => {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          font-family: 'Rajdhani', sans-serif;
+          font-family: 'RosticsCeraPro', sans-serif;
           font-size: 12px;
           font-weight: 600;
           color: rgba(255, 255, 255, 0.6);
@@ -744,7 +744,7 @@ const QuestResultScreen: React.FC = () => {
 
         .progress-bar-fill {
           height: 100%;
-          background: linear-gradient(90deg, #e4002b 0%, #ff4d6d 50%, #ff8090 100%);
+          background: linear-gradient(90deg, #ED1C29 0%, #ff4d6d 50%, #ff8090 100%);
           transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1) 1s;
           box-shadow: 0 0 20px rgba(228, 0, 43, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
           position: relative;
@@ -811,7 +811,7 @@ const QuestResultScreen: React.FC = () => {
         }
 
         .tier-label {
-          font-family: 'Oswald', sans-serif;
+          font-family: 'RosticsCeraCondensed', sans-serif;
           font-size: 20px;
           font-weight: 700;
           letter-spacing: 2px;
@@ -828,7 +828,7 @@ const QuestResultScreen: React.FC = () => {
         }
 
         .promo-code-label {
-          font-family: 'Rajdhani', sans-serif;
+          font-family: 'RosticsCeraPro', sans-serif;
           font-size: 12px;
           font-weight: 600;
           color: rgba(255, 255, 255, 0.6);
@@ -838,7 +838,7 @@ const QuestResultScreen: React.FC = () => {
         }
 
         .promo-code-value {
-          font-family: 'Orbitron', monospace;
+          font-family: 'RosticsCeraCondensed', monospace;
           font-size: 32px;
           font-weight: 800;
           color: #ffd700;
@@ -851,7 +851,7 @@ const QuestResultScreen: React.FC = () => {
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          font-family: 'Rajdhani', sans-serif;
+          font-family: 'RosticsCeraPro', sans-serif;
           font-size: 14px;
           font-weight: 600;
           color: #fff;
@@ -866,7 +866,7 @@ const QuestResultScreen: React.FC = () => {
 
         .copy-button:hover {
           background: rgba(255, 255, 255, 0.15);
-          border-color: #e4002b;
+          border-color: #ED1C29;
         }
 
         .copy-button.copied {
@@ -876,7 +876,7 @@ const QuestResultScreen: React.FC = () => {
         }
 
         .promo-hint {
-          font-family: 'Rajdhani', sans-serif;
+          font-family: 'RosticsCeraPro', sans-serif;
           font-size: 12px;
           color: rgba(255, 255, 255, 0.5);
           margin: 0;
@@ -902,7 +902,7 @@ const QuestResultScreen: React.FC = () => {
         }
 
         .no-prize-section h3 {
-          font-family: 'Oswald', sans-serif;
+          font-family: 'RosticsCeraCondensed', sans-serif;
           font-size: 24px;
           font-weight: 700;
           color: #fff;
@@ -910,14 +910,14 @@ const QuestResultScreen: React.FC = () => {
         }
 
         .no-prize-section p {
-          font-family: 'Rajdhani', sans-serif;
+          font-family: 'RosticsCeraPro', sans-serif;
           font-size: 16px;
           color: rgba(255, 255, 255, 0.6);
           margin-bottom: 8px;
         }
 
         .score-diff {
-          font-family: 'Orbitron', monospace;
+          font-family: 'RosticsCeraCondensed', monospace;
           font-size: 18px;
           font-weight: 700;
           color: #ff9800 !important;
@@ -928,7 +928,7 @@ const QuestResultScreen: React.FC = () => {
         .primary-button,
         .secondary-button,
         .claim-button {
-          font-family: 'Rajdhani', sans-serif;
+          font-family: 'RosticsCeraPro', sans-serif;
           font-size: 16px;
           font-weight: 700;
           text-transform: uppercase;
@@ -945,7 +945,7 @@ const QuestResultScreen: React.FC = () => {
         }
 
         .primary-button {
-          background: linear-gradient(135deg, #ff4d6d 0%, #e4002b 50%, #b8001f 100%);
+          background: linear-gradient(135deg, #ff4d6d 0%, #ED1C29 50%, #C41420 100%);
           color: #fff;
           box-shadow: 0 4px 20px rgba(228, 0, 43, 0.4);
           position: relative;
@@ -1016,7 +1016,7 @@ const QuestResultScreen: React.FC = () => {
         .quest-copyright {
           text-align: center;
           margin-top: 24px;
-          font-family: 'Rajdhani', sans-serif;
+          font-family: 'RosticsCeraPro', sans-serif;
           font-size: 11px;
           color: rgba(255, 255, 255, 0.4);
           letter-spacing: 1px;

@@ -12,7 +12,7 @@ interface LevelSelectScreenProps {
 
 // Difficulty config for visual variety
 const getDifficultyConfig = (order: number) => {
-  if (order <= 2) return { label: 'ЛЕГКО', color: '#00FF88', glow: 'rgba(0, 255, 136, 0.5)' };
+  if (order <= 2) return { label: 'ЛЕГКО', color: '#F4A698', glow: 'rgba(244, 166, 152, 0.5)' };
   if (order <= 4) return { label: 'СРЕДНЕ', color: '#FFB800', glow: 'rgba(255, 184, 0, 0.5)' };
   return { label: 'СЛОЖНО', color: '#FF3366', glow: 'rgba(255, 51, 102, 0.5)' };
 };
@@ -288,13 +288,13 @@ const styles: Record<string, React.CSSProperties> = {
     width: 'calc(100% - 32px)',
     maxWidth: 500,
     height: '100%',
-    background: 'linear-gradient(180deg, rgba(8, 12, 24, 0.85) 0%, rgba(12, 18, 32, 0.9) 100%)',
+    background: 'linear-gradient(180deg, rgba(21, 21, 21, 0.9) 0%, rgba(30, 30, 30, 0.92) 100%)',
     borderRadius: 20,
     padding: '16px',
     overflowY: 'auto',
     overflowX: 'hidden',
-    border: '1px solid rgba(100, 150, 255, 0.15)',
-    boxShadow: '0 0 60px rgba(0, 100, 255, 0.1), inset 0 0 60px rgba(0, 50, 150, 0.05)',
+    border: '1px solid rgba(237, 28, 41, 0.15)',
+    boxShadow: '0 0 60px rgba(0, 0, 0, 0.3), inset 0 0 60px rgba(237, 28, 41, 0.03)',
     boxSizing: 'border-box',
     // iOS smooth scrolling
     WebkitOverflowScrolling: 'touch',
@@ -316,7 +316,7 @@ const styles: Record<string, React.CSSProperties> = {
     width: 40,
     height: 40,
     border: '3px solid rgba(255,255,255,0.2)',
-    borderTop: '3px solid #E4002B',
+    borderTop: '3px solid #ED1C29',
     borderRadius: '50%',
     animation: 'spin 1s linear infinite',
   },
@@ -332,13 +332,13 @@ const styles: Record<string, React.CSSProperties> = {
   // ═══════════════════════════════════════════════════════════════
   levelCard: {
     position: 'relative',
-    background: 'linear-gradient(160deg, rgba(15, 25, 45, 0.98) 0%, rgba(25, 40, 70, 0.95) 50%, rgba(20, 35, 60, 0.98) 100%)',
+    background: 'linear-gradient(160deg, rgba(21, 21, 21, 0.98) 0%, rgba(35, 35, 35, 0.95) 50%, rgba(25, 25, 25, 0.98) 100%)',
     backdropFilter: 'blur(20px)',
     WebkitBackdropFilter: 'blur(20px)',
-    borderRadius: '12px 24px 12px 24px',
+    borderRadius: 16,
     overflow: 'visible',
     cursor: 'pointer',
-    border: '1px solid rgba(255, 100, 120, 0.35)',
+    border: '1px solid rgba(237, 28, 41, 0.35)',
     boxShadow: '0 0 30px rgba(228, 0, 43, 0.2), 0 10px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   },
@@ -350,8 +350,8 @@ const styles: Record<string, React.CSSProperties> = {
     left: -2,
     width: 28,
     height: 28,
-    borderTop: '3px solid rgba(255, 120, 140, 0.85)',
-    borderLeft: '3px solid rgba(255, 120, 140, 0.85)',
+    borderTop: '3px solid rgba(244, 166, 152, 0.85)',
+    borderLeft: '3px solid rgba(244, 166, 152, 0.85)',
     borderTopLeftRadius: 14,
     pointerEvents: 'none',
     zIndex: 20,
@@ -362,8 +362,8 @@ const styles: Record<string, React.CSSProperties> = {
     right: -2,
     width: 28,
     height: 28,
-    borderTop: '3px solid rgba(255, 120, 140, 0.85)',
-    borderRight: '3px solid rgba(255, 120, 140, 0.85)',
+    borderTop: '3px solid rgba(244, 166, 152, 0.85)',
+    borderRight: '3px solid rgba(244, 166, 152, 0.85)',
     borderTopRightRadius: 26,
     pointerEvents: 'none',
     zIndex: 20,
@@ -374,8 +374,8 @@ const styles: Record<string, React.CSSProperties> = {
     left: -2,
     width: 28,
     height: 28,
-    borderBottom: '3px solid rgba(255, 120, 140, 0.85)',
-    borderLeft: '3px solid rgba(255, 120, 140, 0.85)',
+    borderBottom: '3px solid rgba(244, 166, 152, 0.85)',
+    borderLeft: '3px solid rgba(244, 166, 152, 0.85)',
     borderBottomLeftRadius: 26,
     pointerEvents: 'none',
     zIndex: 20,
@@ -386,8 +386,8 @@ const styles: Record<string, React.CSSProperties> = {
     right: -2,
     width: 28,
     height: 28,
-    borderBottom: '3px solid rgba(255, 120, 140, 0.85)',
-    borderRight: '3px solid rgba(255, 120, 140, 0.85)',
+    borderBottom: '3px solid rgba(244, 166, 152, 0.85)',
+    borderRight: '3px solid rgba(244, 166, 152, 0.85)',
     borderBottomRightRadius: 14,
     pointerEvents: 'none',
     zIndex: 20,
@@ -426,7 +426,7 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 6,
   },
   levelPrefix: {
-    color: 'rgba(255, 180, 200, 0.7)',
+    color: 'rgba(244, 166, 152, 0.7)',
     fontSize: 10,
     fontWeight: 600,
     letterSpacing: 2,
@@ -436,8 +436,8 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#fff',
     fontSize: 32,
     fontWeight: 900,
-    fontFamily: "'Orbitron', sans-serif",
-    textShadow: '0 0 20px rgba(255, 100, 120, 0.6), 0 2px 4px rgba(0,0,0,0.5)',
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
+    textShadow: '0 0 20px rgba(237, 28, 41, 0.6), 0 2px 4px rgba(0,0,0,0.5)',
     lineHeight: 1,
   },
   difficultyPill: {
@@ -465,7 +465,7 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#fff',
     fontSize: 20,
     fontWeight: 700,
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     letterSpacing: 0.5,
     marginBottom: 6,
     textShadow: '0 2px 10px rgba(0,0,0,0.5)',
@@ -476,12 +476,12 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 4,
     fontSize: 11,
     fontWeight: 700,
-    color: '#4ADE80',
-    background: 'rgba(74, 222, 128, 0.15)',
+    color: '#F4A698',
+    background: 'rgba(237, 28, 41, 0.15)',
     padding: '4px 10px',
     borderRadius: 6,
-    border: '1px solid rgba(74, 222, 128, 0.3)',
-    textShadow: '0 0 10px rgba(74, 222, 128, 0.5)',
+    border: '1px solid rgba(237, 28, 41, 0.3)',
+    textShadow: '0 0 10px rgba(237, 28, 41, 0.3)',
   },
   checkIcon: {
     fontSize: 12,
@@ -533,7 +533,7 @@ const styles: Record<string, React.CSSProperties> = {
   progressLabel: {
     fontSize: 9,
     fontWeight: 700,
-    color: 'rgba(255, 150, 170, 0.7)',
+    color: 'rgba(244, 166, 152, 0.7)',
     letterSpacing: 2,
     marginBottom: 5,
   },
@@ -542,7 +542,7 @@ const styles: Record<string, React.CSSProperties> = {
     height: 28,
     background: 'linear-gradient(180deg, rgba(20, 10, 15, 0.8) 0%, rgba(40, 20, 30, 0.9) 100%)',
     borderRadius: 14,
-    border: '1px solid rgba(255, 100, 120, 0.25)',
+    border: '1px solid rgba(237, 28, 41, 0.25)',
     overflow: 'hidden',
     boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.5)',
   },
@@ -551,7 +551,7 @@ const styles: Record<string, React.CSSProperties> = {
     top: 4,
     left: 4,
     bottom: 4,
-    background: 'linear-gradient(90deg, #E4002B 0%, #FF4D6D 60%, #FF8090 100%)',
+    background: 'linear-gradient(90deg, #ED1C29 0%, #FF4D6D 60%, #FF8090 100%)',
     borderRadius: 10,
     boxShadow: '0 0 12px rgba(228, 0, 43, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.25)',
     transition: 'width 0.5s ease-out',
@@ -593,8 +593,8 @@ const styles: Record<string, React.CSSProperties> = {
     left: 0,
     right: 0,
     bottom: 0,
-    background: 'linear-gradient(135deg, #FF3D5A 0%, #E4002B 40%, #CC0025 100%)',
-    borderRadius: '8px 20px 8px 20px',
+    background: 'linear-gradient(135deg, #FF3D5A 0%, #ED1C29 40%, #D41820 100%)',
+    borderRadius: 12,
     boxShadow: '0 0 25px rgba(228, 0, 43, 0.6), 0 6px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
   },
   btnIcon: {
@@ -610,7 +610,7 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#fff',
     fontSize: 15,
     fontWeight: 800,
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     letterSpacing: 2,
     textTransform: 'uppercase',
     textShadow: '0 2px 4px rgba(0, 0, 0, 0.4)',
@@ -621,15 +621,15 @@ const styles: Record<string, React.CSSProperties> = {
   // ═══════════════════════════════════════════════════════════════
   levelCardLocked: {
     position: 'relative',
-    background: 'linear-gradient(160deg, rgba(25, 35, 55, 0.9) 0%, rgba(35, 50, 80, 0.85) 100%)',
+    background: 'linear-gradient(160deg, rgba(30, 30, 30, 0.9) 0%, rgba(40, 40, 40, 0.85) 100%)',
     backdropFilter: 'blur(15px)',
     WebkitBackdropFilter: 'blur(15px)',
-    borderRadius: '12px 24px 12px 24px',
+    borderRadius: 16,
     padding: '20px 24px',
     display: 'flex',
     alignItems: 'center',
     gap: 18,
-    border: '1px solid rgba(80, 120, 180, 0.25)',
+    border: '1px solid rgba(237, 28, 41, 0.15)',
     boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.05)',
     overflow: 'hidden',
   },
@@ -640,8 +640,8 @@ const styles: Record<string, React.CSSProperties> = {
     left: 4,
     width: 16,
     height: 16,
-    borderTop: '2px solid rgba(100, 140, 200, 0.5)',
-    borderLeft: '2px solid rgba(100, 140, 200, 0.5)',
+    borderTop: '2px solid rgba(244, 166, 152, 0.5)',
+    borderLeft: '2px solid rgba(244, 166, 152, 0.5)',
     borderTopLeftRadius: 8,
   },
   lockedCornerBR: {
@@ -650,8 +650,8 @@ const styles: Record<string, React.CSSProperties> = {
     right: 4,
     width: 16,
     height: 16,
-    borderBottom: '2px solid rgba(100, 140, 200, 0.5)',
-    borderRight: '2px solid rgba(100, 140, 200, 0.5)',
+    borderBottom: '2px solid rgba(244, 166, 152, 0.5)',
+    borderRight: '2px solid rgba(244, 166, 152, 0.5)',
     borderBottomRightRadius: 8,
   },
 
@@ -663,13 +663,13 @@ const styles: Record<string, React.CSSProperties> = {
   lockHex: {
     width: 52,
     height: 52,
-    background: 'linear-gradient(135deg, rgba(60, 90, 140, 0.5) 0%, rgba(40, 60, 100, 0.4) 100%)',
-    border: '2px solid rgba(100, 150, 220, 0.4)',
+    background: 'linear-gradient(135deg, rgba(60, 60, 60, 0.5) 0%, rgba(40, 40, 40, 0.4) 100%)',
+    border: '2px solid rgba(237, 28, 41, 0.3)',
     borderRadius: '8px 16px 8px 16px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0 0 15px rgba(100, 150, 220, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+    boxShadow: '0 0 15px rgba(237, 28, 41, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
   },
 
   lockRing: {
@@ -679,7 +679,7 @@ const styles: Record<string, React.CSSProperties> = {
     transform: 'translate(-50%, -50%)',
     width: 60,
     height: 60,
-    border: '1px solid rgba(100, 150, 220, 0.3)',
+    border: '1px solid rgba(237, 28, 41, 0.2)',
     borderRadius: '50%',
     animation: 'lockPulse 3s ease-out infinite',
   },
@@ -695,7 +695,7 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: 6,
   },
   lockedPrefix: {
-    color: 'rgba(140, 170, 220, 0.6)',
+    color: 'rgba(244, 166, 152, 0.6)',
     fontSize: 9,
     fontWeight: 600,
     letterSpacing: 2,
@@ -704,14 +704,14 @@ const styles: Record<string, React.CSSProperties> = {
     color: 'rgba(255, 255, 255, 0.8)',
     fontSize: 24,
     fontWeight: 800,
-    fontFamily: "'Orbitron', sans-serif",
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
   },
 
   lockedStatus: {
     display: 'flex',
     alignItems: 'center',
     gap: 8,
-    color: 'rgba(100, 150, 220, 0.7)',
+    color: 'rgba(244, 166, 152, 0.7)',
     fontSize: 10,
     fontWeight: 700,
     letterSpacing: 2,
@@ -726,7 +726,7 @@ const styles: Record<string, React.CSSProperties> = {
   // ═══════════════════════════════════════════════════════════════
   authBanner: {
     marginTop: 14,
-    background: 'linear-gradient(135deg, rgba(20, 30, 50, 0.85) 0%, rgba(30, 45, 70, 0.8) 100%)',
+    background: 'linear-gradient(135deg, rgba(21, 21, 21, 0.85) 0%, rgba(40, 40, 40, 0.8) 100%)',
     backdropFilter: 'blur(15px)',
     WebkitBackdropFilter: 'blur(15px)',
     borderRadius: 12,
@@ -735,7 +735,7 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 14,
-    border: '1px solid rgba(100, 150, 255, 0.2)',
+    border: '1px solid rgba(237, 28, 41, 0.2)',
   },
   authBannerText: {
     color: 'rgba(255, 255, 255, 0.8)',
@@ -743,7 +743,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 500,
   },
   authButton: {
-    background: 'linear-gradient(135deg, #E4002B 0%, #CC0025 100%)',
+    background: 'linear-gradient(135deg, #ED1C29 0%, #D41820 100%)',
     color: '#fff',
     border: 'none',
     padding: '12px 20px',
@@ -754,7 +754,7 @@ const styles: Record<string, React.CSSProperties> = {
     letterSpacing: 1,
     textTransform: 'uppercase',
     boxShadow: '0 4px 16px rgba(228, 0, 43, 0.4)',
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     transition: 'all 0.2s ease',
   },
 };
@@ -763,7 +763,7 @@ const styles: Record<string, React.CSSProperties> = {
 const styleSheet = document.createElement('style');
 styleSheet.textContent = `
   /* Import fonts */
-  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@400;500;600;700&display=swap');
+  /* @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@400;500;600;700&display=swap'); */
 
   /* Spinner */
   @keyframes spin {
@@ -833,7 +833,7 @@ styleSheet.textContent = `
 
   /* Play button hover */
   .play-btn:hover .btn-bg {
-    background: linear-gradient(135deg, #FF4D6D 0%, #FF1744 40%, #E4002B 100%) !important;
+    background: linear-gradient(135deg, #FF4D6D 0%, #FF1744 40%, #ED1C29 100%) !important;
     box-shadow: 0 0 40px rgba(228, 0, 43, 0.8), 0 8px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
   }
   .play-btn:active .btn-bg {
@@ -848,11 +848,11 @@ styleSheet.textContent = `
   .locked-card:hover {
     opacity: 0.9;
     transform: scale(1.01);
-    box-shadow: 0 0 20px rgba(100, 150, 220, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 20px rgba(237, 28, 41, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
   .locked-card:hover .lock-hex {
-    border-color: rgba(100, 150, 220, 0.6);
-    box-shadow: 0 0 20px rgba(100, 150, 220, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    border-color: rgba(237, 28, 41, 0.4);
+    box-shadow: 0 0 20px rgba(237, 28, 41, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);
   }
 
   /* Lock ring pulse */
@@ -864,7 +864,6 @@ styleSheet.textContent = `
 
   /* Auth button */
   .auth-btn {
-    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
     transition: all 0.2s ease;
   }
   .auth-btn:hover {

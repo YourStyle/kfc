@@ -70,18 +70,18 @@ const QuestScanHandler: React.FC = () => {
 
   const handleNext = () => {
     if (result?.quest_completed) {
-      navigate('/kfc-quest/result');
+      navigate('/spacequest/result');
     } else {
-      navigate('/kfc-quest/play');
+      navigate('/spacequest/play');
     }
   };
 
   const handleGoToAuth = () => {
-    navigate(`/kfc-quest/auth?return=/kfc-quest/scan/${qrToken}`);
+    navigate(`/spacequest/auth?return=/spacequest/scan/${qrToken}`);
   };
 
   const handleBackToRiddle = () => {
-    navigate('/kfc-quest/play');
+    navigate('/spacequest/play');
   };
 
   // Loading
@@ -140,7 +140,7 @@ const QuestScanHandler: React.FC = () => {
 
             {/* Success icon — stagger 0s */}
             <div className="quest-scan-success-icon quest-scan-stagger-0" style={{ ...styles.iconCircle, borderColor: 'rgba(74,222,128,0.4)', boxShadow: '0 0 30px rgba(74,222,128,0.2)' }}>
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ED1C29" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </div>
@@ -191,13 +191,13 @@ const QuestScanHandler: React.FC = () => {
         <div className="quest-scan-card quest-scan-shake" style={{ ...styles.card, opacity: visible ? 1 : 0, transform: visible ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.95)' }}>
           <div style={styles.cornerTL} /><div style={styles.cornerTR} /><div style={styles.cornerBL} /><div style={styles.cornerBR} />
 
-          <div style={{ ...styles.iconCircle, borderColor: 'rgba(239,68,68,0.4)', boxShadow: '0 0 30px rgba(239,68,68,0.2)' }}>
+          <div style={{ ...styles.iconCircle, borderColor: 'rgba(237,28,41,0.3)', boxShadow: '0 0 30px rgba(237,28,41,0.3)' }}>
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </div>
 
-          <h2 style={{ ...styles.title, color: '#ff6b6b', textShadow: '0 0 20px rgba(239,68,68,0.3)' }}>Код неверный</h2>
+          <h2 style={{ ...styles.title, color: '#ED1C29', textShadow: '0 0 20px rgba(239,68,68,0.3)' }}>Код неверный</h2>
           <p style={styles.text}>
             {errorMsg || 'Найдите экспонат по текущей подсказке и отсканируйте правильный QR-код.'}
           </p>
@@ -278,7 +278,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 700,
     color: '#fff',
     margin: '0 0 12px',
-    fontFamily: "'Oswald', sans-serif",
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
     textTransform: 'uppercase',
     letterSpacing: 2,
     textShadow: '0 0 20px rgba(255,255,255,0.15)',
@@ -288,7 +288,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 15,
     lineHeight: 1.6,
     margin: '0 0 24px',
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     fontWeight: 500,
   },
 
@@ -304,20 +304,20 @@ const styles: Record<string, React.CSSProperties> = {
     margin: '0 0 20px',
   },
   pointsPlus: {
-    fontFamily: "'Orbitron', sans-serif",
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
     fontWeight: 700,
     fontSize: 18,
     color: '#FF4D6D',
   },
   pointsValue: {
-    fontFamily: "'Orbitron', sans-serif",
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
     fontWeight: 800,
     fontSize: 28,
     color: '#fff',
     textShadow: '0 0 15px rgba(228,0,43,0.5)',
   },
   pointsLabel: {
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     fontWeight: 600,
     fontSize: 14,
     color: 'rgba(200,215,240,0.7)',
@@ -337,7 +337,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     gap: 8,
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     fontWeight: 700,
     fontSize: 12,
     color: 'rgba(255,120,140,0.7)',
@@ -353,19 +353,19 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 14,
     lineHeight: 1.7,
     margin: 0,
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     fontWeight: 500,
   },
 
   totalScore: {
     color: 'rgba(200,215,240,0.7)',
     fontSize: 14,
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     fontWeight: 500,
     margin: '0 0 24px',
   },
   totalScoreValue: {
-    fontFamily: "'Orbitron', sans-serif",
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
     fontWeight: 700,
     fontSize: 16,
     color: '#fff',
@@ -374,7 +374,7 @@ const styles: Record<string, React.CSSProperties> = {
   btnPrimary: {
     width: '100%',
     padding: '16px 28px',
-    background: 'linear-gradient(135deg, #FF4D6D 0%, #E4002B 50%, #B8001F 100%)',
+    background: 'linear-gradient(135deg, #FF4D6D 0%, #ED1C29 50%, #C41420 100%)',
     color: '#fff',
     border: 'none',
     borderRadius: '10px 24px 10px 24px',
@@ -382,7 +382,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 700,
     cursor: 'pointer',
     boxShadow: '0 0 25px rgba(228,0,43,0.4), 0 8px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2)',
-    fontFamily: "'Oswald', sans-serif",
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
     textTransform: 'uppercase',
     letterSpacing: 2,
     transition: 'all 0.3s ease',
@@ -399,7 +399,7 @@ const styles: Record<string, React.CSSProperties> = {
   spinner: {
     width: 48, height: 48,
     border: '3px solid rgba(255,100,120,0.15)',
-    borderTopColor: '#E4002B',
+    borderTopColor: '#ED1C29',
     borderRadius: '50%',
     margin: '0 auto 20px',
     animation: 'questScanSpin 1s linear infinite',
@@ -408,7 +408,7 @@ const styles: Record<string, React.CSSProperties> = {
     color: 'rgba(200,215,240,0.6)',
     fontSize: 15,
     margin: 0,
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     fontWeight: 500,
   },
 };
@@ -419,7 +419,7 @@ if (!document.getElementById(scanStyleId)) {
   const sheet = document.createElement('style');
   sheet.id = scanStyleId;
   sheet.textContent = `
-    @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
+    /* @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap'); */
 
     @keyframes questScanSpin {
       to { transform: rotate(360deg); }
@@ -452,7 +452,7 @@ if (!document.getElementById(scanStyleId)) {
     }
     .quest-scan-btn:hover::before { left: 100%; }
     .quest-scan-btn:hover {
-      background: linear-gradient(135deg, #FF6080 0%, #FF1744 50%, #E4002B 100%) !important;
+      background: linear-gradient(135deg, #FF6080 0%, #FF1744 50%, #ED1C29 100%) !important;
       box-shadow: 0 0 40px rgba(228,0,43,0.6), 0 10px 30px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.3) !important;
       transform: translateY(-2px);
     }

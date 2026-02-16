@@ -207,10 +207,10 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#fff',
     margin: 0,
     fontSize: 26,
-    fontWeight: 800,
-    fontFamily: "'Rajdhani', sans-serif",
-    letterSpacing: 2,
-    textShadow: '0 0 20px rgba(255, 100, 120, 0.4), 0 2px 10px rgba(0, 0, 0, 0.5)',
+    fontWeight: 900,
+    fontFamily: "'RosticsCeraPro', sans-serif",
+    letterSpacing: 0,
+    textShadow: '0 0 20px rgba(237, 28, 41, 0.4), 0 2px 10px rgba(0, 0, 0, 0.5)',
     textTransform: 'uppercase',
   },
   contentContainer: {
@@ -227,12 +227,12 @@ const styles: Record<string, React.CSSProperties> = {
   contentPanel: {
     width: '100%',
     maxWidth: 500,
-    background: 'linear-gradient(180deg, rgba(12, 18, 32, 0.92) 0%, rgba(18, 28, 48, 0.95) 100%)',
-    borderRadius: '16px 28px 16px 28px',
+    background: 'linear-gradient(180deg, rgba(21, 21, 21, 0.92) 0%, rgba(30, 30, 30, 0.95) 100%)',
+    borderRadius: 20,
     padding: '16px',
     overflowY: 'auto',
     overflowX: 'hidden',
-    border: '1px solid rgba(255, 100, 120, 0.25)',
+    border: '1px solid rgba(237, 28, 41, 0.25)',
     boxShadow: '0 0 50px rgba(0, 0, 0, 0.5), 0 0 80px rgba(228, 0, 43, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
   },
   loading: {
@@ -240,7 +240,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: 40,
     color: 'rgba(255, 255, 255, 0.7)',
     fontSize: 18,
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
   },
   content: {
     display: 'flex',
@@ -252,25 +252,25 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     gap: 16,
-    background: 'linear-gradient(135deg, rgba(25, 35, 55, 0.9) 0%, rgba(35, 50, 75, 0.85) 100%)',
+    background: 'linear-gradient(135deg, rgba(30, 30, 30, 0.9) 0%, rgba(40, 40, 40, 0.85) 100%)',
     backdropFilter: 'blur(15px)',
-    borderRadius: '10px 20px 10px 20px',
+    borderRadius: 16,
     padding: 18,
-    border: '1px solid rgba(255, 100, 120, 0.3)',
+    border: '1px solid rgba(237, 28, 41, 0.3)',
     boxShadow: '0 0 20px rgba(228, 0, 43, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
   },
   avatar: {
     width: 64,
     height: 64,
-    borderRadius: '12px 20px 12px 20px',
-    background: 'linear-gradient(135deg, #FF4D6D 0%, #E4002B 50%, #CC0025 100%)',
+    borderRadius: 16,
+    background: 'linear-gradient(135deg, #FF4D6D 0%, #ED1C29 50%, #D41820 100%)',
     color: '#fff',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     fontSize: 26,
     fontWeight: 'bold',
-    fontFamily: "'Orbitron', sans-serif",
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
     boxShadow: '0 0 25px rgba(228, 0, 43, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
   },
   userInfo: {
@@ -281,18 +281,18 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 700,
     color: '#fff',
     marginBottom: 4,
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     textShadow: '0 0 10px rgba(255, 255, 255, 0.2)',
   },
   email: {
     fontSize: 13,
-    color: 'rgba(255, 180, 200, 0.6)',
+    color: 'rgba(244, 166, 152, 0.6)',
   },
   city: {
     fontSize: 12,
-    color: 'rgba(140, 180, 240, 0.7)',
+    color: 'rgba(244, 166, 152, 0.7)',
     marginTop: 4,
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     fontWeight: 600,
     letterSpacing: 0.5,
   },
@@ -303,41 +303,41 @@ const styles: Record<string, React.CSSProperties> = {
   },
   statCard: {
     position: 'relative',
-    background: 'linear-gradient(160deg, rgba(20, 30, 50, 0.9) 0%, rgba(30, 45, 70, 0.85) 100%)',
+    background: 'linear-gradient(160deg, rgba(21, 21, 21, 0.9) 0%, rgba(40, 40, 40, 0.85) 100%)',
     backdropFilter: 'blur(10px)',
-    borderRadius: '8px 16px 8px 16px',
+    borderRadius: 12,
     padding: 16,
     textAlign: 'center',
-    border: '1px solid rgba(100, 150, 220, 0.2)',
+    border: '1px solid rgba(237, 28, 41, 0.15)',
     boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.05)',
   },
   statValue: {
     fontSize: 28,
-    fontWeight: 800,
+    fontWeight: 900,
     color: '#fff',
     marginBottom: 4,
-    fontFamily: "'Orbitron', sans-serif",
-    textShadow: '0 0 15px rgba(100, 150, 220, 0.4)',
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
+    textShadow: '0 0 15px rgba(237, 28, 41, 0.4)',
   },
   statLabel: {
     fontSize: 10,
-    color: 'rgba(140, 180, 240, 0.7)',
+    color: 'rgba(244, 166, 152, 0.7)',
     textTransform: 'uppercase',
-    letterSpacing: 1.5,
+    letterSpacing: 0,
     fontWeight: 600,
   },
   logoutButton: {
     width: '100%',
     padding: 14,
-    borderRadius: '6px 14px 6px 14px',
+    borderRadius: 10,
     border: '1px solid rgba(255, 255, 255, 0.15)',
     background: 'rgba(255, 255, 255, 0.05)',
     color: 'rgba(255, 255, 255, 0.6)',
     fontSize: 14,
     cursor: 'pointer',
     marginTop: 8,
-    fontFamily: "'Rajdhani', sans-serif",
-    letterSpacing: 1,
+    fontFamily: "'RosticsCeraPro', sans-serif",
+    letterSpacing: 0,
     transition: 'all 0.2s ease',
   },
   notLoggedIn: {
@@ -347,7 +347,7 @@ const styles: Record<string, React.CSSProperties> = {
   notLoggedInIcon: {
     fontSize: 60,
     marginBottom: 16,
-    filter: 'drop-shadow(0 0 20px rgba(100, 150, 220, 0.4))',
+    filter: 'drop-shadow(0 0 20px rgba(237, 28, 41, 0.4))',
   },
   notLoggedInTitle: {
     fontSize: 24,
@@ -355,7 +355,7 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#fff',
     marginBottom: 10,
     marginTop: 0,
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     textShadow: '0 0 15px rgba(255, 255, 255, 0.2)',
   },
   notLoggedInText: {
@@ -367,16 +367,16 @@ const styles: Record<string, React.CSSProperties> = {
   loginButton: {
     padding: '16px 44px',
     border: 'none',
-    borderRadius: '8px 20px 8px 20px',
-    background: 'linear-gradient(135deg, #FF3D5A 0%, #E4002B 40%, #CC0025 100%)',
+    borderRadius: 12,
+    background: 'linear-gradient(135deg, #FF3D5A 0%, #ED1C29 40%, #D41820 100%)',
     color: '#fff',
     fontSize: 15,
     fontWeight: 700,
     cursor: 'pointer',
     boxShadow: '0 0 30px rgba(228, 0, 43, 0.5), 0 6px 20px rgba(0, 0, 0, 0.3)',
     textTransform: 'uppercase',
-    letterSpacing: 2,
-    fontFamily: "'Rajdhani', sans-serif",
+    letterSpacing: 0,
+    fontFamily: "'RosticsCeraPro', sans-serif",
     transition: 'all 0.2s ease',
   },
 };
@@ -384,13 +384,12 @@ const styles: Record<string, React.CSSProperties> = {
 // Add sci-fi button styles
 const profileStyleSheet = document.createElement('style');
 profileStyleSheet.textContent = `
-  @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&display=swap');
+  /* @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&display=swap'); */
 
   .sci-fi-btn {
-    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
   }
   .sci-fi-btn:hover {
-    background: linear-gradient(135deg, #FF1744 0%, #E4002B 100%) !important;
+    background: linear-gradient(135deg, #FF1744 0%, #ED1C29 100%) !important;
     box-shadow: 0 6px 28px rgba(228, 0, 43, 0.6) !important;
     transform: translateY(-2px);
   }

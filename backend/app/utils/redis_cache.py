@@ -135,7 +135,7 @@ def rate_limit(limit: int, window_seconds: int, key_func=None):
             if key_func:
                 key = key_func(request)
             else:
-                ip = request.remote_addr or 'unknown'
+                ip = request.headers.get('X-Real-IP') or request.remote_addr or 'unknown'
                 endpoint = request.endpoint or 'unknown'
                 key = f"{ip}:{endpoint}"
 

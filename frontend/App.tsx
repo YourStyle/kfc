@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { PixiGame } from './game/PixiGame';
-import Overlay from './components/Overlay';
+import Overlay, { FigurineModal } from './components/Overlay';
 import { BottomNav } from './components/BottomNav';
 import { useAuth } from './contexts/AuthContext';
 import { AuthScreen } from './screens/AuthScreen';
@@ -20,7 +20,7 @@ const AppContent: React.FC = () => {
   const [stats, setStats] = useState({
     score: 0,
     moves: 30,
-    collected: { drumstick: 0, wing: 0, burger: 0, fries: 0, bucket: 0, ice_cream: 0, donut: 0, cappuccino: 0 }
+    collected: { drumstick: 0, wing: 0, burger: 0, fries: 0, bucket: 0, ice_cream: 0, donut: 0, cappuccino: 0, belka: 0, strelka: 0, sputnik: 0, vostok: 0, spaceship: 0 }
   });
   const [isGameOver, setIsGameOver] = useState(false);
   const [isAssetsLoading, setIsAssetsLoading] = useState(true);
@@ -34,6 +34,7 @@ const AppContent: React.FC = () => {
   const [levels, setLevels] = useState<Level[]>([]);
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
   const [completionPercent, setCompletionPercent] = useState(0);
+  const [figurineToShow, setFigurineToShow] = useState<string | null>(null);
 
   // Load levels once
   useEffect(() => {
@@ -73,6 +74,15 @@ const AppContent: React.FC = () => {
     setTimeout(() => setBasketShaking(false), 500);
   };
 
+  const handleFigurineAppeared = (type: string) => {
+    const seen = JSON.parse(localStorage.getItem('rostics_seen_figurines') || '[]');
+    if (!seen.includes(type)) {
+      seen.push(type);
+      localStorage.setItem('rostics_seen_figurines', JSON.stringify(seen));
+      setFigurineToShow(type);
+    }
+  };
+
   useEffect(() => {
     if (screen !== 'game' || gameRef.current || !containerRef.current) return;
 
@@ -93,6 +103,7 @@ const AppContent: React.FC = () => {
       (finalStats) => handleGameOver(finalStats),
       () => setIsAssetsLoading(false),
       handleBasketHit,
+      handleFigurineAppeared,
       levelConfig
     );
 
@@ -160,6 +171,7 @@ const AppContent: React.FC = () => {
   const handleGameOver = async (finalStats?: { score: number; moves: number; collected: Record<string, number> }) => {
     const gameStats = finalStats || stats;
     setIsGameOver(true);
+    setFigurineToShow(null); // Dismiss figurine modal if showing
     setStats(gameStats); // Update React state with final stats
 
     // Рассчитываем процент выполнения и статус победы
@@ -357,7 +369,7 @@ const AppContent: React.FC = () => {
   const basePath = import.meta.env.BASE_URL || '/';
 
   return (
-    <div className="relative w-full h-screen flex items-center justify-center overflow-hidden font-['Oswald']" style={{ background: '#0a0f1e' }}>
+    <div className="relative w-full h-screen flex items-center justify-center overflow-hidden font-['RosticsCeraCondensed']" style={{ background: '#0a0f1e' }}>
       {/* Game background with darkening overlay */}
       <div
         className="absolute inset-0 z-0"
@@ -372,27 +384,27 @@ const AppContent: React.FC = () => {
       <div className="absolute inset-0 z-0" style={{ background: 'rgba(0, 0, 0, 0.55)' }} />
       {/* Edge glow - top */}
       <div className="absolute inset-0 z-0" style={{
-        background: 'linear-gradient(to bottom, rgba(100, 180, 255, 0.08) 0%, transparent 25%)',
+        background: 'linear-gradient(to bottom, rgba(237, 28, 41, 0.06) 0%, transparent 25%)',
         pointerEvents: 'none',
       }} />
       {/* Edge glow - bottom */}
       <div className="absolute inset-0 z-0" style={{
-        background: 'linear-gradient(to top, rgba(100, 180, 255, 0.08) 0%, transparent 25%)',
+        background: 'linear-gradient(to top, rgba(237, 28, 41, 0.06) 0%, transparent 25%)',
         pointerEvents: 'none',
       }} />
       {/* Edge glow - left */}
       <div className="absolute inset-0 z-0" style={{
-        background: 'linear-gradient(to right, rgba(100, 180, 255, 0.06) 0%, transparent 20%)',
+        background: 'linear-gradient(to right, rgba(237, 28, 41, 0.04) 0%, transparent 20%)',
         pointerEvents: 'none',
       }} />
       {/* Edge glow - right */}
       <div className="absolute inset-0 z-0" style={{
-        background: 'linear-gradient(to left, rgba(100, 180, 255, 0.06) 0%, transparent 20%)',
+        background: 'linear-gradient(to left, rgba(237, 28, 41, 0.04) 0%, transparent 20%)',
         pointerEvents: 'none',
       }} />
 
       {isAssetsLoading && (
-        <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center p-10 text-center" style={{ background: 'rgba(10, 15, 30, 0.95)' }}>
+        <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center p-10 text-center" style={{ background: 'rgba(21, 21, 21, 0.95)' }}>
           <div className="text-9xl mb-10 animate-bounce">🍗</div>
           <h2 className="text-4xl font-black text-white mb-4 uppercase tracking-tight">
             {currentLevel ? currentLevel.name : 'Подготовка кухни...'}
@@ -420,6 +432,13 @@ const AppContent: React.FC = () => {
           hasNextLevel={hasNextLevel()}
           completionPercent={completionPercent}
         />
+
+        {figurineToShow && (
+          <FigurineModal
+            type={figurineToShow}
+            onDismiss={() => setFigurineToShow(null)}
+          />
+        )}
       </div>
 
       {showAuth && (
@@ -432,7 +451,7 @@ const AppContent: React.FC = () => {
 const loadingStyles: Record<string, React.CSSProperties> = {
   container: {
     minHeight: '100vh',
-    background: 'linear-gradient(180deg, #E4002B 0%, #B8001F 100%)',
+    background: '#FFF5F5',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -442,15 +461,15 @@ const loadingStyles: Record<string, React.CSSProperties> = {
   logo: {
     fontSize: 48,
     fontWeight: 900,
-    color: '#fff',
+    color: '#ED1C29',
     letterSpacing: 4,
-    fontFamily: "'Oswald', sans-serif",
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
   },
   spinner: {
     width: 40,
     height: 40,
-    border: '4px solid rgba(255,255,255,0.3)',
-    borderTopColor: '#fff',
+    border: '4px solid rgba(228,0,43,0.2)',
+    borderTopColor: '#ED1C29',
     borderRadius: '50%',
     animation: 'spin 1s linear infinite',
   },

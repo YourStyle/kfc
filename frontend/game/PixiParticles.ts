@@ -49,7 +49,7 @@ export class ParticleSystem {
         this.emitSteam(x, y);
         break;
       default:
-        this.emitGeneric(x, y, 0xE4002B);
+        this.emitGeneric(x, y, 0xED1C29);
     }
   }
 
@@ -213,7 +213,7 @@ export class ParticleSystem {
         g.lineTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
       }
       g.closePath();
-      g.fill({ color: i % 2 === 0 ? 0xE4002B : 0xFFD700 }); // Красный и золотой
+      g.fill({ color: i % 2 === 0 ? 0xED1C29 : 0xFFD700 }); // Красный и золотой
 
       g.x = x;
       g.y = y;

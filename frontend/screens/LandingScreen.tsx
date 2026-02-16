@@ -146,7 +146,7 @@ export function LandingScreen({ onPlay, onLogin }: LandingScreenProps) {
             opacity: buttonsVisible ? 1 : 0,
           }}
         >
-          <span style={styles.footerText}>© 2025 ROSTIC'S. Все права защищены</span>
+          <span style={styles.footerText}>© 2026 ROSTIC'S. Все права защищены</span>
         </div>
       </div>
     </div>
@@ -197,14 +197,14 @@ const styles: Record<string, React.CSSProperties> = {
   },
   glassCard: {
     position: 'relative',
-    background: 'linear-gradient(165deg, rgba(15, 20, 35, 0.85) 0%, rgba(25, 35, 55, 0.9) 50%, rgba(20, 28, 45, 0.88) 100%)',
+    background: 'linear-gradient(165deg, rgba(21, 21, 21, 0.92) 0%, rgba(30, 30, 30, 0.95) 50%, rgba(21, 21, 21, 0.93) 100%)',
     backdropFilter: 'blur(24px)',
     WebkitBackdropFilter: 'blur(24px)',
-    borderRadius: '20px 36px 20px 36px',
+    borderRadius: 20,
     padding: '40px 36px',
     width: '100%',
     maxWidth: 420,
-    border: '1px solid rgba(255, 100, 120, 0.2)',
+    border: '1px solid rgba(237, 28, 41, 0.25)',
     boxShadow: `
       0 25px 60px rgba(0, 0, 0, 0.5),
       0 0 80px rgba(228, 0, 43, 0.15),
@@ -213,6 +213,7 @@ const styles: Record<string, React.CSSProperties> = {
     `,
     transition: 'all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)',
     textAlign: 'center',
+    overflow: 'hidden',
   },
   // Corner accents
   cornerTL: {
@@ -221,9 +222,9 @@ const styles: Record<string, React.CSSProperties> = {
     left: -1,
     width: 32,
     height: 32,
-    borderTop: '3px solid rgba(255, 120, 140, 0.7)',
-    borderLeft: '3px solid rgba(255, 120, 140, 0.7)',
-    borderTopLeftRadius: 22,
+    borderTop: '3px solid rgba(244, 166, 152, 0.7)',
+    borderLeft: '3px solid rgba(244, 166, 152, 0.7)',
+    borderTopLeftRadius: 20,
     pointerEvents: 'none',
   },
   cornerTR: {
@@ -232,9 +233,9 @@ const styles: Record<string, React.CSSProperties> = {
     right: -1,
     width: 32,
     height: 32,
-    borderTop: '3px solid rgba(255, 120, 140, 0.7)',
-    borderRight: '3px solid rgba(255, 120, 140, 0.7)',
-    borderTopRightRadius: 38,
+    borderTop: '3px solid rgba(244, 166, 152, 0.7)',
+    borderRight: '3px solid rgba(244, 166, 152, 0.7)',
+    borderTopRightRadius: 20,
     pointerEvents: 'none',
   },
   cornerBL: {
@@ -243,9 +244,9 @@ const styles: Record<string, React.CSSProperties> = {
     left: -1,
     width: 32,
     height: 32,
-    borderBottom: '3px solid rgba(255, 120, 140, 0.7)',
-    borderLeft: '3px solid rgba(255, 120, 140, 0.7)',
-    borderBottomLeftRadius: 38,
+    borderBottom: '3px solid rgba(244, 166, 152, 0.7)',
+    borderLeft: '3px solid rgba(244, 166, 152, 0.7)',
+    borderBottomLeftRadius: 20,
     pointerEvents: 'none',
   },
   cornerBR: {
@@ -254,9 +255,9 @@ const styles: Record<string, React.CSSProperties> = {
     right: -1,
     width: 32,
     height: 32,
-    borderBottom: '3px solid rgba(255, 120, 140, 0.7)',
-    borderRight: '3px solid rgba(255, 120, 140, 0.7)',
-    borderBottomRightRadius: 22,
+    borderBottom: '3px solid rgba(244, 166, 152, 0.7)',
+    borderRight: '3px solid rgba(244, 166, 152, 0.7)',
+    borderBottomRightRadius: 20,
     pointerEvents: 'none',
   },
   logoContainer: {
@@ -293,10 +294,10 @@ const styles: Record<string, React.CSSProperties> = {
   dividerLine: {
     width: 50,
     height: 1,
-    background: 'linear-gradient(90deg, transparent, rgba(255, 120, 140, 0.5), transparent)',
+    background: 'linear-gradient(90deg, transparent, rgba(244, 166, 152, 0.5), transparent)',
   },
   dividerIcon: {
-    color: 'rgba(255, 120, 140, 0.7)',
+    color: 'rgba(244, 166, 152, 0.7)',
     fontSize: 10,
     animation: 'starTwinkle 2s ease-in-out infinite',
   },
@@ -307,22 +308,22 @@ const styles: Record<string, React.CSSProperties> = {
   },
   tagline: {
     fontSize: 24,
-    fontWeight: 800,
+    fontWeight: 900,
     color: '#fff',
     margin: '0 0 14px 0',
     textTransform: 'uppercase',
-    letterSpacing: 3,
-    fontFamily: "'Oswald', sans-serif",
+    letterSpacing: 0,
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
     textShadow: '0 0 30px rgba(255, 255, 255, 0.2), 0 2px 10px rgba(0, 0, 0, 0.5)',
     lineHeight: 1.2,
   },
   description: {
     fontSize: 15,
-    color: 'rgba(200, 215, 240, 0.85)',
+    color: 'rgba(244, 166, 152, 0.85)',
     lineHeight: 1.7,
     margin: '0 auto',
     maxWidth: 300,
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     fontWeight: 500,
   },
   features: {
@@ -342,14 +343,14 @@ const styles: Record<string, React.CSSProperties> = {
   featureIcon: {
     width: 64,
     height: 64,
-    background: 'linear-gradient(145deg, rgba(40, 55, 85, 0.8) 0%, rgba(25, 35, 55, 0.9) 100%)',
+    background: 'linear-gradient(145deg, rgba(40, 40, 40, 0.8) 0%, rgba(21, 21, 21, 0.9) 100%)',
     backdropFilter: 'blur(8px)',
     WebkitBackdropFilter: 'blur(8px)',
-    borderRadius: '12px 20px 12px 20px',
+    borderRadius: 16,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    border: '1px solid rgba(255, 120, 140, 0.25)',
+    border: '1px solid rgba(237, 28, 41, 0.25)',
     boxShadow: '0 8px 25px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
     transition: 'all 0.3s ease',
   },
@@ -362,10 +363,10 @@ const styles: Record<string, React.CSSProperties> = {
   featureText: {
     fontSize: 11,
     fontWeight: 700,
-    color: 'rgba(180, 200, 230, 0.8)',
+    color: 'rgba(244, 166, 152, 0.8)',
     textTransform: 'uppercase',
-    letterSpacing: 1.5,
-    fontFamily: "'Rajdhani', sans-serif",
+    letterSpacing: 0,
+    fontFamily: "'RosticsCeraPro', sans-serif",
   },
   actions: {
     width: '100%',
@@ -375,17 +376,17 @@ const styles: Record<string, React.CSSProperties> = {
   primaryButton: {
     width: '100%',
     padding: '18px 28px',
-    background: 'linear-gradient(135deg, #FF4D6D 0%, #E4002B 50%, #B8001F 100%)',
+    background: 'linear-gradient(135deg, #FF4D6D 0%, #ED1C29 50%, #C41420 100%)',
     color: '#fff',
     border: 'none',
-    borderRadius: '10px 24px 10px 24px',
+    borderRadius: 12,
     fontSize: 17,
     fontWeight: 700,
     cursor: 'pointer',
     boxShadow: '0 0 35px rgba(228, 0, 43, 0.5), 0 8px 25px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-    fontFamily: "'Oswald', sans-serif",
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
     textTransform: 'uppercase',
-    letterSpacing: 2,
+    letterSpacing: 0,
     transition: 'all 0.3s ease',
     display: 'flex',
     alignItems: 'center',
@@ -405,15 +406,15 @@ const styles: Record<string, React.CSSProperties> = {
   footerText: {
     fontSize: 11,
     color: 'rgba(255, 255, 255, 0.4)',
-    letterSpacing: 1,
-    fontFamily: "'Rajdhani', sans-serif",
+    letterSpacing: 0,
+    fontFamily: "'RosticsCeraPro', sans-serif",
   },
 };
 
 // Add keyframes and hover effects
 const styleSheet = document.createElement('style');
 styleSheet.textContent = `
-  @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Rajdhani:wght@400;500;600;700&display=swap');
+  /* @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Rajdhani:wght@400;500;600;700&display=swap'); */
 
   @keyframes logoGlowPulse {
     0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
@@ -463,7 +464,7 @@ styleSheet.textContent = `
   /* Feature hover */
   .feature-item:hover > div:first-child {
     transform: translateY(-4px) scale(1.05);
-    border-color: rgba(255, 120, 140, 0.5);
+    border-color: rgba(237, 28, 41, 0.4);
     box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4), 0 0 25px rgba(228, 0, 43, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.12);
   }
 
@@ -486,7 +487,7 @@ styleSheet.textContent = `
     left: 100%;
   }
   .cta-button:hover {
-    background: linear-gradient(135deg, #FF6080 0%, #FF1744 50%, #E4002B 100%) !important;
+    background: linear-gradient(135deg, #FF6080 0%, #FF1744 50%, #ED1C29 100%) !important;
     box-shadow: 0 0 50px rgba(228, 0, 43, 0.7), 0 10px 35px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
     transform: translateY(-3px);
   }
@@ -510,7 +511,7 @@ styleSheet.textContent = `
     }
     .landing-card {
       padding: 32px 24px !important;
-      border-radius: 16px 28px 16px 28px !important;
+      border-radius: 16px !important;
     }
   }
 `;

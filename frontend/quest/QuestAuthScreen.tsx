@@ -208,7 +208,7 @@ export function QuestAuthScreen() {
     setIsLoading(false);
 
     if (result.success) {
-      navigate('/kfc-quest/play');
+      navigate('/spacequest/play');
     } else {
       setError(result.error || 'Login failed');
     }
@@ -250,7 +250,7 @@ export function QuestAuthScreen() {
     setIsLoading(false);
 
     if (result.success) {
-      navigate('/kfc-quest/play');
+      navigate('/spacequest/play');
     } else {
       setError(result.error || 'Verification failed');
     }
@@ -522,7 +522,7 @@ const styles: Record<string, React.CSSProperties> = {
     zIndex: 0,
   },
   modal: {
-    background: 'linear-gradient(165deg, rgba(12, 18, 32, 0.95) 0%, rgba(15, 20, 35, 0.98) 100%)',
+    background: 'linear-gradient(165deg, rgba(21, 21, 21, 0.95) 0%, rgba(30, 30, 30, 0.98) 100%)',
     backdropFilter: 'blur(24px)',
     WebkitBackdropFilter: 'blur(24px)',
     borderRadius: '20px 36px 20px 36px',
@@ -577,7 +577,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   logo: {
     textAlign: 'center',
-    background: 'linear-gradient(135deg, #FF4D6D 0%, #E4002B 50%, #B8001F 100%)',
+    background: 'linear-gradient(135deg, #FF4D6D 0%, #ED1C29 50%, #C41420 100%)',
     color: '#fff',
     padding: '16px 32px',
     borderRadius: '10px 24px 10px 24px',
@@ -585,7 +585,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 20,
     marginBottom: 28,
     letterSpacing: 2.5,
-    fontFamily: "'Oswald', sans-serif",
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
     textTransform: 'uppercase',
     boxShadow: '0 0 30px rgba(228, 0, 43, 0.6), inset 0 2px 0 rgba(255, 255, 255, 0.25)',
   },
@@ -600,29 +600,29 @@ const styles: Record<string, React.CSSProperties> = {
     margin: 0,
     fontSize: 28,
     fontWeight: 700,
-    fontFamily: "'Oswald', sans-serif",
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
     letterSpacing: 1.5,
     textTransform: 'uppercase',
     textShadow: '0 0 20px rgba(255, 255, 255, 0.2), 0 2px 4px rgba(0, 0, 0, 0.5)',
   },
   description: {
     textAlign: 'center',
-    color: 'rgba(140, 180, 240, 0.75)',
+    color: 'rgba(244, 166, 152, 0.75)',
     fontSize: 15,
     margin: 0,
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     lineHeight: 1.5,
   },
   input: {
     padding: 16,
     borderRadius: '8px 14px 8px 14px',
-    border: '1px solid rgba(100, 150, 220, 0.25)',
-    background: 'linear-gradient(160deg, rgba(20, 30, 50, 0.8) 0%, rgba(30, 45, 70, 0.6) 100%)',
+    border: '1px solid rgba(237, 28, 41, 0.2)',
+    background: 'linear-gradient(160deg, rgba(21, 21, 21, 0.8) 0%, rgba(40, 40, 40, 0.6) 100%)',
     fontSize: 16,
     fontWeight: 600,
     outline: 'none',
     color: '#fff',
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     transition: 'border-color 0.2s, box-shadow 0.2s, background 0.2s',
     width: '100%',
     boxSizing: 'border-box',
@@ -636,15 +636,15 @@ const styles: Record<string, React.CSSProperties> = {
     padding: 16,
     paddingRight: 52,
     borderRadius: '8px 14px 8px 14px',
-    border: '1px solid rgba(100, 150, 220, 0.25)',
-    background: 'linear-gradient(160deg, rgba(20, 30, 50, 0.8) 0%, rgba(30, 45, 70, 0.6) 100%)',
+    border: '1px solid rgba(237, 28, 41, 0.2)',
+    background: 'linear-gradient(160deg, rgba(21, 21, 21, 0.8) 0%, rgba(40, 40, 40, 0.6) 100%)',
     fontSize: 16,
     fontWeight: 600,
     outline: 'none',
     color: '#fff',
     width: '100%',
     boxSizing: 'border-box',
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     transition: 'border-color 0.2s, box-shadow 0.2s',
   },
   eyeButton: {
@@ -657,7 +657,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    color: 'rgba(140, 180, 240, 0.6)',
+    color: 'rgba(244, 166, 152, 0.6)',
     transition: 'color 0.2s',
   },
   codeInput: {
@@ -671,7 +671,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 'bold',
     outline: 'none',
     color: '#fff',
-    fontFamily: "'Orbitron', sans-serif",
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
     boxShadow: '0 0 25px rgba(228, 0, 43, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
     transition: 'border-color 0.2s, box-shadow 0.2s',
   },
@@ -679,7 +679,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: 18,
     border: 'none',
     borderRadius: '10px 24px 10px 24px',
-    background: 'linear-gradient(135deg, #FF4D6D 0%, #E4002B 50%, #B8001F 100%)',
+    background: 'linear-gradient(135deg, #FF4D6D 0%, #ED1C29 50%, #C41420 100%)',
     color: '#fff',
     fontSize: 17,
     fontWeight: 700,
@@ -688,7 +688,7 @@ const styles: Record<string, React.CSSProperties> = {
     textTransform: 'uppercase',
     letterSpacing: 2,
     marginTop: 10,
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     transition: 'all 0.25s ease',
   },
   error: {
@@ -699,19 +699,19 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: '8px 14px 8px 14px',
     fontSize: 14,
     textAlign: 'center',
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     fontWeight: 600,
   },
   switchText: {
     textAlign: 'center',
-    color: 'rgba(140, 180, 240, 0.65)',
+    color: 'rgba(244, 166, 152, 0.65)',
     fontSize: 15,
     margin: 0,
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     fontWeight: 500,
   },
   link: {
-    color: '#FF6B8A',
+    color: '#F4A698',
     cursor: 'pointer',
     fontWeight: 'bold',
     textShadow: '0 0 12px rgba(255, 100, 120, 0.4)',
@@ -725,10 +725,10 @@ const styles: Record<string, React.CSSProperties> = {
     top: '100%',
     left: 0,
     right: 0,
-    background: 'linear-gradient(180deg, rgba(15, 22, 40, 0.98) 0%, rgba(20, 30, 50, 0.98) 100%)',
+    background: 'linear-gradient(180deg, rgba(21, 21, 21, 0.98) 0%, rgba(30, 30, 30, 0.98) 100%)',
     backdropFilter: 'blur(16px)',
     WebkitBackdropFilter: 'blur(16px)',
-    border: '1px solid rgba(100, 150, 220, 0.3)',
+    border: '1px solid rgba(237, 28, 41, 0.25)',
     borderTop: 'none',
     borderRadius: '0 0 8px 14px',
     maxHeight: 260,
@@ -742,17 +742,17 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     color: '#fff',
     fontSize: 15,
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     fontWeight: 500,
     transition: 'background 0.15s, color 0.15s',
-    borderBottom: '1px solid rgba(100, 150, 220, 0.1)',
+    borderBottom: '1px solid rgba(237, 28, 41, 0.1)',
   },
   cityNoResults: {
     padding: '18px',
     textAlign: 'center',
     color: 'rgba(255, 100, 100, 0.75)',
     fontSize: 14,
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     fontWeight: 600,
   },
   checkboxLabel: {
@@ -779,8 +779,8 @@ const styles: Record<string, React.CSSProperties> = {
     boxShadow: '0 0 12px rgba(228, 0, 43, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
   },
   checkboxCustomChecked: {
-    background: 'linear-gradient(135deg, #FF4D6D 0%, #E4002B 50%, #B8001F 100%)',
-    border: '2px solid #FF6B8A',
+    background: 'linear-gradient(135deg, #FF4D6D 0%, #ED1C29 50%, #C41420 100%)',
+    border: '2px solid #F4A698',
     boxShadow: '0 0 25px rgba(228, 0, 43, 0.6), inset 0 2px 0 rgba(255, 255, 255, 0.25)',
   },
   checkboxIcon: {
@@ -793,11 +793,11 @@ const styles: Record<string, React.CSSProperties> = {
     color: 'rgba(200, 220, 255, 0.85)',
     fontSize: 13,
     lineHeight: 1.5,
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     fontWeight: 500,
   },
   privacyLink: {
-    color: '#FF6B8A',
+    color: '#F4A698',
     textDecoration: 'underline',
     transition: 'color 0.2s',
   },
@@ -807,7 +807,7 @@ const styles: Record<string, React.CSSProperties> = {
     left: 0,
     right: 0,
     textAlign: 'center',
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     fontSize: 11,
     color: 'rgba(255, 255, 255, 0.4)',
     letterSpacing: 1,
@@ -818,7 +818,7 @@ const styles: Record<string, React.CSSProperties> = {
 // Add game-style animations and effects
 const questAuthStyleSheet = document.createElement('style');
 questAuthStyleSheet.textContent = `
-  @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Orbitron:wght@400;500;600;700;800&family=Rajdhani:wght@400;500;600;700&display=swap');
+  /* @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Orbitron:wght@400;500;600;700;800&family=Rajdhani:wght@400;500;600;700&display=swap'); */
 
   /* ===== ENTRANCE ANIMATIONS ===== */
 
@@ -979,7 +979,7 @@ questAuthStyleSheet.textContent = `
     left: 100%;
   }
   .quest-sci-fi-btn:hover {
-    background: linear-gradient(135deg, #FF6080 0%, #FF1744 50%, #E4002B 100%) !important;
+    background: linear-gradient(135deg, #FF6080 0%, #FF1744 50%, #ED1C29 100%) !important;
     box-shadow: 0 0 40px rgba(228, 0, 43, 0.8), inset 0 2px 0 rgba(255, 255, 255, 0.3) !important;
     transform: translateY(-2px);
   }
@@ -1006,7 +1006,7 @@ questAuthStyleSheet.textContent = `
   /* City dropdown styles */
   .quest-city-dropdown {
     scrollbar-width: thin;
-    scrollbar-color: rgba(100, 150, 220, 0.35) transparent;
+    scrollbar-color: rgba(237, 28, 41, 0.25) transparent;
   }
   .quest-city-dropdown::-webkit-scrollbar {
     width: 7px;
@@ -1015,11 +1015,11 @@ questAuthStyleSheet.textContent = `
     background: transparent;
   }
   .quest-city-dropdown::-webkit-scrollbar-thumb {
-    background: rgba(100, 150, 220, 0.35);
+    background: rgba(237, 28, 41, 0.25);
     border-radius: 4px;
   }
   .quest-city-dropdown::-webkit-scrollbar-thumb:hover {
-    background: rgba(100, 150, 220, 0.5);
+    background: rgba(237, 28, 41, 0.35);
   }
   .quest-city-option:hover {
     background: rgba(228, 0, 43, 0.2) !important;
@@ -1121,8 +1121,8 @@ export default QuestAuthScreen;
  * - Efficient event handlers with proper cleanup
  *
  * DESIGN SYSTEM COMPLIANCE:
- * - Colors: Primary red #E4002B, gradient #FF4D6D→#E4002B→#B8001F
- * - Fonts: Oswald (titles), Rajdhani (body), Orbitron (code input)
+ * - Colors: Primary red #ED1C29, gradient #FF4D6D→#ED1C29→#C41420
+ * - Fonts: RosticsCeraCondensed (titles), RosticsCeraPro (body), RosticsCeraCondensed (code input)
  * - Border-radius: Asymmetric 8px/14px (inputs), 10px/24px (buttons), 20px/36px (modal)
  * - Glassmorphism: backdrop-filter blur(24px) with gradient backgrounds
  * - Corner accents: 3px solid rgba(255,120,140,0.7)
