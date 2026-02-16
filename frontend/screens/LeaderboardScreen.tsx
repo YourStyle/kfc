@@ -333,10 +333,10 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#fff',
     margin: 0,
     fontSize: 26,
-    fontWeight: 800,
-    fontFamily: "'Rajdhani', sans-serif",
-    letterSpacing: 2,
-    textShadow: '0 0 20px rgba(255, 100, 120, 0.4), 0 2px 10px rgba(0, 0, 0, 0.5)',
+    fontWeight: 900,
+    fontFamily: "'RosticsCeraPro', sans-serif",
+    letterSpacing: 0,
+    textShadow: '0 0 20px rgba(237, 28, 41, 0.4), 0 2px 10px rgba(0, 0, 0, 0.5)',
     textTransform: 'uppercase',
   },
   contentContainer: {
@@ -353,12 +353,12 @@ const styles: Record<string, React.CSSProperties> = {
   contentPanel: {
     width: '100%',
     maxWidth: 500,
-    background: 'linear-gradient(180deg, rgba(12, 18, 32, 0.92) 0%, rgba(18, 28, 48, 0.95) 100%)',
-    borderRadius: '16px 28px 16px 28px',
+    background: 'linear-gradient(180deg, rgba(21, 21, 21, 0.92) 0%, rgba(30, 30, 30, 0.95) 100%)',
+    borderRadius: 20,
     padding: '16px',
     overflowY: 'auto',
     overflowX: 'hidden',
-    border: '1px solid rgba(255, 100, 120, 0.25)',
+    border: '1px solid rgba(237, 28, 41, 0.25)',
     boxShadow: '0 0 50px rgba(0, 0, 0, 0.5), 0 0 80px rgba(228, 0, 43, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
   },
   tabs: {
@@ -370,19 +370,19 @@ const styles: Record<string, React.CSSProperties> = {
     flex: 1,
     padding: '12px 20px',
     border: 'none',
-    background: 'linear-gradient(160deg, rgba(25, 35, 55, 0.9) 0%, rgba(35, 50, 75, 0.8) 100%)',
+    background: 'linear-gradient(160deg, rgba(30, 30, 30, 0.9) 0%, rgba(40, 40, 40, 0.8) 100%)',
     backdropFilter: 'blur(10px)',
     color: 'rgba(255, 255, 255, 0.6)',
     fontWeight: 700,
     cursor: 'pointer',
     fontSize: 14,
     transition: 'all 0.25s ease',
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     letterSpacing: 0.5,
-    borderRadius: '6px 12px 6px 12px',
+    borderRadius: 10,
   },
   tabActive: {
-    background: 'linear-gradient(135deg, #FF4D6D 0%, #E4002B 50%, #CC0025 100%)',
+    background: 'linear-gradient(135deg, #FF4D6D 0%, #ED1C29 50%, #D41820 100%)',
     color: '#fff',
     boxShadow: '0 0 25px rgba(228, 0, 43, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
   },
@@ -394,26 +394,26 @@ const styles: Record<string, React.CSSProperties> = {
   regionTab: {
     flex: 1,
     padding: '8px 12px',
-    border: '1px solid rgba(100, 150, 220, 0.2)',
-    background: 'rgba(20, 30, 50, 0.6)',
+    border: '1px solid rgba(237, 28, 41, 0.15)',
+    background: 'rgba(21, 21, 21, 0.6)',
     color: 'rgba(255, 255, 255, 0.5)',
     fontWeight: 600,
     cursor: 'pointer',
     fontSize: 11,
     transition: 'all 0.2s ease',
-    fontFamily: "'Rajdhani', sans-serif",
-    borderRadius: '4px 8px 4px 8px',
+    fontFamily: "'RosticsCeraPro', sans-serif",
+    borderRadius: 8,
   },
   regionTabActive: {
-    background: 'rgba(100, 150, 220, 0.25)',
+    background: 'rgba(237, 28, 41, 0.2)',
     color: '#fff',
-    borderColor: 'rgba(100, 150, 220, 0.5)',
+    borderColor: 'rgba(237, 28, 41, 0.5)',
   },
   loading: {
     textAlign: 'center',
     padding: 60,
     color: 'rgba(255, 255, 255, 0.7)',
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     fontSize: 18,
   },
   spinner: {
@@ -429,7 +429,7 @@ const styles: Record<string, React.CSSProperties> = {
     textAlign: 'center',
     padding: 60,
     color: 'rgba(255, 255, 255, 0.7)',
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
   },
   emptyIcon: {
     fontSize: 60,
@@ -447,10 +447,10 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'flex-end',
     gap: 8,
     paddingTop: 10,
-    background: 'linear-gradient(180deg, rgba(20, 30, 50, 0.6) 0%, rgba(25, 40, 65, 0.4) 100%)',
-    borderRadius: '12px 20px 12px 20px',
+    background: 'linear-gradient(180deg, rgba(21, 21, 21, 0.6) 0%, rgba(30, 30, 30, 0.4) 100%)',
+    borderRadius: 16,
     padding: '16px 12px 0',
-    border: '1px solid rgba(100, 150, 220, 0.15)',
+    border: '1px solid rgba(237, 28, 41, 0.15)',
   },
   podiumItem: {
     display: 'flex',
@@ -476,7 +476,7 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'center',
     fontSize: 22,
     fontWeight: 'bold',
-    fontFamily: "'Orbitron', sans-serif",
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
     border: '2px solid rgba(255, 255, 255, 0.3)',
     boxShadow: '0 0 25px rgba(255, 215, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
   },
@@ -491,7 +491,7 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'center',
     fontSize: 18,
     fontWeight: 'bold',
-    fontFamily: "'Orbitron', sans-serif",
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
     border: '2px solid rgba(255, 255, 255, 0.2)',
     boxShadow: '0 0 15px rgba(192, 192, 192, 0.4)',
   },
@@ -506,7 +506,7 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'center',
     fontSize: 18,
     fontWeight: 'bold',
-    fontFamily: "'Orbitron', sans-serif",
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
     border: '2px solid rgba(255, 255, 255, 0.2)',
     boxShadow: '0 0 15px rgba(205, 127, 50, 0.4)',
   },
@@ -520,14 +520,14 @@ const styles: Record<string, React.CSSProperties> = {
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     textShadow: '0 0 10px rgba(255, 255, 255, 0.2)',
   },
   podiumScore: {
-    color: 'rgba(140, 180, 240, 0.8)',
+    color: 'rgba(244, 166, 152, 0.8)',
     fontSize: 11,
     marginTop: 2,
-    fontFamily: "'Orbitron', sans-serif",
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
   },
   podiumStand: {
     width: '100%',
@@ -568,18 +568,18 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 16,
     fontWeight: 'bold',
     marginTop: 2,
-    fontFamily: "'Orbitron', sans-serif",
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
   },
   myRankCard: {
     position: 'relative',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    background: 'linear-gradient(135deg, rgba(25, 35, 55, 0.9) 0%, rgba(35, 50, 75, 0.85) 100%)',
+    background: 'linear-gradient(135deg, rgba(30, 30, 30, 0.9) 0%, rgba(40, 40, 40, 0.85) 100%)',
     backdropFilter: 'blur(15px)',
-    borderRadius: '10px 20px 10px 20px',
+    borderRadius: 16,
     padding: 16,
-    border: '1px solid rgba(255, 100, 120, 0.3)',
+    border: '1px solid rgba(237, 28, 41, 0.3)',
     boxShadow: '0 0 25px rgba(228, 0, 43, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
   },
   myRankLeft: {
@@ -591,19 +591,19 @@ const styles: Record<string, React.CSSProperties> = {
     width: 45,
     height: 45,
     borderRadius: '10px 16px 10px 16px',
-    background: 'linear-gradient(135deg, #FF4D6D 0%, #E4002B 50%, #CC0025 100%)',
+    background: 'linear-gradient(135deg, #FF4D6D 0%, #ED1C29 50%, #D41820 100%)',
     color: '#fff',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     fontSize: 18,
     fontWeight: 'bold',
-    fontFamily: "'Orbitron', sans-serif",
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
     boxShadow: '0 0 20px rgba(228, 0, 43, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
   },
   myRankLabel: {
     fontSize: 10,
-    color: 'rgba(140, 180, 240, 0.7)',
+    color: 'rgba(244, 166, 152, 0.7)',
     marginBottom: 2,
     textTransform: 'uppercase',
     letterSpacing: 1,
@@ -613,20 +613,20 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 22,
     fontWeight: 800,
     color: '#fff',
-    fontFamily: "'Orbitron', sans-serif",
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
     textShadow: '0 0 15px rgba(255, 100, 120, 0.4)',
   },
   myRankOf: {
     fontSize: 14,
     fontWeight: 'normal',
-    color: 'rgba(140, 180, 240, 0.6)',
-    fontFamily: "'Rajdhani', sans-serif",
+    color: 'rgba(244, 166, 152, 0.6)',
+    fontFamily: "'RosticsCeraPro', sans-serif",
   },
   myRankCity: {
     fontSize: 11,
-    color: 'rgba(140, 180, 240, 0.5)',
+    color: 'rgba(244, 166, 152, 0.5)',
     marginTop: 2,
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
   },
   myRankScore: {
     textAlign: 'right',
@@ -635,12 +635,12 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 24,
     fontWeight: 800,
     color: '#fff',
-    fontFamily: "'Orbitron', sans-serif",
-    textShadow: '0 0 15px rgba(100, 150, 220, 0.4)',
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
+    textShadow: '0 0 15px rgba(237, 28, 41, 0.4)',
   },
   myRankScoreLabel: {
     fontSize: 10,
-    color: 'rgba(140, 180, 240, 0.6)',
+    color: 'rgba(244, 166, 152, 0.6)',
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
@@ -654,10 +654,10 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     gap: 12,
     padding: 12,
-    background: 'linear-gradient(160deg, rgba(20, 30, 50, 0.8) 0%, rgba(30, 45, 70, 0.7) 100%)',
+    background: 'linear-gradient(160deg, rgba(21, 21, 21, 0.8) 0%, rgba(40, 40, 40, 0.7) 100%)',
     backdropFilter: 'blur(10px)',
-    borderRadius: '8px 14px 8px 14px',
-    border: '1px solid rgba(100, 150, 220, 0.15)',
+    borderRadius: 12,
+    border: '1px solid rgba(237, 28, 41, 0.12)',
     transition: 'all 0.2s ease',
   },
   entryHighlight: {
@@ -669,23 +669,23 @@ const styles: Record<string, React.CSSProperties> = {
     width: 28,
     fontSize: 14,
     fontWeight: 'bold',
-    color: 'rgba(140, 180, 240, 0.7)',
+    color: 'rgba(244, 166, 152, 0.7)',
     textAlign: 'center',
-    fontFamily: "'Orbitron', sans-serif",
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
   },
   entryAvatar: {
     width: 38,
     height: 38,
-    borderRadius: '8px 14px 8px 14px',
-    background: 'linear-gradient(135deg, rgba(60, 80, 120, 0.6) 0%, rgba(40, 60, 100, 0.8) 100%)',
+    borderRadius: 12,
+    background: 'linear-gradient(135deg, rgba(60, 60, 60, 0.6) 0%, rgba(40, 40, 40, 0.8) 100%)',
     color: 'rgba(200, 220, 255, 0.9)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     fontSize: 14,
     fontWeight: 'bold',
-    fontFamily: "'Orbitron', sans-serif",
-    border: '1px solid rgba(100, 150, 220, 0.2)',
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
+    border: '1px solid rgba(237, 28, 41, 0.15)',
   },
   info: {
     flex: 1,
@@ -698,11 +698,11 @@ const styles: Record<string, React.CSSProperties> = {
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
   },
   stats: {
     fontSize: 10,
-    color: 'rgba(140, 180, 240, 0.6)',
+    color: 'rgba(244, 166, 152, 0.6)',
     marginTop: 2,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -711,15 +711,15 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 16,
     fontWeight: 800,
     color: '#fff',
-    fontFamily: "'Orbitron', sans-serif",
-    textShadow: '0 0 10px rgba(100, 150, 220, 0.3)',
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
+    textShadow: '0 0 10px rgba(237, 28, 41, 0.3)',
   },
 };
 
 // Add animations and styles
 const styleSheet = document.createElement('style');
 styleSheet.textContent = `
-  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800&family=Rajdhani:wght@400;500;600;700&display=swap');
+  /* @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800&family=Rajdhani:wght@400;500;600;700&display=swap'); */
 
   @keyframes spin {
     0% { transform: rotate(0deg); }
@@ -733,12 +733,11 @@ styleSheet.textContent = `
 
   /* Tab styles - sci-fi shape */
   .lb-tab {
-    clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
   }
   .lb-tab:hover:not(.lb-tab-active) {
-    background: linear-gradient(160deg, rgba(40, 55, 85, 0.9) 0%, rgba(50, 70, 100, 0.8) 100%) !important;
+    background: linear-gradient(160deg, rgba(40, 40, 40, 0.9) 0%, rgba(50, 50, 50, 0.8) 100%) !important;
     color: rgba(255, 255, 255, 0.85);
-    box-shadow: 0 0 15px rgba(100, 150, 220, 0.2);
+    box-shadow: 0 0 15px rgba(237, 28, 41, 0.15);
   }
   .lb-tab-active {
     animation: tabPulse 2s ease-in-out infinite;
@@ -750,7 +749,7 @@ styleSheet.textContent = `
 
   /* Region tab styles */
   .region-tab:hover:not(.region-tab-active) {
-    background: rgba(60, 80, 120, 0.4) !important;
+    background: rgba(60, 60, 60, 0.4) !important;
     color: rgba(255, 255, 255, 0.8);
   }
 

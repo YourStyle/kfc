@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import html2canvas from 'html2canvas';
-import { TUTORIAL_STEPS, GAME_URL } from '../constants';
+import { TUTORIAL_STEPS, GAME_URL, FIGURINE_INFO } from '../constants';
 
 interface LevelTargets {
   collect?: Record<string, number>;
@@ -34,6 +34,11 @@ const ITEM_NAMES: Record<string, string> = {
   ice_cream: 'Мороженое',
   donut: 'Донаты',
   cappuccino: 'Капучино',
+  belka: 'Белка',
+  strelka: 'Стрелка',
+  sputnik: 'Спутник',
+  vostok: 'Восток',
+  spaceship: 'Ракета',
 };
 
 const TUTORIAL_COMPLETED_KEY = 'rostics_tutorial_completed';
@@ -329,7 +334,7 @@ const Overlay: React.FC<OverlayProps> = ({ score, moves, collected, isGameOver, 
                   cy="60"
                   r="52"
                   fill="none"
-                  stroke={earnedStars > 0 ? '#22c55e' : '#E4002B'}
+                  stroke={earnedStars > 0 ? '#ED1C29' : '#F4A698'}
                   strokeWidth="8"
                   strokeLinecap="round"
                   strokeDasharray={`${completionPercent * 3.27} 327`}
@@ -447,7 +452,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: 24,
   },
   tutorialModal: {
-    background: 'linear-gradient(180deg, rgba(20, 30, 50, 0.95) 0%, rgba(15, 25, 45, 0.98) 100%)',
+    background: 'linear-gradient(180deg, rgba(21, 21, 21, 0.95) 0%, rgba(30, 30, 30, 0.98) 100%)',
     border: '2px solid rgba(228, 0, 43, 0.5)',
     borderRadius: 32,
     padding: 32,
@@ -501,7 +506,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   paginationDotActive: {
     width: 48,
-    backgroundColor: '#E4002B',
+    backgroundColor: '#ED1C29',
     boxShadow: '0 0 10px rgba(228, 0, 43, 0.5)',
   },
   tutorialButtons: {
@@ -520,7 +525,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   tutorialNextButton: {
     flex: 1,
-    background: 'linear-gradient(135deg, #FF5555 0%, #E4002B 50%, #B8001F 100%)',
+    background: 'linear-gradient(135deg, #FF5555 0%, #ED1C29 50%, #C41420 100%)',
     border: 'none',
     color: '#fff',
     fontWeight: 800,
@@ -545,7 +550,7 @@ const styles: Record<string, React.CSSProperties> = {
     pointerEvents: 'auto',
     width: 40,
     height: 40,
-    background: 'rgba(30, 40, 60, 0.8)',
+    background: 'rgba(21, 21, 21, 0.8)',
     backdropFilter: 'blur(10px)',
     WebkitBackdropFilter: 'blur(10px)',
     borderRadius: 20,
@@ -560,7 +565,7 @@ const styles: Record<string, React.CSSProperties> = {
     boxShadow: '0 4px 15px rgba(0, 0, 0, 0.3)',
   },
   levelBadge: {
-    background: 'linear-gradient(135deg, #FF5555 0%, #E4002B 100%)',
+    background: 'linear-gradient(135deg, #FF5555 0%, #ED1C29 100%)',
     padding: '10px 24px',
     borderRadius: 20,
     color: '#fff',
@@ -583,7 +588,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   statCard: {
     flex: 1,
-    background: 'rgba(30, 40, 60, 0.8)',
+    background: 'rgba(21, 21, 21, 0.8)',
     backdropFilter: 'blur(15px)',
     WebkitBackdropFilter: 'blur(15px)',
     borderRadius: 16,
@@ -654,10 +659,10 @@ const styles: Record<string, React.CSSProperties> = {
   },
   statValueHighlight: {
     transform: 'scale(1.25)',
-    color: '#ff6b6b',
+    color: '#ED1C29',
   },
   statValueWarning: {
-    color: '#ff6b6b',
+    color: '#ED1C29',
     animation: 'movesWarning 0.8s ease-in-out infinite',
   },
 
@@ -666,7 +671,7 @@ const styles: Record<string, React.CSSProperties> = {
     width: '100%',
     maxWidth: 400,
     marginTop: 4,
-    background: 'rgba(30, 40, 60, 0.7)',
+    background: 'rgba(21, 21, 21, 0.7)',
     backdropFilter: 'blur(10px)',
     WebkitBackdropFilter: 'blur(10px)',
     borderRadius: 12,
@@ -689,10 +694,10 @@ const styles: Record<string, React.CSSProperties> = {
     border: '1px solid rgba(255, 255, 255, 0.1)',
   },
   targetPillCompleted: {
-    background: 'rgba(34, 197, 94, 0.2)',
-    color: '#4ade80',
-    border: '1px solid rgba(34, 197, 94, 0.3)',
-    boxShadow: '0 0 10px rgba(34, 197, 94, 0.2)',
+    background: 'rgba(237, 28, 41, 0.15)',
+    color: '#F4A698',
+    border: '1px solid rgba(237, 28, 41, 0.3)',
+    boxShadow: '0 0 10px rgba(237, 28, 41, 0.15)',
   },
 
   // Game Over
@@ -713,7 +718,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: 24,
   },
   gameOverModal: {
-    background: 'linear-gradient(180deg, rgba(20, 30, 50, 0.95) 0%, rgba(15, 25, 45, 0.98) 100%)',
+    background: 'linear-gradient(180deg, rgba(21, 21, 21, 0.95) 0%, rgba(30, 30, 30, 0.98) 100%)',
     border: '2px solid rgba(228, 0, 43, 0.5)',
     borderRadius: 32,
     padding: 32,
@@ -826,19 +831,19 @@ const styles: Record<string, React.CSSProperties> = {
   resultLabelHighlight: {
     fontSize: 10,
     textTransform: 'uppercase',
-    color: '#ff6b6b',
+    color: '#ED1C29',
     fontWeight: 800,
     lineHeight: 1,
   },
   resultValueHighlight: {
     fontSize: 24,
     fontWeight: 800,
-    color: '#ff6b6b',
+    color: '#ED1C29',
     lineHeight: 1,
     marginTop: 4,
   },
   levelTag: {
-    background: 'linear-gradient(135deg, #FF5555 0%, #E4002B 100%)',
+    background: 'linear-gradient(135deg, #FF5555 0%, #ED1C29 100%)',
     color: '#fff',
     fontSize: 11,
     fontWeight: 700,
@@ -867,7 +872,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   nextLevelButton: {
     flex: 1,
-    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+    background: 'linear-gradient(135deg, #ED1C29 0%, #C41420 100%)',
     border: 'none',
     color: '#fff',
     fontWeight: 800,
@@ -876,7 +881,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 16,
     cursor: 'pointer',
     textTransform: 'uppercase',
-    boxShadow: '0 0 20px rgba(34, 197, 94, 0.3), 0 4px 15px rgba(0, 0, 0, 0.3)',
+    boxShadow: '0 0 20px rgba(237, 28, 41, 0.3), 0 4px 15px rgba(0, 0, 0, 0.3)',
   },
   menuButton: {
     flex: 1,
@@ -894,7 +899,7 @@ const styles: Record<string, React.CSSProperties> = {
     flex: 1,
     background: 'rgba(255, 255, 255, 0.1)',
     border: '2px solid rgba(228, 0, 43, 0.5)',
-    color: '#ff6b6b',
+    color: '#ED1C29',
     fontWeight: 800,
     padding: '14px 20px',
     borderRadius: 16,
@@ -904,7 +909,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   retryButton: {
     flex: 1,
-    background: 'linear-gradient(135deg, #FF5555 0%, #E4002B 50%, #B8001F 100%)',
+    background: 'linear-gradient(135deg, #FF5555 0%, #ED1C29 50%, #C41420 100%)',
     border: 'none',
     color: '#fff',
     fontWeight: 800,
@@ -925,13 +930,13 @@ const styles: Record<string, React.CSSProperties> = {
     paddingBottom: 8,
   },
   taglineText: {
-    background: 'rgba(30, 40, 60, 0.8)',
+    background: 'rgba(21, 21, 21, 0.8)',
     backdropFilter: 'blur(10px)',
     WebkitBackdropFilter: 'blur(10px)',
     padding: '6px 20px',
     borderRadius: 20,
     border: '1px solid rgba(228, 0, 43, 0.3)',
-    color: '#ff6b6b',
+    color: '#ED1C29',
     fontWeight: 800,
     fontSize: 10,
     letterSpacing: 1,
@@ -979,6 +984,245 @@ overlayStyleSheet.textContent = `
 if (!document.getElementById('overlay-styles')) {
   overlayStyleSheet.id = 'overlay-styles';
   document.head.appendChild(overlayStyleSheet);
+}
+
+// Fullscreen modal for figurine first appearance
+export const FigurineModal: React.FC<{ type: string; onDismiss: () => void }> = ({ type, onDismiss }) => {
+  const info = FIGURINE_INFO[type];
+  if (!info) return null;
+
+  const basePath = import.meta.env.BASE_URL || '/';
+
+  return (
+    <div style={figurineStyles.overlay} onClick={onDismiss}>
+      <div className="figurine-modal-entrance" style={figurineStyles.modal} onClick={(e) => e.stopPropagation()}>
+        {/* Декоративные звёзды */}
+        <div className="figurine-star figurine-star-1" style={figurineStyles.star}>✦</div>
+        <div className="figurine-star figurine-star-2" style={figurineStyles.star}>✦</div>
+        <div className="figurine-star figurine-star-3" style={figurineStyles.star}>✧</div>
+        <div className="figurine-star figurine-star-4" style={figurineStyles.star}>✦</div>
+
+        {/* Изображение фигурки */}
+        <div className="figurine-image-float" style={figurineStyles.imageContainer}>
+          <div className="figurine-glow" style={figurineStyles.imageGlow} />
+          <img
+            src={`${basePath}images/${type}.png`}
+            alt={info.name}
+            style={figurineStyles.image}
+          />
+        </div>
+
+        {/* Название */}
+        <h2 className="figurine-title-entrance" style={figurineStyles.title}>
+          {info.name}
+        </h2>
+
+        {/* Описание */}
+        <p className="figurine-desc-entrance" style={figurineStyles.description}>
+          {info.description}
+        </p>
+
+        {/* Подсказка механики */}
+        <p className="figurine-hint-entrance" style={figurineStyles.hint}>
+          Собирай ряды рядом с фигуркой, чтобы получить бонус!
+        </p>
+
+        {/* Кнопка */}
+        <button className="figurine-btn-entrance" onClick={onDismiss} style={figurineStyles.button}>
+          КРУТО!
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const figurineStyles: Record<string, React.CSSProperties> = {
+  overlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.92)',
+    backdropFilter: 'blur(25px)',
+    WebkitBackdropFilter: 'blur(25px)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 80,
+    padding: 24,
+    animation: 'figurineOverlayIn 0.4s ease-out both',
+  },
+  modal: {
+    position: 'relative',
+    background: 'linear-gradient(180deg, rgba(21, 21, 21, 0.95) 0%, rgba(30, 30, 30, 0.98) 100%)',
+    border: '2px solid rgba(237, 28, 41, 0.5)',
+    borderRadius: 32,
+    padding: '40px 32px 32px',
+    textAlign: 'center',
+    maxWidth: 360,
+    width: '100%',
+    boxShadow: '0 0 60px rgba(237, 28, 41, 0.15), 0 0 120px rgba(237, 28, 41, 0.05), 0 20px 60px rgba(0, 0, 0, 0.5)',
+    overflow: 'hidden',
+  },
+  star: {
+    position: 'absolute',
+    color: 'rgba(244, 166, 152, 0.6)',
+    fontSize: 18,
+    pointerEvents: 'none',
+  },
+  imageContainer: {
+    position: 'relative',
+    width: 140,
+    height: 140,
+    margin: '0 auto 24px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  imageGlow: {
+    position: 'absolute',
+    width: 160,
+    height: 160,
+    borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(237, 28, 41, 0.25) 0%, rgba(237, 28, 41, 0.05) 60%, transparent 80%)',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+  },
+  image: {
+    width: 120,
+    height: 120,
+    objectFit: 'contain',
+    position: 'relative',
+    zIndex: 1,
+    filter: 'drop-shadow(0 4px 20px rgba(237, 28, 41, 0.3))',
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 900,
+    color: '#ED1C29',
+    marginBottom: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 0,
+    margin: '0 0 12px 0',
+    textShadow: '0 0 20px rgba(237, 28, 41, 0.3)',
+  },
+  description: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontWeight: 600,
+    fontSize: 15,
+    lineHeight: 1.6,
+    margin: '0 0 16px 0',
+  },
+  hint: {
+    color: 'rgba(244, 166, 152, 0.6)',
+    fontWeight: 700,
+    fontSize: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    margin: '0 0 24px 0',
+  },
+  button: {
+    width: '100%',
+    background: 'linear-gradient(135deg, #ED1C29 0%, #D41820 50%, #C41420 100%)',
+    border: 'none',
+    color: '#fff',
+    fontWeight: 900,
+    padding: '16px 32px',
+    borderRadius: '8px 20px 8px 20px',
+    fontSize: 20,
+    cursor: 'pointer',
+    textTransform: 'uppercase',
+    letterSpacing: 0,
+    boxShadow: '0 0 30px rgba(237, 28, 41, 0.3), 0 4px 15px rgba(0, 0, 0, 0.3)',
+  },
+};
+
+// Figurine modal animations
+const figurineStyleSheet = document.createElement('style');
+figurineStyleSheet.textContent = `
+  @keyframes figurineOverlayIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .figurine-modal-entrance {
+    animation: figurineModalIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both;
+  }
+  @keyframes figurineModalIn {
+    from { opacity: 0; transform: scale(0.6) translateY(30px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .figurine-image-float {
+    animation: figurineFloat 3s ease-in-out infinite;
+  }
+  @keyframes figurineFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  .figurine-glow {
+    animation: figurineGlowPulse 2s ease-in-out infinite;
+  }
+  @keyframes figurineGlowPulse {
+    0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+    50% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+  }
+
+  .figurine-title-entrance {
+    animation: figurineSlideUp 0.4s ease-out 0.35s both;
+  }
+  .figurine-desc-entrance {
+    animation: figurineSlideUp 0.4s ease-out 0.45s both;
+  }
+  .figurine-hint-entrance {
+    animation: figurineSlideUp 0.4s ease-out 0.55s both;
+  }
+  .figurine-btn-entrance {
+    animation: figurineSlideUp 0.4s ease-out 0.65s both;
+  }
+  @keyframes figurineSlideUp {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .figurine-star-1 { top: 20px; left: 25px; animation: figurineStarTwinkle 2s ease-in-out 0.3s infinite; }
+  .figurine-star-2 { top: 15px; right: 30px; animation: figurineStarTwinkle 2.5s ease-in-out 0.8s infinite; font-size: 14px !important; }
+  .figurine-star-3 { bottom: 80px; left: 20px; animation: figurineStarTwinkle 1.8s ease-in-out 0.1s infinite; font-size: 22px !important; }
+  .figurine-star-4 { bottom: 120px; right: 25px; animation: figurineStarTwinkle 2.2s ease-in-out 0.5s infinite; font-size: 12px !important; }
+
+  @keyframes figurineStarTwinkle {
+    0%, 100% { opacity: 0.3; transform: scale(0.8) rotate(0deg); }
+    50% { opacity: 1; transform: scale(1.2) rotate(20deg); }
+  }
+
+  .figurine-btn-entrance:active {
+    transform: scale(0.95) !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .figurine-modal-entrance,
+    .figurine-image-float,
+    .figurine-glow,
+    .figurine-title-entrance,
+    .figurine-desc-entrance,
+    .figurine-hint-entrance,
+    .figurine-btn-entrance,
+    .figurine-star-1,
+    .figurine-star-2,
+    .figurine-star-3,
+    .figurine-star-4 {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
+`;
+if (!document.getElementById('figurine-modal-styles')) {
+  figurineStyleSheet.id = 'figurine-modal-styles';
+  document.head.appendChild(figurineStyleSheet);
 }
 
 export default Overlay;

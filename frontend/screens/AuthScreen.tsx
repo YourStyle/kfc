@@ -503,15 +503,15 @@ const styles: Record<string, React.CSSProperties> = {
     zIndex: 0,
   },
   modal: {
-    background: 'linear-gradient(180deg, rgba(12, 18, 32, 0.98) 0%, rgba(18, 28, 48, 0.98) 100%)',
+    background: 'linear-gradient(180deg, rgba(21, 21, 21, 0.98) 0%, rgba(30, 30, 30, 0.98) 100%)',
     backdropFilter: 'blur(20px)',
-    borderRadius: '16px 28px 16px 28px',
+    borderRadius: 20,
     padding: 36,
     width: '100%',
     maxWidth: 480,
     position: 'relative',
     zIndex: 10,
-    border: '1px solid rgba(255, 100, 120, 0.25)',
+    border: '1px solid rgba(237, 28, 41, 0.25)',
     boxShadow: '0 20px 60px rgba(0, 0, 0, 0.6), 0 0 50px rgba(228, 0, 43, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
     overflow: 'hidden',
   },
@@ -529,15 +529,15 @@ const styles: Record<string, React.CSSProperties> = {
   },
   logo: {
     textAlign: 'center',
-    background: 'linear-gradient(135deg, #FF4D6D 0%, #E4002B 50%, #CC0025 100%)',
+    background: 'linear-gradient(135deg, #FF4D6D 0%, #ED1C29 50%, #D41820 100%)',
     color: '#fff',
     padding: '14px 28px',
-    borderRadius: '8px 16px 8px 16px',
+    borderRadius: 12,
     fontWeight: 'bold',
     fontSize: 18,
     marginBottom: 24,
-    letterSpacing: 2,
-    fontFamily: "'Rajdhani', sans-serif",
+    letterSpacing: 0,
+    fontFamily: "'RosticsCeraPro', sans-serif",
     boxShadow: '0 0 25px rgba(228, 0, 43, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
   },
   form: {
@@ -551,27 +551,27 @@ const styles: Record<string, React.CSSProperties> = {
     margin: 0,
     fontSize: 26,
     fontWeight: 700,
-    fontFamily: "'Rajdhani', sans-serif",
-    letterSpacing: 1,
+    fontFamily: "'RosticsCeraPro', sans-serif",
+    letterSpacing: 0,
     textShadow: '0 0 15px rgba(255, 255, 255, 0.15)',
   },
   description: {
     textAlign: 'center',
-    color: 'rgba(140, 180, 240, 0.7)',
+    color: 'rgba(244, 166, 152, 0.7)',
     fontSize: 14,
     margin: 0,
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
   },
   input: {
     padding: 16,
-    borderRadius: '8px 14px 8px 14px',
-    border: '1px solid rgba(100, 150, 220, 0.25)',
-    background: 'linear-gradient(160deg, rgba(20, 30, 50, 0.8) 0%, rgba(30, 45, 70, 0.6) 100%)',
+    borderRadius: 12,
+    border: '1px solid rgba(237, 28, 41, 0.2)',
+    background: 'linear-gradient(160deg, rgba(21, 21, 21, 0.8) 0%, rgba(40, 40, 40, 0.6) 100%)',
     fontSize: 16,
     fontWeight: 600,
     outline: 'none',
     color: '#fff',
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     transition: 'border-color 0.2s, box-shadow 0.2s',
     width: '100%',
     boxSizing: 'border-box',
@@ -584,16 +584,16 @@ const styles: Record<string, React.CSSProperties> = {
   passwordInput: {
     padding: 16,
     paddingRight: 52,
-    borderRadius: '8px 14px 8px 14px',
-    border: '1px solid rgba(100, 150, 220, 0.25)',
-    background: 'linear-gradient(160deg, rgba(20, 30, 50, 0.8) 0%, rgba(30, 45, 70, 0.6) 100%)',
+    borderRadius: 12,
+    border: '1px solid rgba(237, 28, 41, 0.2)',
+    background: 'linear-gradient(160deg, rgba(21, 21, 21, 0.8) 0%, rgba(40, 40, 40, 0.6) 100%)',
     fontSize: 16,
     fontWeight: 600,
     outline: 'none',
     color: '#fff',
     width: '100%',
     boxSizing: 'border-box',
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
   },
   eyeButton: {
     position: 'absolute',
@@ -605,11 +605,11 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    color: 'rgba(140, 180, 240, 0.6)',
+    color: 'rgba(244, 166, 152, 0.6)',
   },
   codeInput: {
     padding: 18,
-    borderRadius: '10px 18px 10px 18px',
+    borderRadius: 14,
     border: '2px solid rgba(255, 100, 120, 0.4)',
     background: 'linear-gradient(160deg, rgba(228, 0, 43, 0.15) 0%, rgba(180, 0, 30, 0.1) 100%)',
     fontSize: 26,
@@ -618,23 +618,23 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 'bold',
     outline: 'none',
     color: '#fff',
-    fontFamily: "'Orbitron', sans-serif",
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
     boxShadow: '0 0 20px rgba(228, 0, 43, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
   },
   button: {
     padding: 18,
     border: 'none',
-    borderRadius: '8px 18px 8px 18px',
-    background: 'linear-gradient(135deg, #FF4D6D 0%, #E4002B 50%, #CC0025 100%)',
+    borderRadius: 12,
+    background: 'linear-gradient(135deg, #FF4D6D 0%, #ED1C29 50%, #D41820 100%)',
     color: '#fff',
     fontSize: 17,
     fontWeight: 700,
     cursor: 'pointer',
     boxShadow: '0 0 25px rgba(228, 0, 43, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
     textTransform: 'uppercase',
-    letterSpacing: 1.5,
+    letterSpacing: 0,
     marginTop: 8,
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     transition: 'all 0.2s ease',
   },
   error: {
@@ -642,20 +642,20 @@ const styles: Record<string, React.CSSProperties> = {
     border: '1px solid rgba(255, 100, 100, 0.3)',
     color: '#ff8080',
     padding: 12,
-    borderRadius: '6px 12px 6px 12px',
+    borderRadius: 8,
     fontSize: 13,
     textAlign: 'center',
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
   },
   switchText: {
     textAlign: 'center',
-    color: 'rgba(140, 180, 240, 0.6)',
+    color: 'rgba(244, 166, 152, 0.6)',
     fontSize: 15,
     margin: 0,
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
   },
   link: {
-    color: '#FF6B8A',
+    color: '#F4A698',
     cursor: 'pointer',
     fontWeight: 'bold',
     textShadow: '0 0 10px rgba(255, 100, 120, 0.3)',
@@ -668,8 +668,8 @@ const styles: Record<string, React.CSSProperties> = {
     top: '100%',
     left: 0,
     right: 0,
-    background: 'linear-gradient(180deg, rgba(15, 22, 40, 0.98) 0%, rgba(20, 30, 50, 0.98) 100%)',
-    border: '1px solid rgba(100, 150, 220, 0.3)',
+    background: 'linear-gradient(180deg, rgba(21, 21, 21, 0.98) 0%, rgba(30, 30, 30, 0.98) 100%)',
+    border: '1px solid rgba(237, 28, 41, 0.25)',
     borderRadius: '0 0 8px 8px',
     maxHeight: 250,
     overflowY: 'auto',
@@ -681,16 +681,16 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     color: '#fff',
     fontSize: 15,
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     transition: 'background 0.15s',
-    borderBottom: '1px solid rgba(100, 150, 220, 0.1)',
+    borderBottom: '1px solid rgba(237, 28, 41, 0.1)',
   },
   cityNoResults: {
     padding: '16px',
     textAlign: 'center',
     color: 'rgba(255, 100, 100, 0.7)',
     fontSize: 14,
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
   },
   checkboxLabel: {
     display: 'flex',
@@ -716,7 +716,7 @@ const styles: Record<string, React.CSSProperties> = {
     boxShadow: '0 0 10px rgba(228, 0, 43, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
   },
   checkboxCustomChecked: {
-    background: 'linear-gradient(135deg, #FF4D6D 0%, #E4002B 50%, #CC0025 100%)',
+    background: 'linear-gradient(135deg, #FF4D6D 0%, #ED1C29 50%, #D41820 100%)',
     border: '2px solid #FF4D6D',
     boxShadow: '0 0 20px rgba(228, 0, 43, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
   },
@@ -727,13 +727,13 @@ const styles: Record<string, React.CSSProperties> = {
     textShadow: '0 0 5px rgba(255, 255, 255, 0.5)',
   },
   checkboxText: {
-    color: 'rgba(200, 220, 255, 0.8)',
+    color: 'rgba(255, 255, 255, 0.8)',
     fontSize: 13,
     lineHeight: 1.4,
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
   },
   privacyLink: {
-    color: '#FF6B8A',
+    color: '#F4A698',
     textDecoration: 'underline',
   },
 };
@@ -741,7 +741,7 @@ const styles: Record<string, React.CSSProperties> = {
 // Add game-style button styles
 const authStyleSheet = document.createElement('style');
 authStyleSheet.textContent = `
-  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800&family=Rajdhani:wght@400;500;600;700&display=swap');
+  /* @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800&family=Rajdhani:wght@400;500;600;700&display=swap'); */
 
   /* ===== ENTRANCE ANIMATIONS ===== */
 
@@ -819,7 +819,7 @@ authStyleSheet.textContent = `
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(5, 10, 20, 0.6);
+    background: rgba(21, 21, 21, 0.6);
     z-index: 1;
     opacity: 0;
     transition: opacity 0.4s ease-out;
@@ -870,7 +870,7 @@ authStyleSheet.textContent = `
     left: 100%;
   }
   .sci-fi-btn:hover {
-    background: linear-gradient(135deg, #FF6080 0%, #FF1744 50%, #E4002B 100%) !important;
+    background: linear-gradient(135deg, #FF6080 0%, #FF1744 50%, #ED1C29 100%) !important;
     box-shadow: 0 0 35px rgba(228, 0, 43, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
     transform: translateY(-2px);
   }
@@ -896,7 +896,7 @@ authStyleSheet.textContent = `
   /* City dropdown styles */
   .city-dropdown {
     scrollbar-width: thin;
-    scrollbar-color: rgba(100, 150, 220, 0.3) transparent;
+    scrollbar-color: rgba(237, 28, 41, 0.2) transparent;
   }
   .city-dropdown::-webkit-scrollbar {
     width: 6px;
@@ -905,7 +905,7 @@ authStyleSheet.textContent = `
     background: transparent;
   }
   .city-dropdown::-webkit-scrollbar-thumb {
-    background: rgba(100, 150, 220, 0.3);
+    background: rgba(237, 28, 41, 0.2);
     border-radius: 3px;
   }
   .city-dropdown > div[style*="cursor: pointer"]:hover {

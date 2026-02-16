@@ -13,6 +13,37 @@ interface SuccessData {
   factText: string;
 }
 
+const QUEST_CACHE_KEY = 'rostics_quest_cache';
+
+interface QuestCache {
+  pages: QuestPageSummary[];
+  progress: QuestProgressData;
+  timestamp: number;
+}
+
+function saveQuestCache(pages: QuestPageSummary[], progress: QuestProgressData): void {
+  try {
+    const cache: QuestCache = { pages, progress, timestamp: Date.now() };
+    localStorage.setItem(QUEST_CACHE_KEY, JSON.stringify(cache));
+  } catch {
+    // localStorage full or unavailable — silently ignore
+  }
+}
+
+function loadQuestCache(): QuestCache | null {
+  try {
+    const raw = localStorage.getItem(QUEST_CACHE_KEY);
+    if (!raw) return null;
+    const cache: QuestCache = JSON.parse(raw);
+    // Reject cache older than 24 hours
+    if (Date.now() - cache.timestamp > 24 * 60 * 60 * 1000) return null;
+    if (!cache.pages || !cache.progress) return null;
+    return cache;
+  } catch {
+    return null;
+  }
+}
+
 const QuestRiddleScreen: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -23,6 +54,7 @@ const QuestRiddleScreen: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<QuestPageSummary | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [successData, setSuccessData] = useState<SuccessData | null>(null);
+  const [isOffline, setIsOffline] = useState(false);
 
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const qrReaderDivId = 'qr-reader';
@@ -52,9 +84,11 @@ const QuestRiddleScreen: React.FC = () => {
 
         setPages(pagesData);
         setProgress(progressData);
+        setIsOffline(false);
+        saveQuestCache(pagesData, progressData);
 
         if (progressData.quest_completed) {
-          navigate('/kfc-quest/result');
+          navigate('/spacequest/result');
           return;
         }
 
@@ -78,10 +112,46 @@ const QuestRiddleScreen: React.FC = () => {
           setCurrentPage(nextPage);
           setState('riddle');
         } else {
-          navigate('/kfc-quest/result');
+          navigate('/spacequest/result');
         }
       } catch (error) {
         console.error('Failed to fetch quest data:', error);
+
+        // Try restoring from localStorage cache
+        const cached = loadQuestCache();
+        if (cached) {
+          setPages(cached.pages);
+          setProgress(cached.progress);
+          setIsOffline(true);
+
+          if (cached.progress.quest_completed) {
+            navigate('/spacequest/result');
+            return;
+          }
+
+          // Find current page from cached progress
+          if (cached.progress.current_page_slug) {
+            const page = cached.pages.find(p => p.slug === cached.progress.current_page_slug);
+            if (page) {
+              setCurrentPage(page);
+              setState('riddle');
+              return;
+            }
+          }
+
+          const answeredSlugs = new Set(
+            cached.progress.progress.filter(e => e.is_answered).map(e => e.page_slug)
+          );
+          const nextPage = cached.pages.find(p => !answeredSlugs.has(p.slug));
+          if (nextPage) {
+            setCurrentPage(nextPage);
+            setState('riddle');
+          } else {
+            navigate('/spacequest/result');
+          }
+          return;
+        }
+
         setErrorMessage('Не удалось загрузить данные квеста');
         setState('error');
       }
@@ -132,8 +202,8 @@ const QuestRiddleScreen: React.FC = () => {
 
   // Handle successful QR scan
   const onScanSuccess = async (decodedText: string) => {
-    // Extract token from URL pattern /kfc-quest/scan/{token}
-    const match = decodedText.match(/\/kfc-quest\/scan\/([^/?]+)/);
+    // Extract token from URL pattern /spacequest/scan/{token}
+    const match = decodedText.match(/\/spacequest\/scan\/([^/?]+)/);
     const token = match ? match[1] : decodedText;
 
     await stopScanner();
@@ -155,13 +225,15 @@ const QuestRiddleScreen: React.FC = () => {
 
       // Update local progress
       if (progress) {
-        setProgress({
+        const updatedProgress = {
           ...progress,
           total_score: data.total_quest_score,
           answered_pages: progress.answered_pages + 1,
           current_page_slug: data.next_page_slug,
           quest_completed: data.quest_completed,
-        });
+        };
+        setProgress(updatedProgress);
+        saveQuestCache(pages, updatedProgress);
       }
     } else {
       setErrorMessage('Неверный QR-код. Найдите экспонат по текущей подсказке.');
@@ -195,7 +267,7 @@ const QuestRiddleScreen: React.FC = () => {
     }
 
     if (data.quest_completed) {
-      navigate('/kfc-quest/result');
+      navigate('/spacequest/result');
       return;
     }
 
@@ -205,20 +277,22 @@ const QuestRiddleScreen: React.FC = () => {
       if (nextPage) {
         setCurrentPage(nextPage);
         if (progress) {
-          setProgress({
+          const updatedProgress = {
             ...progress,
             total_score: data.total_quest_score,
             answered_pages: progress.answered_pages + 1,
             current_page_slug: data.next_page_slug,
             quest_completed: data.quest_completed,
-          });
+          };
+          setProgress(updatedProgress);
+          saveQuestCache(pages, updatedProgress);
         }
         setState('riddle');
         return;
       }
     }
 
-    navigate('/kfc-quest/result');
+    navigate('/spacequest/result');
   };
 
   // Proceed to next page after success
@@ -226,7 +300,7 @@ const QuestRiddleScreen: React.FC = () => {
     if (!progress) return;
 
     if (progress.quest_completed) {
-      navigate('/kfc-quest/result');
+      navigate('/spacequest/result');
       return;
     }
 
@@ -240,7 +314,7 @@ const QuestRiddleScreen: React.FC = () => {
       }
     }
 
-    navigate('/kfc-quest/result');
+    navigate('/spacequest/result');
   };
 
   // Retry after error
@@ -286,7 +360,7 @@ const QuestRiddleScreen: React.FC = () => {
           width: 60px;
           height: 60px;
           border: 4px solid rgba(228, 0, 43, 0.2);
-          border-top-color: #E4002B;
+          border-top-color: #ED1C29;
           border-radius: 50%;
           animation: spin 1s linear infinite;
         }
@@ -334,7 +408,7 @@ const QuestRiddleScreen: React.FC = () => {
         }
 
         .riddle-title {
-          font-family: 'Oswald', sans-serif;
+          font-family: 'RosticsCeraCondensed', sans-serif;
           font-size: 28px;
           font-weight: 600;
           color: #fff;
@@ -345,7 +419,7 @@ const QuestRiddleScreen: React.FC = () => {
         }
 
         .riddle-text {
-          font-family: 'Rajdhani', sans-serif;
+          font-family: 'RosticsCeraPro', sans-serif;
           font-size: 18px;
           line-height: 1.6;
           color: rgba(255, 255, 255, 0.9);
@@ -373,10 +447,10 @@ const QuestRiddleScreen: React.FC = () => {
           flex: 1;
           min-width: 200px;
           padding: 16px 24px;
-          background: linear-gradient(135deg, #FF4D6D, #E4002B, #B8001F);
+          background: linear-gradient(135deg, #FF4D6D, #ED1C29, #C41420);
           border: none;
           border-radius: 10px 24px 10px 24px;
-          font-family: 'Rajdhani', sans-serif;
+          font-family: 'RosticsCeraPro', sans-serif;
           font-size: 18px;
           font-weight: 600;
           color: #fff;
@@ -416,13 +490,13 @@ const QuestRiddleScreen: React.FC = () => {
           flex: 1;
           min-width: 140px;
           padding: 16px 24px;
-          background: rgba(15, 20, 35, 0.8);
+          background: rgba(21, 21, 21, 0.8);
           border: 2px solid rgba(228, 0, 43, 0.5);
           border-radius: 10px 24px 10px 24px;
-          font-family: 'Rajdhani', sans-serif;
+          font-family: 'RosticsCeraPro', sans-serif;
           font-size: 18px;
           font-weight: 600;
-          color: #E4002B;
+          color: #ED1C29;
           text-transform: uppercase;
           cursor: pointer;
           backdrop-filter: blur(10px);
@@ -431,7 +505,7 @@ const QuestRiddleScreen: React.FC = () => {
 
         .btn-secondary:hover {
           background: rgba(228, 0, 43, 0.1);
-          border-color: #E4002B;
+          border-color: #ED1C29;
           transform: translateY(-2px);
           box-shadow: 0 4px 15px rgba(228, 0, 43, 0.3);
         }
@@ -443,7 +517,7 @@ const QuestRiddleScreen: React.FC = () => {
 
         .scanner-frame {
           position: relative;
-          background: rgba(15, 20, 35, 0.95);
+          background: rgba(21, 21, 21, 0.95);
           backdrop-filter: blur(20px);
           border: 2px solid rgba(228, 0, 43, 0.4);
           border-radius: 12px 24px 12px 24px;
@@ -461,7 +535,7 @@ const QuestRiddleScreen: React.FC = () => {
           position: absolute;
           width: 30px;
           height: 30px;
-          border: 3px solid #E4002B;
+          border: 3px solid #ED1C29;
           z-index: 10;
         }
 
@@ -484,7 +558,7 @@ const QuestRiddleScreen: React.FC = () => {
         }
 
         .scanner-title {
-          font-family: 'Oswald', sans-serif;
+          font-family: 'RosticsCeraCondensed', sans-serif;
           font-size: 24px;
           font-weight: 600;
           color: #fff;
@@ -510,8 +584,8 @@ const QuestRiddleScreen: React.FC = () => {
           left: 0;
           right: 0;
           height: 2px;
-          background: linear-gradient(90deg, transparent, #E4002B, transparent);
-          box-shadow: 0 0 10px #E4002B;
+          background: linear-gradient(90deg, transparent, #ED1C29, transparent);
+          box-shadow: 0 0 10px #ED1C29;
           animation: scanLine 2s linear infinite;
           z-index: 5;
           pointer-events: none;
@@ -524,7 +598,7 @@ const QuestRiddleScreen: React.FC = () => {
         }
 
         .success-card {
-          background: linear-gradient(135deg, rgba(15, 20, 35, 0.95), rgba(12, 18, 32, 0.9));
+          background: linear-gradient(135deg, rgba(21, 21, 21, 0.95), rgba(30, 30, 30, 0.9));
           backdrop-filter: blur(20px);
           border: 1px solid rgba(34, 197, 94, 0.4);
           border-radius: 8px 16px 8px 16px;
@@ -540,7 +614,7 @@ const QuestRiddleScreen: React.FC = () => {
           height: 80px;
           margin: 0 auto 24px;
           border-radius: 50%;
-          background: linear-gradient(135deg, #22c55e, #16a34a);
+          background: linear-gradient(135deg, #ED1C29, #C41420);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -560,16 +634,16 @@ const QuestRiddleScreen: React.FC = () => {
         }
 
         .points-earned {
-          font-family: 'Orbitron', monospace;
+          font-family: 'RosticsCeraCondensed', monospace;
           font-size: 48px;
           font-weight: 700;
-          color: #22c55e;
+          color: #ED1C29;
           margin-bottom: 12px;
           text-shadow: 0 0 30px rgba(34, 197, 94, 0.6);
         }
 
         .points-label {
-          font-family: 'Rajdhani', sans-serif;
+          font-family: 'RosticsCeraPro', sans-serif;
           font-size: 20px;
           color: rgba(255, 255, 255, 0.8);
           margin-bottom: 24px;
@@ -577,7 +651,7 @@ const QuestRiddleScreen: React.FC = () => {
         }
 
         .fact-text {
-          font-family: 'Rajdhani', sans-serif;
+          font-family: 'RosticsCeraPro', sans-serif;
           font-size: 18px;
           line-height: 1.6;
           color: rgba(255, 255, 255, 0.9);
@@ -595,7 +669,7 @@ const QuestRiddleScreen: React.FC = () => {
         }
 
         .error-card {
-          background: linear-gradient(135deg, rgba(15, 20, 35, 0.95), rgba(12, 18, 32, 0.9));
+          background: linear-gradient(135deg, rgba(21, 21, 21, 0.95), rgba(30, 30, 30, 0.9));
           backdrop-filter: blur(20px);
           border: 1px solid rgba(239, 68, 68, 0.4);
           border-radius: 8px 16px 8px 16px;
@@ -628,7 +702,7 @@ const QuestRiddleScreen: React.FC = () => {
         }
 
         .error-message {
-          font-family: 'Rajdhani', sans-serif;
+          font-family: 'RosticsCeraPro', sans-serif;
           font-size: 18px;
           color: rgba(255, 255, 255, 0.9);
           margin-bottom: 24px;
@@ -652,7 +726,7 @@ const QuestRiddleScreen: React.FC = () => {
         }
 
         .modal-content {
-          background: linear-gradient(135deg, rgba(15, 20, 35, 0.98), rgba(12, 18, 32, 0.95));
+          background: linear-gradient(135deg, rgba(21, 21, 21, 0.98), rgba(30, 30, 30, 0.95));
           backdrop-filter: blur(24px);
           border: 1px solid rgba(228, 0, 43, 0.3);
           border-radius: 12px 24px 12px 24px;
@@ -667,7 +741,7 @@ const QuestRiddleScreen: React.FC = () => {
         }
 
         .modal-title {
-          font-family: 'Oswald', sans-serif;
+          font-family: 'RosticsCeraCondensed', sans-serif;
           font-size: 24px;
           font-weight: 600;
           color: #fff;
@@ -677,7 +751,7 @@ const QuestRiddleScreen: React.FC = () => {
         }
 
         .modal-text {
-          font-family: 'Rajdhani', sans-serif;
+          font-family: 'RosticsCeraPro', sans-serif;
           font-size: 16px;
           color: rgba(255, 255, 255, 0.8);
           text-align: center;
@@ -762,10 +836,47 @@ const QuestRiddleScreen: React.FC = () => {
           .btn-secondary:hover { transform: none; }
         }
 
+        /* Offline Banner */
+        .offline-banner {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          padding: 10px 16px;
+          margin-bottom: 16px;
+          background: rgba(245, 158, 11, 0.15);
+          border: 1px solid rgba(245, 158, 11, 0.4);
+          border-radius: 8px;
+          font-family: 'RosticsCeraPro', sans-serif;
+          font-size: 14px;
+          color: #fbbf24;
+          animation: fadeIn 0.4s ease-out;
+        }
+
+        .offline-banner-text {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .offline-dismiss {
+          background: none;
+          border: none;
+          color: rgba(251, 191, 36, 0.7);
+          font-size: 18px;
+          cursor: pointer;
+          padding: 0 4px;
+          line-height: 1;
+        }
+
+        .offline-dismiss:hover {
+          color: #fbbf24;
+        }
+
         .quest-copyright {
           text-align: center;
           padding: 20px 0;
-          font-family: 'Rajdhani', sans-serif;
+          font-family: 'RosticsCeraPro', sans-serif;
           font-size: 11px;
           color: rgba(255, 255, 255, 0.4);
           letter-spacing: 1px;
@@ -792,6 +903,22 @@ const QuestRiddleScreen: React.FC = () => {
           .points-earned { font-size: 40px; }
         }
       `}</style>
+
+      {/* Offline Banner */}
+      {isOffline && (
+        <div className="offline-banner">
+          <span className="offline-banner-text">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M8 1L1 14h14L8 1z" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+              <path d="M8 6v4M8 11.5v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+            Офлайн-режим — данные из кэша
+          </span>
+          <button className="offline-dismiss" onClick={() => setIsOffline(false)} aria-label="Закрыть">
+            &times;
+          </button>
+        </div>
+      )}
 
       {/* Progress Bar */}
       {progress && state !== 'loading' && (

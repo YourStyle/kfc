@@ -89,14 +89,14 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '0 4px',
   },
   step: {
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     fontWeight: 600,
     fontSize: 14,
     color: 'rgba(200,215,240,0.8)',
     letterSpacing: 1,
   },
   stepCurrent: {
-    fontFamily: "'Orbitron', sans-serif",
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
     fontWeight: 700,
     fontSize: 16,
     color: '#fff',
@@ -106,7 +106,7 @@ const styles: Record<string, React.CSSProperties> = {
     opacity: 0.5,
   },
   stepTotal: {
-    fontFamily: "'Orbitron', sans-serif",
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
     fontWeight: 500,
     fontSize: 13,
     opacity: 0.7,
@@ -122,14 +122,14 @@ const styles: Record<string, React.CSSProperties> = {
     filter: 'drop-shadow(0 0 4px rgba(228,0,43,0.5))',
   },
   scoreValue: {
-    fontFamily: "'Orbitron', sans-serif",
+    fontFamily: "'RosticsCeraCondensed', sans-serif",
     fontWeight: 700,
     fontSize: 16,
     color: '#fff',
     textShadow: '0 0 10px rgba(255,77,109,0.4)',
   },
   scoreSuffix: {
-    fontFamily: "'Rajdhani', sans-serif",
+    fontFamily: "'RosticsCeraPro', sans-serif",
     fontWeight: 500,
     fontSize: 11,
     color: 'rgba(140,180,240,0.6)',
@@ -153,7 +153,7 @@ const styles: Record<string, React.CSSProperties> = {
   barFill: {
     height: '100%',
     borderRadius: 10,
-    background: 'linear-gradient(90deg, #E4002B 0%, #FF4D6D 60%, #FF8090 100%)',
+    background: 'linear-gradient(90deg, #ED1C29 0%, #FF4D6D 60%, #FF8090 100%)',
     boxShadow: '0 0 15px rgba(228,0,43,0.5), inset 0 1px 0 rgba(255,255,255,0.2)',
     transition: 'width 0.5s ease-out',
     position: 'relative',
