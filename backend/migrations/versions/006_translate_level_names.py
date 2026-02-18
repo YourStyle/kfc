@@ -27,6 +27,8 @@ TRANSLATIONS = {
     'Endless': 'Бесконечный',
     'Speed Run': 'На скорость',
     'Practice': 'Практика',
+    'Big Order': 'Большой заказ',
+    'Rush Hour': 'Час пик',
 }
 
 
