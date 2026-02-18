@@ -265,7 +265,7 @@ export function AuthScreen({ onClose, onSuccess }: AuthScreenProps) {
         className={`auth-bg ${isVisible ? 'auth-bg-visible' : ''}`}
         style={{
           ...styles.backgroundImage,
-          backgroundImage: `url(${basePath}images/loginbg.png)`,
+          backgroundImage: `url(${basePath}images/loginbg.webp)`,
         }}
       />
       <div className={`auth-modal ${isVisible ? 'auth-modal-visible' : ''}`} style={styles.modal}>
@@ -831,7 +831,7 @@ authStyleSheet.textContent = `
   /* Mobile background for auth screen */
   @media (max-width: 500px) {
     .auth-bg {
-      background-image: url('/images/loginbgmob.png') !important;
+      background-image: url('/images/loginbgmob.webp') !important;
     }
   }
 

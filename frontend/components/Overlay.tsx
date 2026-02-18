@@ -231,8 +231,10 @@ const Overlay: React.FC<OverlayProps> = ({ score, moves, collected, isGameOver, 
             ←
           </button>
         )}
-        <div style={styles.levelBadge}>
-          {levelName || 'КУХНЯ ROSTIC\'S'}
+        <div style={styles.logosRow}>
+          <img src={`${import.meta.env.BASE_URL}images/logoRostics.png`} alt="ROSTIC'S" style={styles.logoRostics} />
+          <div style={styles.logoDivider} />
+          <img src={`${import.meta.env.BASE_URL}images/logoMk.png`} alt="Музей Космонавтики" style={styles.logoMk} />
         </div>
       </div>
 
@@ -243,8 +245,8 @@ const Overlay: React.FC<OverlayProps> = ({ score, moves, collected, isGameOver, 
           ...(isShaking ? styles.statCardShaking : {}),
         }}>
           <img
-            src={`${import.meta.env.BASE_URL}images/bucket.png`}
-            alt="Корзина"
+            src={`${import.meta.env.BASE_URL}images/sputnik.png`}
+            alt="Собрано"
             style={{
               ...styles.bucketImage,
               ...(isShaking ? { animation: 'shake 0.5s ease-in-out' } : {}),
@@ -365,8 +367,10 @@ const Overlay: React.FC<OverlayProps> = ({ score, moves, collected, isGameOver, 
               </div>
             </div>
 
-            <div className="game-over-stagger-4" style={styles.levelTag}>
-              {levelName || 'КУХНЯ ROSTIC\'S'}
+            <div className="game-over-stagger-4" style={styles.gameOverLogos}>
+              <img src={`${import.meta.env.BASE_URL}images/logoRostics.png`} alt="ROSTIC'S" style={styles.gameOverLogoRostics} />
+              <div style={styles.gameOverLogoDivider} />
+              <img src={`${import.meta.env.BASE_URL}images/logoMk.png`} alt="Музей Космонавтики" style={styles.gameOverLogoMk} />
             </div>
             <div style={styles.gameUrl}>
               {GAME_URL}
@@ -569,18 +573,33 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     boxShadow: '0 4px 15px rgba(0, 0, 0, 0.3)',
   },
-  levelBadge: {
-    background: '#ED1C29',
-    padding: '10px 24px',
+  logosRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    background: 'rgba(21, 21, 21, 0.7)',
+    backdropFilter: 'blur(10px)',
+    WebkitBackdropFilter: 'blur(10px)',
     borderRadius: 20,
-    color: '#fff',
-    fontFamily: "'RosticsCeraCondensed', 'RosticsCeraPro', 'Verdana', sans-serif",
-    fontWeight: 900,
-    boxShadow: '0 0 20px rgba(228, 0, 43, 0.4), 0 4px 15px rgba(0, 0, 0, 0.3)',
-    letterSpacing: 0,
-    border: '1px solid rgba(255, 255, 255, 0.2)',
-    fontSize: 14,
-    textTransform: 'uppercase',
+    padding: '6px 16px',
+    border: '1px solid rgba(255, 255, 255, 0.15)',
+    boxShadow: '0 4px 15px rgba(0, 0, 0, 0.3)',
+  },
+  logoRostics: {
+    height: 28,
+    width: 'auto',
+  },
+  logoDivider: {
+    width: 1,
+    height: 24,
+    background: 'rgba(255, 255, 255, 0.2)',
+  },
+  logoMk: {
+    height: 28,
+    width: 'auto',
+    background: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 6,
+    padding: 3,
   },
 
   // Stats bar
@@ -851,15 +870,28 @@ const styles: Record<string, React.CSSProperties> = {
     lineHeight: 1,
     marginTop: 4,
   },
-  levelTag: {
-    background: '#ED1C29',
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: 700,
-    padding: '8px 16px',
-    borderRadius: 20,
-    display: 'inline-block',
+  gameOverLogos: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
     marginBottom: 8,
+  },
+  gameOverLogoRostics: {
+    height: 32,
+    width: 'auto',
+  },
+  gameOverLogoDivider: {
+    width: 1,
+    height: 28,
+    background: 'rgba(255, 255, 255, 0.2)',
+  },
+  gameOverLogoMk: {
+    height: 32,
+    width: 'auto',
+    background: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 8,
+    padding: 4,
   },
   gameUrl: {
     color: 'rgba(255, 255, 255, 0.3)',

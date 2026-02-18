@@ -341,6 +341,7 @@ DASHBOARD_TEMPLATE = '''
             <li><a href="/admin/level/"><i class="bi bi-layers"></i> Уровни</a></li>
             <li><a href="/level-editor/"><i class="bi bi-grid-3x3-gap"></i> Конструктор</a></li>
             <li><a href="/admin/session/"><i class="bi bi-joystick"></i> Сессии</a></li>
+            <li><a href="/admin/texts/"><i class="bi bi-fonts"></i> Тексты</a></li>
         </ul>
         {% endif %}
 
@@ -350,6 +351,7 @@ DASHBOARD_TEMPLATE = '''
             <li><a href="/admin/quest/pages/"><i class="bi bi-map"></i> Страницы квеста</a></li>
             <li><a href="/admin/quest/promo/"><i class="bi bi-ticket-perforated"></i> Промокоды</a></li>
             <li><a href="/admin/quest/progress/"><i class="bi bi-person-check"></i> Прогресс участников</a></li>
+            <li><a href="/admin/quest/qr-codes/"><i class="bi bi-qr-code"></i> QR-коды</a></li>
         </ul>
         {% endif %}
 

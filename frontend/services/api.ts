@@ -210,6 +210,11 @@ class ApiClient {
       method: 'POST',
     });
   }
+
+  // Texts endpoint (public, no auth needed)
+  async getTexts() {
+    return this.request<Record<string, string>>('/api/texts');
+  }
 }
 
 // Types

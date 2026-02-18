@@ -1020,38 +1020,53 @@ export class PixiGame {
     } while (!this.findValidMove() && attempts < maxAttempts);
   }
 
+  private comboTextCount = 0;
+  private static readonly MAX_COMBO_TEXTS = 2; // Max simultaneous combo texts
+
   private showComboText(combo: number) {
+    // Limit simultaneous floating texts
+    if (this.comboTextCount >= PixiGame.MAX_COMBO_TEXTS) return;
+
     const texts = ['', '', 'ВКУСНО!', 'СОЧНО!', 'КОМБО!', 'ШЕФ!'];
     const text = texts[Math.min(combo, 5)];
 
     const style = new TextStyle({
       fontFamily: 'RosticsCeraCondensed, sans-serif',
-      fontSize: 48,
+      fontSize: 34,
       fontWeight: 'bold',
       fill: '#ED1C29',
-      stroke: { color: '#ffffff', width: 6 },
+      stroke: { color: '#ffffff', width: 4 },
     });
 
     const label = new Text({ text, style });
     label.anchor.set(0.5);
-    label.x = this.gridContainer.x + (this.gridSize * this.tileSize) / 2;
-    label.y = this.gridContainer.y + (this.gridSize * this.tileSize) / 2;
+
+    // Center on grid with slight random offset, clamped to stay within bounds
+    const gridCenterX = this.gridContainer.x + (this.gridSize * this.tileSize) / 2;
+    const gridCenterY = this.gridContainer.y + (this.gridSize * this.tileSize) / 2;
+    const maxOffsetX = (this.gridSize * this.tileSize) / 2 - 60; // keep away from edges
+    label.x = gridCenterX + (Math.random() - 0.5) * maxOffsetX;
+    label.y = gridCenterY + (Math.random() - 0.5) * 40;
     label.scale.set(0);
 
     this.uiContainer.addChild(label);
+    this.comboTextCount++;
 
     gsap.to(label.scale, {
-      x: 1.2,
-      y: 1.2,
-      duration: 0.3,
+      x: 1,
+      y: 1,
+      duration: 0.25,
       ease: 'back.out(2)',
       onComplete: () => {
         gsap.to(label, {
           alpha: 0,
-          y: label.y - 50,
-          duration: 0.4,
-          delay: 0.3,
-          onComplete: () => this.uiContainer.removeChild(label)
+          y: label.y - 40,
+          duration: 0.35,
+          delay: 0.25,
+          onComplete: () => {
+            this.uiContainer.removeChild(label);
+            this.comboTextCount--;
+          }
         });
       }
     });
@@ -1081,16 +1096,19 @@ export class PixiGame {
     // Текст
     const style = new TextStyle({
       fontFamily: 'RosticsCeraCondensed, sans-serif',
-      fontSize: slow ? 36 : 42, // Чуть меньше чтобы влезло
+      fontSize: slow ? 30 : 34,
       fontWeight: 'bold',
       fill: '#ffffff',
-      stroke: { color: '#151515', width: 6 },
+      stroke: { color: '#151515', width: 4 },
     });
 
     const label = new Text({ text, style });
     label.anchor.set(0.5);
-    label.x = x;
-    label.y = y;
+    // Clamp position to stay within visible area
+    const appW = this.app.screen.width;
+    const appH = this.app.screen.height;
+    label.x = Math.max(60, Math.min(appW - 60, x));
+    label.y = Math.max(60, Math.min(appH - 60, y));
     label.scale.set(0);
     this.app.stage.addChild(label);
 
@@ -1099,14 +1117,14 @@ export class PixiGame {
     const fadeOutDuration = slow ? 0.6 : 0.4;
 
     gsap.to(label.scale, {
-      x: 1.3,
-      y: 1.3,
+      x: 1.1,
+      y: 1.1,
       duration: scaleDuration,
       ease: 'back.out(2)',
       onComplete: () => {
         gsap.to(label, {
           alpha: 0,
-          y: label.y - 40,
+          y: label.y - 30,
           duration: fadeOutDuration,
           delay: holdDelay,
           onComplete: () => {

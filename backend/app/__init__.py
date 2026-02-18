@@ -74,12 +74,13 @@ def create_app():
             print(f"Warning: Redis not available ({e}), some features may be limited")
 
     # Register blueprints
-    from app.api import auth, levels, game, leaderboard, quest
+    from app.api import auth, levels, game, leaderboard, quest, texts
     app.register_blueprint(auth.bp, url_prefix='/api/auth')
     app.register_blueprint(levels.bp, url_prefix='/api/levels')
     app.register_blueprint(game.bp, url_prefix='/api/game')
     app.register_blueprint(leaderboard.bp, url_prefix='/api/leaderboard')
     app.register_blueprint(quest.bp, url_prefix='/api/quest')
+    app.register_blueprint(texts.bp, url_prefix='/api/texts')
 
     # Health check
     @app.route('/api/health')

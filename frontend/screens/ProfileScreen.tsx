@@ -83,7 +83,7 @@ export function ProfileScreen({ onBack, onShowAuth }: ProfileScreenProps) {
       <div style={styles.container}>
         <div className="profile-bg" style={{
           ...styles.backgroundImage,
-          backgroundImage: `url(${basePath}images/background.png)`,
+          backgroundImage: `url(${basePath}images/background.webp)`,
         }} />
 
         <div style={styles.header}>
@@ -112,7 +112,7 @@ export function ProfileScreen({ onBack, onShowAuth }: ProfileScreenProps) {
     <div style={styles.container}>
       <div className="profile-bg" style={{
         ...styles.backgroundImage,
-        backgroundImage: `url(${basePath}images/background.png)`,
+        backgroundImage: `url(${basePath}images/background.webp)`,
       }} />
 
       <div style={styles.header}>
@@ -425,7 +425,7 @@ profileStyleSheet.textContent = `
   /* Mobile background for profile screen */
   @media (max-width: 500px) {
     .profile-bg {
-      background-image: url('/images/backgroundmob.png') !important;
+      background-image: url('/images/backgroundmob.webp') !important;
     }
   }
 

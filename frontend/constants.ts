@@ -11,18 +11,18 @@ export const ROSTICS_RED = 0xED1C29;
 export const ROSTICS_WHITE = 0xFFFFFF;
 export const ROSTICS_BLACK = 0x000000;
 
-export const ITEM_DATA: Record<ItemType, { label: string; emoji: string; particleColor: number; particleType: 'feather' | 'bubble' | 'crumb' | 'slice'; isObstacle?: boolean; isFigurine?: boolean }> = {
+export const ITEM_DATA: Record<ItemType, { label: string; emoji: string; particleColor: number; particleType: 'sparkle' | 'bubble' | 'crumb' | 'slice'; isObstacle?: boolean; isFigurine?: boolean }> = {
   drumstick: {
     label: 'Ножка',
     emoji: '🍗',
     particleColor: 0xD4A574,
-    particleType: 'feather'
+    particleType: 'sparkle'
   },
   wing: {
     label: 'Крылышко',
     emoji: '🍖',
     particleColor: 0xC4956A,
-    particleType: 'feather'
+    particleType: 'sparkle'
   },
   burger: {
     label: 'Бургер',
@@ -146,12 +146,12 @@ export const TUTORIAL_STEPS = [
   },
   {
     title: "СПЕЦ-ЭФФЕКТЫ",
-    text: "Каждый предмет имеет свои частицы: от перьев курочки до пузырьков колы!",
+    text: "Каждый предмет имеет свои частицы: от хрустящих крошек до пузырьков капучино!",
     icon: "✨"
   },
   {
     title: "СУПЕР-БОНУСЫ",
-    text: "Складывай комбо, чтобы получить звание Шефа и собрать больше крылышек!",
+    text: "Складывай комбо, получай звание Шефа и набирай максимум очков!",
     icon: "🚀"
   }
 ];

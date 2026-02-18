@@ -2,7 +2,7 @@
 from flask import Blueprint, render_template_string, redirect, url_for, request, flash
 from flask_login import login_required, current_user
 from app import db
-from app.models import User, Level, UserLevelProgress, GameSession, UserActivity, AdminUser
+from app.models import User, Level, UserLevelProgress, GameSession, UserActivity, AdminUser, GameText
 
 bp = Blueprint('custom_admin', __name__)
 
@@ -212,6 +212,7 @@ BASE_TEMPLATE = '''
             <li><a href="/admin/level/" {% if active_page == 'levels' %}class="active"{% endif %}><i class="bi bi-layers"></i> Уровни</a></li>
             <li><a href="/level-editor/" {% if active_page == 'level_editor' %}class="active"{% endif %}><i class="bi bi-grid-3x3-gap"></i> Конструктор</a></li>
             <li><a href="/admin/session/" {% if active_page == 'sessions' %}class="active"{% endif %}><i class="bi bi-joystick"></i> Сессии</a></li>
+            <li><a href="/admin/texts/" {% if active_page == 'texts' %}class="active"{% endif %}><i class="bi bi-fonts"></i> Тексты</a></li>
         </ul>
         {% endif %}
         {% if admin_role in ('superadmin', 'quest_admin') %}
@@ -220,6 +221,7 @@ BASE_TEMPLATE = '''
             <li><a href="/admin/quest/pages/" {% if active_page == 'quest_pages' %}class="active"{% endif %}><i class="bi bi-map"></i> Страницы квеста</a></li>
             <li><a href="/admin/quest/promo/" {% if active_page == 'quest_promo' %}class="active"{% endif %}><i class="bi bi-ticket-perforated"></i> Промокоды</a></li>
             <li><a href="/admin/quest/progress/" {% if active_page == 'quest_progress' %}class="active"{% endif %}><i class="bi bi-person-check"></i> Прогресс участников</a></li>
+            <li><a href="/admin/quest/qr-codes/" {% if active_page == 'quest_qr' %}class="active"{% endif %}><i class="bi bi-qr-code"></i> QR-коды</a></li>
         </ul>
         {% endif %}
         <div class="nav-section">Система</div>
@@ -911,6 +913,141 @@ def admin_delete(id):
         db.session.commit()
         flash('Администратор удалён!', 'success')
     return redirect(url_for('custom_admin.admins_list'))
+
+
+# ============== GAME TEXTS ==============
+SECTION_LABELS = {
+    'game': 'Игра',
+    'quest': 'Квест',
+    'rules': 'Правила',
+    'landing': 'Лендинг',
+}
+
+
+@bp.route('/texts/')
+@login_required
+def texts_list():
+    section_filter = request.args.get('section', '')
+    query = GameText.query
+
+    if section_filter:
+        query = query.filter_by(section=section_filter)
+
+    texts = query.order_by(GameText.section, GameText.key).all()
+    sections = db.session.query(GameText.section).distinct().order_by(GameText.section).all()
+    section_list = [s[0] for s in sections]
+
+    content = '''
+    <div class="page-header">
+        <h1 class="page-title"><i class="bi bi-fonts me-2"></i>Тексты игры и квеста</h1>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">Управление текстами</span>
+            <div class="d-flex gap-2 align-items-center">
+    '''
+
+    # Section filter tabs
+    active_class = 'btn-primary' if not section_filter else 'btn-outline-secondary'
+    content += f'<a href="/admin/texts/" class="btn btn-sm {active_class}">Все</a>'
+    for sec in section_list:
+        label = SECTION_LABELS.get(sec, sec.title())
+        active_class = 'btn-primary' if section_filter == sec else 'btn-outline-secondary'
+        content += f'<a href="/admin/texts/?section={sec}" class="btn btn-sm {active_class}">{label}</a>'
+
+    content += '''
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Ключ</th>
+                        <th>Раздел</th>
+                        <th>Описание</th>
+                        <th>Текст</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+    '''
+
+    for t in texts:
+        sec_label = SECTION_LABELS.get(t.section, t.section)
+        sec_class = {'game': 'info', 'quest': 'success', 'rules': 'warning', 'landing': 'primary'}.get(t.section, 'info')
+        # Truncate long values for display
+        display_val = t.value if len(t.value) <= 80 else t.value[:77] + '...'
+        # Escape HTML
+        import html
+        display_val = html.escape(display_val)
+        label_esc = html.escape(t.label)
+
+        content += f'''
+                    <tr>
+                        <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:0.8rem;">{t.key}</code></td>
+                        <td><span class="badge badge-{sec_class}">{sec_label}</span></td>
+                        <td>{label_esc}</td>
+                        <td style="max-width:300px;word-break:break-word;">{display_val}</td>
+                        <td>
+                            <a href="/admin/texts/edit/{t.id}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                        </td>
+                    </tr>
+        '''
+
+    content += '</tbody></table></div></div>'
+    return render_page('Тексты', 'texts', content)
+
+
+@bp.route('/texts/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def text_edit(id):
+    t = GameText.query.get_or_404(id)
+
+    if request.method == 'POST':
+        t.value = request.form.get('value', t.value)
+        db.session.commit()
+        flash(f'Текст "{t.label}" обновлён', 'success')
+        return redirect(url_for('custom_admin.texts_list', section=t.section))
+
+    import html
+    value_esc = html.escape(t.value)
+    label_esc = html.escape(t.label)
+    sec_label = SECTION_LABELS.get(t.section, t.section)
+
+    content = f'''
+    <div class="page-header">
+        <h1 class="page-title"><i class="bi bi-pencil me-2"></i>Редактирование текста</h1>
+        <a href="/admin/texts/?section={t.section}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-2"></i>Назад</a>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">{label_esc}</span>
+            <span class="badge badge-info">{sec_label}</span>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                <div class="mb-3">
+                    <label class="form-label">Ключ</label>
+                    <input type="text" class="form-control" value="{t.key}" disabled>
+                    <small class="text-muted">Ключ используется в коде, менять нельзя</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Описание</label>
+                    <input type="text" class="form-control" value="{label_esc}" disabled>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label">Текст</label>
+                    <textarea class="form-control" name="value" rows="4" style="font-size:1rem;">{value_esc}</textarea>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-2"></i>Сохранить</button>
+                    <a href="/admin/texts/?section={t.section}" class="btn btn-outline-secondary">Отмена</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    '''
+    return render_page('Редактирование текста', 'texts', content)
 
 
 # ============== ANALYTICS ==============
