@@ -113,53 +113,51 @@ def complete_game():
     session.is_completed = True
     session.is_won = is_won
 
-    # Update user progress if won
-    if is_won:
-        progress = UserLevelProgress.query.filter_by(
+    # Always update user progress (track attempts and best score even for losses)
+    progress = UserLevelProgress.query.filter_by(
+        user_id=user_id,
+        level_id=level.id
+    ).first()
+
+    if not progress:
+        progress = UserLevelProgress(
             user_id=user_id,
-            level_id=level.id
-        ).first()
+            level_id=level.id,
+            attempts_count=0,
+            best_score=0,
+            stars=0
+        )
+        db.session.add(progress)
 
-        if not progress:
-            progress = UserLevelProgress(
-                user_id=user_id,
-                level_id=level.id,
-                attempts_count=0,
-                best_score=0,
-                stars=0
-            )
-            db.session.add(progress)
+    progress.attempts_count += 1
 
-        progress.attempts_count += 1
+    if score > progress.best_score:
+        progress.best_score = score
 
-        if score > progress.best_score:
-            progress.best_score = score
-
+    if is_won:
         if stars > progress.stars:
             progress.stars = stars
 
         if not progress.completed_at:
             progress.completed_at = now_moscow()
 
-        # Update user's total score
-        user = User.query.get(user_id)
-        if user:
-            # Recalculate total score from all levels
-            total = db.session.query(
-                db.func.sum(UserLevelProgress.best_score)
-            ).filter(
-                UserLevelProgress.user_id == user_id
-            ).scalar() or 0
-            user.total_score = total
+    # Update user's total score
+    user = User.query.get(user_id)
+    if user:
+        total = db.session.query(
+            db.func.sum(UserLevelProgress.best_score)
+        ).filter(
+            UserLevelProgress.user_id == user_id
+        ).scalar() or 0
+        user.total_score = total
 
     db.session.commit()
 
     # Clean up Redis session
     delete_game_session(session_id)
 
-    # Invalidate leaderboard cache if score changed
-    if is_won:
-        invalidate_leaderboard()  # Clear all leaderboard caches
+    # Invalidate leaderboard cache (score may have changed)
+    invalidate_leaderboard()
 
     # Log activity
     log_activity(user_id, 'complete_game', {

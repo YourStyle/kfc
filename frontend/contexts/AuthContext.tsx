@@ -30,13 +30,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const { data, error } = await api.getMe();
-    if (data?.user) {
-      setUser(data.user);
-    } else {
+    try {
+      const { data, error } = await api.getMe();
+      if (data?.user) {
+        setUser(data.user);
+      } else {
+        api.setToken(null);
+      }
+    } catch (err) {
+      console.error('Auth check failed:', err);
       api.setToken(null);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const login = async (email: string, password: string) => {

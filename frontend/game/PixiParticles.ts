@@ -25,10 +25,10 @@ export class ParticleSystem {
   public emit(x: number, y: number, type: ItemType) {
     switch (type) {
       case 'drumstick':
-        this.emitFeathers(x, y);
+        this.emitCrispSparkles(x, y);
         break;
       case 'wing':
-        this.emitWingFeathers(x, y);
+        this.emitCrispCrumbs(x, y);
         break;
       case 'burger':
         this.emitBurgerParts(x, y);
@@ -53,18 +53,24 @@ export class ParticleSystem {
     }
   }
 
-  // Ножка — золотисто-коричневые перья
-  private emitFeathers(x: number, y: number) {
-    const featherColors = [0xD4A574, 0xC4956A, 0xE8C89E, 0xB8865A]; // Оттенки курочки
-    for (let i = 0; i < 6; i++) {
+  // Ножка — золотистые искры (хрустящая корочка)
+  private emitCrispSparkles(x: number, y: number) {
+    const sparkleColors = [0xFFD700, 0xFFA500, 0xE8C89E, 0xD4A574];
+    for (let i = 0; i < 7; i++) {
       const g = new Graphics();
-      const color = featherColors[Math.floor(Math.random() * featherColors.length)];
-      // Рисуем перо (эллипс с хвостиком)
-      g.ellipse(0, 0, 12, 5);
+      const color = sparkleColors[Math.floor(Math.random() * sparkleColors.length)];
+      // 4-конечная звёздочка-искра
+      const size = 6 + Math.random() * 4;
+      g.moveTo(0, -size);
+      g.lineTo(size * 0.3, -size * 0.3);
+      g.lineTo(size, 0);
+      g.lineTo(size * 0.3, size * 0.3);
+      g.lineTo(0, size);
+      g.lineTo(-size * 0.3, size * 0.3);
+      g.lineTo(-size, 0);
+      g.lineTo(-size * 0.3, -size * 0.3);
+      g.closePath();
       g.fill({ color });
-      g.moveTo(-12, 0);
-      g.lineTo(-18, 0);
-      g.stroke({ color, width: 2 });
 
       g.x = x;
       g.y = y;
@@ -72,16 +78,16 @@ export class ParticleSystem {
       this.container.addChild(g);
 
       const angle = Math.random() * Math.PI * 2;
-      const speed = 80 + Math.random() * 60;
+      const speed = 100 + Math.random() * 70;
 
       this.particles.push({
         graphics: g,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed - 100,
-        gravity: 60,
+        gravity: 200,
         life: 1,
-        maxLife: 1.2 + Math.random() * 0.4,
-        rotationSpeed: (Math.random() - 0.5) * 4,
+        maxLife: 0.8 + Math.random() * 0.4,
+        rotationSpeed: (Math.random() - 0.5) * 8,
         scaleDecay: 0.3
       });
     }
@@ -236,13 +242,15 @@ export class ParticleSystem {
     }
   }
 
-  // Крылышко — лёгкие золотые пёрышки (более мелкие, чем у ножки)
-  private emitWingFeathers(x: number, y: number) {
-    const colors = [0xE8C89E, 0xDEB887, 0xD2B48C, 0xC4956A];
+  // Крылышко — хрустящие крошки корочки
+  private emitCrispCrumbs(x: number, y: number) {
+    const colors = [0xE8C89E, 0xDEB887, 0xD2B48C, 0xC4956A, 0xFFD700];
     for (let i = 0; i < 8; i++) {
       const g = new Graphics();
       const color = colors[Math.floor(Math.random() * colors.length)];
-      g.ellipse(0, 0, 8, 3);
+      const w = 4 + Math.random() * 5;
+      const h = 3 + Math.random() * 3;
+      g.roundRect(-w / 2, -h / 2, w, h, 1.5);
       g.fill({ color });
 
       g.x = x;
@@ -251,17 +259,17 @@ export class ParticleSystem {
       this.container.addChild(g);
 
       const angle = Math.random() * Math.PI * 2;
-      const speed = 100 + Math.random() * 80;
+      const speed = 110 + Math.random() * 80;
 
       this.particles.push({
         graphics: g,
         vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 120,
-        gravity: 40,
+        vy: Math.sin(angle) * speed - 100,
+        gravity: 350,
         life: 1,
-        maxLife: 1.4 + Math.random() * 0.4,
-        rotationSpeed: (Math.random() - 0.5) * 6,
-        scaleDecay: 0.3
+        maxLife: 0.7 + Math.random() * 0.3,
+        rotationSpeed: (Math.random() - 0.5) * 10,
+        scaleDecay: 0.4
       });
     }
   }

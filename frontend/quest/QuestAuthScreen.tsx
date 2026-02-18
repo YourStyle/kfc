@@ -274,7 +274,7 @@ export function QuestAuthScreen() {
         className={`quest-auth-bg ${isVisible ? 'quest-auth-bg-visible' : ''}`}
         style={{
           ...styles.backgroundImage,
-          backgroundImage: `url(${basePath}images/loginbg.png)`,
+          backgroundImage: `url(${basePath}images/loginbg.webp)`,
         }}
       />
 
@@ -286,7 +286,7 @@ export function QuestAuthScreen() {
         <div style={styles.cornerBottomRight} />
 
         <div className="quest-auth-logo" style={styles.logoRow}>
-          <img src={`${basePath}images/logoRost.png`} alt="ROSTIC'S" style={styles.logoImg} />
+          <img src={`${basePath}images/logoRostics.png`} alt="ROSTIC'S" style={styles.logoImg} />
           <div style={styles.logoRowDivider} />
           <img src={`${basePath}images/logoMk.png`} alt="Музей Космонавтики" style={styles.logoMkImg} />
         </div>
@@ -601,7 +601,10 @@ const styles: Record<string, React.CSSProperties> = {
   logoMkImg: {
     width: 80,
     height: 'auto',
-    filter: 'drop-shadow(0 0 12px rgba(140,140,220,0.4)) brightness(2)',
+    filter: 'drop-shadow(0 0 12px rgba(140,140,220,0.4))',
+    background: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 6,
+    padding: 3,
   },
   form: {
     display: 'flex',
@@ -944,7 +947,7 @@ questAuthStyleSheet.textContent = `
   /* Mobile background for quest auth screen */
   @media (max-width: 500px) {
     .quest-auth-bg {
-      background-image: url('/images/loginbgmob.png') !important;
+      background-image: url('/images/loginbgmob.webp') !important;
     }
   }
 
@@ -1146,7 +1149,7 @@ export default QuestAuthScreen;
  * MOBILE RESPONSIVE:
  * - Max-width 480px on mobile
  * - Max-width 540px on tablet (768px-1024px)
- * - Mobile background image variant (loginbgmob.png)
+ * - Mobile background image variant (loginbgmob.webp)
  * - Touch-friendly 44px+ tap targets
  * - Large readable fonts (16px+ prevents iOS zoom)
  */

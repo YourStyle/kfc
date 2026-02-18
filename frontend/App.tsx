@@ -9,12 +9,14 @@ import { LevelSelectScreen } from './screens/LevelSelectScreen';
 import { LeaderboardScreen } from './screens/LeaderboardScreen';
 import { ProfileScreen } from './screens/ProfileScreen';
 import { RulesScreen } from './screens/RulesScreen';
+import { useTexts } from './contexts/TextsContext';
 import api, { Level } from './services/api';
 
 type Screen = 'landing' | 'levels' | 'game' | 'leaderboard' | 'profile' | 'rules';
 
 const AppContent: React.FC = () => {
   const { isAuthenticated, refreshUser, isLoading } = useAuth();
+  const { t } = useTexts();
   const gameRef = useRef<PixiGame | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [stats, setStats] = useState({
@@ -374,7 +376,7 @@ const AppContent: React.FC = () => {
       <div
         className="absolute inset-0 z-0"
         style={{
-          backgroundImage: `url(${basePath}images/gamebg.png)`,
+          backgroundImage: `url(${basePath}images/gamebg.webp)`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
@@ -410,7 +412,7 @@ const AppContent: React.FC = () => {
             {currentLevel ? currentLevel.name : 'Подготовка кухни...'}
           </h2>
           <p className="font-bold mb-8 uppercase tracking-widest text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
-            Загружаем сочные ассеты
+            {t('game.loading_text', 'Готовим космическое меню...')}
           </p>
         </div>
       )}

@@ -101,7 +101,7 @@ export function LeaderboardScreen({ onBack }: LeaderboardScreenProps) {
       {/* Background */}
       <div className="leaderboard-bg" style={{
         ...styles.backgroundImage,
-        backgroundImage: `url(${basePath}images/background.png)`,
+        backgroundImage: `url(${basePath}images/background.webp)`,
       }} />
 
       {/* Header */}
@@ -756,7 +756,7 @@ styleSheet.textContent = `
   /* Mobile background for leaderboard screen */
   @media (max-width: 500px) {
     .leaderboard-bg {
-      background-image: url('/images/backgroundmob.png') !important;
+      background-image: url('/images/backgroundmob.webp') !important;
     }
   }
 

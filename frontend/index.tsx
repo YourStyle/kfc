@@ -3,6 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { TextsProvider } from './contexts/TextsContext';
 import App from './App';
 import QuestApp from './quest/QuestApp';
 
@@ -14,15 +15,17 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/spacequest/*" element={<QuestApp />} />
-          <Route path="/match3/*" element={<App />} />
-          <Route path="/" element={<Navigate to="/match3" replace />} />
-          <Route path="*" element={<Navigate to="/match3" replace />} />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+    <TextsProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/spacequest/*" element={<QuestApp />} />
+            <Route path="/match3/*" element={<App />} />
+            <Route path="/" element={<Navigate to="/match3" replace />} />
+            <Route path="*" element={<Navigate to="/match3" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </TextsProvider>
   </React.StrictMode>
 );

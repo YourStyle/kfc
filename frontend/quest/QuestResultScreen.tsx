@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useTexts } from '../contexts/TextsContext';
 import api from '../services/api';
 import type { QuestResultData } from '../services/api';
 
 const QuestResultScreen: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTexts();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -168,7 +170,7 @@ const QuestResultScreen: React.FC = () => {
           <div className="corner-decoration bottom-left"></div>
           <div className="corner-decoration bottom-right"></div>
 
-          <h1 className="result-title">КВЕСТ ЗАВЕРШЕН</h1>
+          <h1 className="result-title">{t('quest.result_title', 'КВЕСТ ЗАВЕРШЕН')}</h1>
 
           {/* Score Display */}
           <div className="score-display">
@@ -311,7 +313,7 @@ const QuestResultScreen: React.FC = () => {
                     </>
                   )}
                 </button>
-                <p className="promo-hint">Используйте промокод в приложении ROSTIC'S</p>
+                <p className="promo-hint">{t('quest.promo_hint', "Используйте промокод в ресторанах Rostic's")}</p>
               </div>
             ) : (
               <button
@@ -336,8 +338,8 @@ const QuestResultScreen: React.FC = () => {
                 />
               </svg>
             </div>
-            <h3>Продолжайте стараться!</h3>
-            <p>Наберите минимум 120 баллов, чтобы получить промокод</p>
+            <h3>{t('quest.result_no_prize', 'Вы отлично справились!')}</h3>
+            <p>{t('quest.result_no_prize_hint', "Наберите 120 баллов или больше, чтобы получить промокод в ресторанах Rostic's")}</p>
             <p className="score-diff">Вам не хватило всего {120 - result.total_score} баллов</p>
           </div>
         )}
@@ -345,7 +347,7 @@ const QuestResultScreen: React.FC = () => {
         {/* Navigation Buttons */}
         <div className="navigation-buttons">
           <button onClick={() => navigate('/spacequest')} className="secondary-button">
-            Вернуться к квесту
+            {t('quest.btn_back', 'Вернуться к квесту')}
           </button>
           <button onClick={() => navigate('/match3')} className="primary-button game-link">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -364,19 +366,19 @@ const QuestResultScreen: React.FC = () => {
                 strokeLinejoin="round"
               />
             </svg>
-            Играть в ROSTIC'S Кухню
+            {t('quest.btn_game', "Играть в Rostic's Легенды космоса")}
           </button>
         </div>
 
         {/* Partner Logos */}
         <div className="quest-partner-logos">
-          <img src="/images/logoRost.png" alt="ROSTIC'S" className="quest-partner-logo-rost" />
+          <img src="/images/logoRostics.png" alt="ROSTIC'S" className="quest-partner-logo-rost" />
           <div className="quest-partner-divider"></div>
           <img src="/images/logoMk.png" alt="Музей Космонавтики" className="quest-partner-logo-mk" />
         </div>
 
         <div className="quest-copyright">
-          © Музей космонавтики, 2026 &nbsp;|&nbsp; © Юнирест
+          {t('quest.copyright', '© Музей космонавтики, 2026  |  © Юнирест')}
         </div>
       </div>
 
@@ -1044,7 +1046,10 @@ const QuestResultScreen: React.FC = () => {
         .quest-partner-logo-mk {
           width: 64px;
           height: auto;
-          filter: drop-shadow(0 0 10px rgba(140,140,220,0.3)) brightness(2);
+          filter: drop-shadow(0 0 10px rgba(140,140,220,0.3));
+          background: rgba(255, 255, 255, 0.9);
+          border-radius: 6px;
+          padding: 3px;
         }
 
         .quest-copyright {

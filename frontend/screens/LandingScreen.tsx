@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useTexts } from '../contexts/TextsContext';
 
 interface LandingScreenProps {
   onPlay: () => void;
@@ -8,6 +9,7 @@ interface LandingScreenProps {
 
 export function LandingScreen({ onPlay, onLogin }: LandingScreenProps) {
   const { isAuthenticated } = useAuth();
+  const { t } = useTexts();
   const [logoVisible, setLogoVisible] = useState(false);
   const [contentVisible, setContentVisible] = useState(false);
   const [buttonsVisible, setButtonsVisible] = useState(false);
@@ -27,7 +29,7 @@ export function LandingScreen({ onPlay, onLogin }: LandingScreenProps) {
         className="landing-bg"
         style={{
           ...styles.backgroundImage,
-          backgroundImage: `url(${basePath}images/loginbg.png)`,
+          backgroundImage: `url(${basePath}images/loginbg.webp)`,
         }}
       />
 
@@ -50,7 +52,7 @@ export function LandingScreen({ onPlay, onLogin }: LandingScreenProps) {
           <div style={styles.cornerBL} />
           <div style={styles.cornerBR} />
 
-          {/* Logo */}
+          {/* Logos */}
           <div
             style={{
               ...styles.logoContainer,
@@ -58,11 +60,11 @@ export function LandingScreen({ onPlay, onLogin }: LandingScreenProps) {
               transform: logoVisible ? 'translateY(0)' : 'translateY(-20px)',
             }}
           >
-            <img
-              src={`${basePath}images/logoRost.png`}
-              alt="ROSTIC'S КУХНЯ"
-              style={styles.logo}
-            />
+            <div style={styles.logosRow}>
+              <img src={`${basePath}images/logoRostics.png`} alt="ROSTIC'S" style={styles.logo} />
+              <div style={styles.logoDivider} />
+              <img src={`${basePath}images/logoMk.png`} alt="Музей Космонавтики" style={styles.logoMk} />
+            </div>
             <div className="logo-glow" style={styles.logoGlow} />
           </div>
 
@@ -81,10 +83,9 @@ export function LandingScreen({ onPlay, onLogin }: LandingScreenProps) {
               transform: contentVisible ? 'translateY(0)' : 'translateY(15px)',
             }}
           >
-            <h2 style={styles.tagline}>Космически вкусная игра</h2>
+            <h2 style={styles.tagline}>{t('game.title', 'Легенды космоса')}</h2>
             <p style={styles.description}>
-              Собирай комбо из любимых блюд, проходи уровни
-              и соревнуйся за призы в галактическом рейтинге!
+              {t('game.description', 'Собирай комбо из любимых блюд, проходи уровни и соревнуйся за призы в галактическом рейтинге!')}
             </p>
           </div>
 
@@ -105,7 +106,7 @@ export function LandingScreen({ onPlay, onLogin }: LandingScreenProps) {
             </div>
             <div className="feature-item" style={styles.feature}>
               <div className="feature-icon-float" style={{ ...styles.featureIcon, animationDelay: '1s' }}>
-                <img src={`${basePath}images/bucket.png`} alt="" style={styles.featureImg} />
+                <img src={`${basePath}images/sputnik.png`} alt="" style={styles.featureImg} />
               </div>
               <span style={styles.featureText}>Рейтинг</span>
             </div>
@@ -128,12 +129,12 @@ export function LandingScreen({ onPlay, onLogin }: LandingScreenProps) {
             {isAuthenticated ? (
               <button className="cta-button" style={styles.primaryButton} onClick={onPlay}>
                 <span style={styles.buttonIcon}>▶</span>
-                Продолжить игру
+                {t('game.btn_play', 'Продолжить игру')}
               </button>
             ) : (
               <button className="cta-button" style={styles.primaryButton} onClick={onLogin}>
                 <span style={styles.buttonIcon}>→</span>
-                Войти / Регистрация
+                {t('game.btn_login', 'Войти / Регистрация')}
               </button>
             )}
           </div>
@@ -146,7 +147,7 @@ export function LandingScreen({ onPlay, onLogin }: LandingScreenProps) {
             opacity: buttonsVisible ? 1 : 0,
           }}
         >
-          <span style={styles.footerText}>© 2026 ROSTIC'S. Все права защищены</span>
+          <span style={styles.footerText}>{t('game.copyright', "© 2026 ROSTIC'S. Все права защищены")}</span>
         </div>
       </div>
     </div>
@@ -266,12 +267,29 @@ const styles: Record<string, React.CSSProperties> = {
     transition: 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
     transitionDelay: '0.1s',
   },
+  logosRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+  },
   logo: {
-    width: 200,
-    height: 'auto',
+    height: 60,
+    width: 'auto',
     display: 'block',
-    margin: '0 auto',
     filter: 'drop-shadow(0 0 25px rgba(228, 0, 43, 0.5))',
+  },
+  logoDivider: {
+    width: 2,
+    height: 50,
+    background: 'linear-gradient(180deg, transparent, rgba(255,255,255,0.3), transparent)',
+  },
+  logoMk: {
+    height: 60,
+    width: 'auto',
+    background: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 10,
+    padding: 6,
   },
   logoGlow: {
     position: 'absolute',
@@ -507,7 +525,7 @@ styleSheet.textContent = `
   /* Mobile background */
   @media (max-width: 500px) {
     .landing-bg {
-      background-image: url('/images/loginbgmob.png') !important;
+      background-image: url('/images/loginbgmob.webp') !important;
     }
     .landing-card {
       padding: 32px 24px !important;

@@ -141,6 +141,7 @@ services:
     depends_on:
       - backend
       - admin
+      - landing
     networks:
       - rostics-network
     profiles:

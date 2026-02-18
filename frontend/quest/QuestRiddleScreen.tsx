@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Html5Qrcode } from 'html5-qrcode';
 import { useAuth } from '../contexts/AuthContext';
+import { useTexts } from '../contexts/TextsContext';
 import api from '../services/api';
 import QuestProgressBar from './QuestProgressBar';
 import type { QuestPageSummary, QuestProgressData } from '../services/api';
@@ -46,6 +47,7 @@ function loadQuestCache(): QuestCache | null {
 
 const QuestRiddleScreen: React.FC = () => {
   const { user } = useAuth();
+  const { t } = useTexts();
   const navigate = useNavigate();
 
   const [state, setState] = useState<ScreenState>('loading');
@@ -492,7 +494,7 @@ const QuestRiddleScreen: React.FC = () => {
           padding: 16px 24px;
           background: rgba(21, 21, 21, 0.8);
           border: 2px solid rgba(228, 0, 43, 0.5);
-          border-radius: 10px 24px 10px 24px;
+          border-radius: 14px;
           font-family: 'RosticsCeraPro', sans-serif;
           font-size: 18px;
           font-weight: 600;
@@ -955,10 +957,10 @@ const QuestRiddleScreen: React.FC = () => {
 
             <div className="button-group">
               <button className="btn-primary" onClick={startScanner}>
-                Сканировать QR
+                {t('quest.btn_scan', 'Сканировать QR')}
               </button>
               <button className="btn-secondary" onClick={showSkipConfirm}>
-                Пропустить
+                {t('quest.btn_skip', 'Пропустить')}
               </button>
             </div>
           </div>
@@ -1029,7 +1031,7 @@ const QuestRiddleScreen: React.FC = () => {
       {state === 'skip_confirm' && (
         <div className="modal-overlay" onClick={() => setState('riddle')}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3 className="modal-title">Пропустить загадку?</h3>
+            <h3 className="modal-title">{t('quest.skip_confirm_title', 'Пропустить загадку?')}</h3>
             <p className="modal-text">
               Баллы не начислятся
             </p>

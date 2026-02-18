@@ -6,8 +6,9 @@ from app.models.user_activity import UserActivity
 from app.models.quest_page import QuestPage
 from app.models.quest_progress import QuestProgress
 from app.models.promo_code import PromoCodePool, PromoCode
+from app.models.game_text import GameText
 
 __all__ = [
     'User', 'Level', 'UserLevelProgress', 'GameSession', 'UserActivity',
-    'QuestPage', 'QuestProgress', 'PromoCodePool', 'PromoCode',
+    'QuestPage', 'QuestProgress', 'PromoCodePool', 'PromoCode', 'GameText',
 ]

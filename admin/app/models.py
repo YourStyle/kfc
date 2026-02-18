@@ -242,3 +242,18 @@ class PromoCode(db.Model):
 
     def __repr__(self):
         return f'<PromoCode {self.code}>'
+
+
+class GameText(db.Model):
+    """Editable text content for game and quest UI"""
+    __tablename__ = 'game_texts'
+
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(100), unique=True, nullable=False)
+    section = db.Column(db.String(30), nullable=False)
+    label = db.Column(db.String(200), nullable=False)
+    value = db.Column(db.Text, nullable=False)
+    updated_at = db.Column(db.DateTime)
+
+    def __repr__(self):
+        return f'<GameText {self.key}>'
