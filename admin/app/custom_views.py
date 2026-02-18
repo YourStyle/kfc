@@ -1,5 +1,5 @@
 """Custom Russian admin views with consistent design"""
-from flask import Blueprint, render_template_string, redirect, url_for, request, flash
+from flask import Blueprint, render_template_string, redirect, url_for, request, flash, Response
 from flask_login import login_required, current_user
 from app import db
 from app.models import User, Level, UserLevelProgress, GameSession, UserActivity, AdminUser, GameText
@@ -937,9 +937,14 @@ def texts_list():
     sections = db.session.query(GameText.section).distinct().order_by(GameText.section).all()
     section_list = [s[0] for s in sections]
 
-    content = '''
+    export_section = f'?section={section_filter}' if section_filter else ''
+    content = f'''
     <div class="page-header">
         <h1 class="page-title"><i class="bi bi-fonts me-2"></i>Тексты игры и квеста</h1>
+        <div class="d-flex gap-2">
+            <a href="/admin/texts/export/csv{export_section}" class="btn btn-outline-success"><i class="bi bi-file-earmark-spreadsheet me-1"></i>CSV</a>
+            <a href="/admin/texts/export/json{export_section}" class="btn btn-outline-primary"><i class="bi bi-filetype-json me-1"></i>JSON</a>
+        </div>
     </div>
     <div class="card">
         <div class="card-header">
@@ -996,6 +1001,47 @@ def texts_list():
 
     content += '</tbody></table></div></div>'
     return render_page('Тексты', 'texts', content)
+
+
+@bp.route('/texts/export/<fmt>')
+@login_required
+def texts_export(fmt):
+    import csv
+    import io
+    import json as json_lib
+
+    section_filter = request.args.get('section', '')
+    query = GameText.query
+    if section_filter:
+        query = query.filter_by(section=section_filter)
+    texts = query.order_by(GameText.section, GameText.key).all()
+
+    suffix = f'_{section_filter}' if section_filter else ''
+
+    if fmt == 'json':
+        data = [
+            {'key': t.key, 'section': t.section, 'label': t.label, 'value': t.value}
+            for t in texts
+        ]
+        return Response(
+            json_lib.dumps(data, ensure_ascii=False, indent=2),
+            mimetype='application/json',
+            headers={'Content-Disposition': f'attachment; filename=texts{suffix}.json'}
+        )
+
+    # CSV with UTF-8 BOM for Excel compatibility
+    output = io.StringIO()
+    output.write('\ufeff')  # BOM for Excel
+    writer = csv.writer(output)
+    writer.writerow(['key', 'section', 'label', 'value'])
+    for t in texts:
+        writer.writerow([t.key, t.section, t.label, t.value])
+
+    return Response(
+        output.getvalue(),
+        mimetype='text/csv; charset=utf-8-sig',
+        headers={'Content-Disposition': f'attachment; filename=texts{suffix}.csv'}
+    )
 
 
 @bp.route('/texts/edit/<int:id>', methods=['GET', 'POST'])

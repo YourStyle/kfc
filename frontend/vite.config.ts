@@ -21,6 +21,16 @@ export default defineConfig(({ mode }) => {
           '@': path.resolve(__dirname, '.'),
         }
       },
+      build: {
+        rollupOptions: {
+          output: {
+            manualChunks: {
+              'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+              'vendor-pixi': ['pixi.js'],
+            }
+          }
+        }
+      },
       test: {
         globals: true,
         environment: 'happy-dom',
