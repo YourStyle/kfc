@@ -1,11 +1,12 @@
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { TextsProvider } from './contexts/TextsContext';
-import App from './App';
-import QuestApp from './quest/QuestApp';
+
+const App = React.lazy(() => import('./App'));
+const QuestApp = React.lazy(() => import('./quest/QuestApp'));
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -18,12 +19,14 @@ root.render(
     <TextsProvider>
       <AuthProvider>
         <BrowserRouter>
-          <Routes>
-            <Route path="/spacequest/*" element={<QuestApp />} />
-            <Route path="/match3/*" element={<App />} />
-            <Route path="/" element={<Navigate to="/match3" replace />} />
-            <Route path="*" element={<Navigate to="/match3" replace />} />
-          </Routes>
+          <Suspense fallback={null}>
+            <Routes>
+              <Route path="/spacequest/*" element={<QuestApp />} />
+              <Route path="/match3/*" element={<App />} />
+              <Route path="/" element={<Navigate to="/match3" replace />} />
+              <Route path="*" element={<Navigate to="/match3" replace />} />
+            </Routes>
+          </Suspense>
         </BrowserRouter>
       </AuthProvider>
     </TextsProvider>
