@@ -64,16 +64,16 @@ export function LevelSelectScreen({
       {/* Background Image - fixed full screen */}
       <div className="levels-bg" style={{
         ...styles.backgroundImage,
-        backgroundImage: `url(${basePath}images/background.png)`,
+        backgroundImage: `url(${basePath}images/background.webp)`,
       }} />
 
       {/* Fixed Logo at top */}
       <div style={styles.header}>
-        <img
-          src={`${basePath}images/logoRost.png`}
-          alt="ROSTIC'S КУХНЯ"
-          style={styles.logo}
-        />
+        <div style={styles.logosRow}>
+          <img src={`${basePath}images/logoRostics.png`} alt="ROSTIC'S" style={styles.logo} />
+          <div style={styles.logoDivider} />
+          <img src={`${basePath}images/logoMk.png`} alt="Музей Космонавтики" style={styles.logoMk} />
+        </div>
       </div>
 
       {/* Scrollable levels container in the middle */}
@@ -146,8 +146,8 @@ export function LevelSelectScreen({
                           <div className="bucket-container" style={styles.bucketContainer}>
                             <div className="bucket-glow" style={styles.bucketGlow} />
                             <img
-                              src={`${basePath}images/bucket.png`}
-                              alt="bucket"
+                              src={`${basePath}images/sputnik.png`}
+                              alt="Спутник"
                               style={styles.bucketImage}
                               className="bucket-float"
                             />
@@ -265,11 +265,27 @@ const styles: Record<string, React.CSSProperties> = {
     paddingTop: 15,
     paddingBottom: 10,
   },
+  logosRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
   logo: {
-    maxWidth: 240,
-    height: 'auto',
-    display: 'block',
-    margin: '0 auto',
+    height: 40,
+    width: 'auto',
+  },
+  logoDivider: {
+    width: 1,
+    height: 32,
+    background: 'linear-gradient(180deg, transparent, rgba(255,255,255,0.3), transparent)',
+  },
+  logoMk: {
+    height: 40,
+    width: 'auto',
+    background: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 8,
+    padding: 4,
   },
   levelsContainer: {
     position: 'absolute',
@@ -909,7 +925,7 @@ styleSheet.textContent = `
   /* Mobile background for levels screen */
   @media (max-width: 500px) {
     .levels-bg {
-      background-image: url('/images/backgroundmob.png') !important;
+      background-image: url('/images/backgroundmob.webp') !important;
     }
   }
 `;

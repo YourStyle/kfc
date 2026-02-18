@@ -44,6 +44,17 @@ const QuestScanHandler: React.FC = () => {
     setTimeout(() => setVisible(true), 100);
   }, []);
 
+  // Safety timeout: if auth loading takes too long, redirect to auth
+  useEffect(() => {
+    if (!authLoading) return;
+    const timeout = setTimeout(() => {
+      if (authLoading) {
+        setState('auth_required');
+      }
+    }, 5000);
+    return () => clearTimeout(timeout);
+  }, [authLoading]);
+
   useEffect(() => {
     if (authLoading) return;
     if (!isAuthenticated) {
@@ -90,7 +101,7 @@ const QuestScanHandler: React.FC = () => {
       <div style={styles.page}>
         <div className="quest-scan-bg" style={{
           ...styles.bg,
-          backgroundImage: `url(${basePath}images/loginbg.png)`,
+          backgroundImage: `url(${basePath}images/loginbg.webp)`,
         }} />
         <div style={styles.vignette} />
         <div style={styles.center}>
@@ -108,7 +119,7 @@ const QuestScanHandler: React.FC = () => {
   if (state === 'auth_required') {
     return (
       <div style={styles.page}>
-        <div className="quest-scan-bg" style={{ ...styles.bg, backgroundImage: `url(${basePath}images/loginbg.png)` }} />
+        <div className="quest-scan-bg" style={{ ...styles.bg, backgroundImage: `url(${basePath}images/loginbg.webp)` }} />
         <div style={styles.vignette} />
         <div style={styles.center}>
           <div className="quest-scan-card" style={{ ...styles.card, opacity: visible ? 1 : 0, transform: visible ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.95)' }}>
@@ -132,7 +143,7 @@ const QuestScanHandler: React.FC = () => {
   if (state === 'success' && result) {
     return (
       <div style={styles.page}>
-        <div className="quest-scan-bg" style={{ ...styles.bg, backgroundImage: `url(${basePath}images/loginbg.png)` }} />
+        <div className="quest-scan-bg" style={{ ...styles.bg, backgroundImage: `url(${basePath}images/loginbg.webp)` }} />
         <div style={styles.vignette} />
         <div style={styles.center}>
           <div className="quest-scan-card" style={{ ...styles.card, opacity: visible ? 1 : 0, transform: visible ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.95)' }}>
@@ -185,7 +196,7 @@ const QuestScanHandler: React.FC = () => {
   // Error
   return (
     <div style={styles.page}>
-      <div className="quest-scan-bg" style={{ ...styles.bg, backgroundImage: `url(${basePath}images/loginbg.png)` }} />
+      <div className="quest-scan-bg" style={{ ...styles.bg, backgroundImage: `url(${basePath}images/loginbg.webp)` }} />
       <div style={styles.vignette} />
       <div style={styles.center}>
         <div className="quest-scan-card quest-scan-shake" style={{ ...styles.card, opacity: visible ? 1 : 0, transform: visible ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.95)' }}>
@@ -490,7 +501,7 @@ if (!document.getElementById(scanStyleId)) {
 
     @media (max-width: 500px) {
       .quest-scan-bg {
-        background-image: url('/images/loginbgmob.png') !important;
+        background-image: url('/images/loginbgmob.webp') !important;
       }
       .quest-scan-card {
         padding: 28px 20px !important;

@@ -8,13 +8,15 @@ import QuestResultScreen from './QuestResultScreen';
 
 const QuestApp: React.FC = () => {
   return (
-    <Routes>
-      <Route path="/" element={<QuestStartScreen />} />
-      <Route path="/auth" element={<QuestAuthScreen />} />
-      <Route path="/play" element={<QuestRiddleScreen />} />
-      <Route path="/scan/:qrToken" element={<QuestScanHandler />} />
-      <Route path="/result" element={<QuestResultScreen />} />
-    </Routes>
+    <div style={{ overflowX: 'hidden', width: '100%', minHeight: '100vh' }}>
+      <Routes>
+        <Route path="/" element={<QuestStartScreen />} />
+        <Route path="/auth" element={<QuestAuthScreen />} />
+        <Route path="/play" element={<QuestRiddleScreen />} />
+        <Route path="/scan/:qrToken" element={<QuestScanHandler />} />
+        <Route path="/result" element={<QuestResultScreen />} />
+      </Routes>
+    </div>
   );
 };
 

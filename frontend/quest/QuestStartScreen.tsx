@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useTexts } from '../contexts/TextsContext';
 
 const QuestStartScreen: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTexts();
   const [logoVisible, setLogoVisible] = useState(false);
   const [contentVisible, setContentVisible] = useState(false);
   const [buttonsVisible, setButtonsVisible] = useState(false);
@@ -24,7 +26,7 @@ const QuestStartScreen: React.FC = () => {
     <div style={styles.container}>
       <div className="quest-start-bg" style={{
         ...styles.backgroundImage,
-        backgroundImage: `url(${basePath}images/loginbg.png)`,
+        backgroundImage: `url(${basePath}images/loginbg.webp)`,
       }} />
       <div style={styles.vignette} />
 
@@ -48,7 +50,7 @@ const QuestStartScreen: React.FC = () => {
               transform: logoVisible ? 'translateY(0)' : 'translateY(-20px)',
             }}>
               <div style={styles.logosRow}>
-                <img src={`${basePath}images/logoRost.png`} alt="ROSTIC'S" style={styles.logo} />
+                <img src={`${basePath}images/logoRostics.png`} alt="ROSTIC'S" style={styles.logo} />
                 <div style={styles.logoDivider} />
                 <img src={`${basePath}images/logoMk.png`} alt="Музей Космонавтики" style={styles.logoMk} />
               </div>
@@ -61,9 +63,9 @@ const QuestStartScreen: React.FC = () => {
               opacity: contentVisible ? 1 : 0,
               transform: contentVisible ? 'translateY(0)' : 'translateY(15px)',
             }}>
-              <h1 style={styles.title}>Космический Квест</h1>
+              <h1 style={styles.title}>{t('quest.title', 'Квест легенды космоса')}</h1>
               <p style={styles.description}>
-                Исследуйте музей, сканируйте QR&#8209;коды у экспонатов и зарабатывайте призы!
+                {t('quest.description', "Исследуйте Музей космонавтики, отгадывайте загадки у экспонатов и выигрывайте призы от ROSTIC'S!")}
               </p>
             </div>
 
@@ -99,10 +101,10 @@ const QuestStartScreen: React.FC = () => {
             </h2>
             <div style={styles.rulesList}>
               {[
-                'Прочитайте загадку на экране — она приведёт вас к нужному экспонату',
-                'Найдите QR-код рядом с экспонатом и отсканируйте его',
-                'За каждый верный скан — 10 баллов. Можно пропустить без штрафа',
-                'Наберите максимум баллов и получите промокод ROSTIC\'S!',
+                t('quest.rule_1', 'Прочитайте загадку на экране — она приведёт вас к нужному экспонату'),
+                t('quest.rule_2', 'Найдите QR-код рядом с экспонатом и отсканируйте его'),
+                t('quest.rule_3', 'За каждый верный скан — 10 баллов. Можно пропустить без штрафа'),
+                t('quest.rule_4', "Наберите максимум баллов и получите промокод ROSTIC'S!"),
               ].map((rule, i) => (
                 <div key={i} style={styles.ruleItem}>
                   <div style={styles.ruleNumber}>{i + 1}</div>
@@ -125,9 +127,9 @@ const QuestStartScreen: React.FC = () => {
             </h2>
             <div style={styles.prizesGrid}>
               {[
-                { pts: '200', label: 'Золото', reward: 'Скидка 15%', color: '#FFD700', bg: 'rgba(255, 215, 0, 0.12)' },
-                { pts: '160+', label: 'Серебро', reward: 'Скидка 10%', color: '#C0C0C0', bg: 'rgba(192, 192, 192, 0.1)' },
-                { pts: '120+', label: 'Бронза', reward: 'Пирожок за 1₽', color: '#CD7F32', bg: 'rgba(205, 127, 50, 0.1)' },
+                { pts: '200', label: 'Золото', reward: t('quest.prize_gold', "Скидка 15% в ресторанах Rostic's"), color: '#FFD700', bg: 'rgba(255, 215, 0, 0.12)' },
+                { pts: '160+', label: 'Серебро', reward: t('quest.prize_silver', "Скидка 10% в ресторанах Rostic's"), color: '#C0C0C0', bg: 'rgba(192, 192, 192, 0.1)' },
+                { pts: '120+', label: 'Бронза', reward: t('quest.prize_bronze', "Пирожок за 1₽ в ресторанах Rostic's"), color: '#CD7F32', bg: 'rgba(205, 127, 50, 0.1)' },
               ].map((tier, i) => (
                 <div key={i} className="quest-prize-card" style={{ ...styles.prizeCard, background: tier.bg, borderColor: `${tier.color}44` }} data-color={tier.color}>
                   <div>
@@ -148,7 +150,7 @@ const QuestStartScreen: React.FC = () => {
           }}>
             <button className="quest-cta-button" style={styles.primaryButton} onClick={handleStartQuest}>
               <span style={styles.buttonIcon}>→</span>
-              {user ? 'Продолжить квест' : 'Начать квест'}
+              {user ? t('quest.btn_continue', 'Продолжить квест') : t('quest.btn_start', 'Начать квест')}
             </button>
           </div>
 
@@ -157,7 +159,7 @@ const QuestStartScreen: React.FC = () => {
             opacity: buttonsVisible ? 1 : 0,
           }}>
             <span style={styles.footerText}>
-              {user ? `Добро пожаловать, ${user.username}!` : '© Музей космонавтики, 2026  |  © Юнирест'}
+              {user ? `Добро пожаловать, ${user.username}!` : t('quest.copyright', '© Музей космонавтики, 2026  |  © Юнирест')}
             </span>
           </div>
         </div>
@@ -212,10 +214,12 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '36px 32px 28px',
     width: '100%',
     maxWidth: 480,
+    boxSizing: 'border-box',
     border: '1px solid rgba(255,100,120,0.2)',
     boxShadow: '0 25px 60px rgba(0,0,0,0.5), 0 0 80px rgba(228,0,43,0.12), inset 0 1px 0 rgba(255,255,255,0.08)',
     transition: 'all 0.8s cubic-bezier(0.34,1.56,0.64,1)',
     textAlign: 'center',
+    overflow: 'hidden',
   },
   cornerTL: { position: 'absolute', top: -1, left: -1, width: 32, height: 32, borderTop: '3px solid rgba(255,120,140,0.7)', borderLeft: '3px solid rgba(255,120,140,0.7)', borderTopLeftRadius: 22, pointerEvents: 'none' },
   cornerTR: { position: 'absolute', top: -1, right: -1, width: 32, height: 32, borderTop: '3px solid rgba(255,120,140,0.7)', borderRight: '3px solid rgba(255,120,140,0.7)', borderTopRightRadius: 38, pointerEvents: 'none' },
@@ -246,7 +250,10 @@ const styles: Record<string, React.CSSProperties> = {
   logoMk: {
     width: 100,
     height: 'auto',
-    filter: 'drop-shadow(0 0 15px rgba(140,140,220,0.4)) brightness(2)',
+    filter: 'drop-shadow(0 0 15px rgba(140,140,220,0.4))',
+    background: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 6,
+    padding: 3,
   },
   logoGlow: {
     position: 'absolute',
@@ -326,10 +333,12 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '24px',
     width: '100%',
     maxWidth: 480,
+    boxSizing: 'border-box',
     border: '1px solid rgba(255,100,120,0.15)',
     boxShadow: '0 0 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)',
     transition: 'all 0.6s ease-out',
     textAlign: 'left',
+    overflow: 'hidden',
   },
   sectionTitle: {
     fontSize: 18,
@@ -427,6 +436,7 @@ const styles: Record<string, React.CSSProperties> = {
   ctaWrapper: {
     width: '100%',
     maxWidth: 480,
+    boxSizing: 'border-box',
     transition: 'all 0.6s ease-out',
     transitionDelay: '0.4s',
   },
@@ -532,7 +542,7 @@ if (!document.getElementById(questStartStyleId)) {
 
     @media (max-width: 500px) {
       .quest-start-bg {
-        background-image: url('/images/loginbgmob.png') !important;
+        background-image: url('/images/loginbgmob.webp') !important;
       }
       .quest-glass-card {
         padding: 28px 20px 24px !important;

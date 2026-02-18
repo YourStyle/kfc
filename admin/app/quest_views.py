@@ -1155,7 +1155,7 @@ def _generate_qr_svg(data: str) -> str:
 
 
 def _get_frontend_url() -> str:
-    return os.environ.get('FRONTEND_URL', 'https://yourstyle.github.io/kfc')
+    return os.environ.get('FRONTEND_URL', 'https://rosticslegends.ru')
 
 
 @bp.route('/qr-codes/')

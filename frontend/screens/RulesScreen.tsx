@@ -1,40 +1,42 @@
 import React from 'react';
+import { useTexts } from '../contexts/TextsContext';
 
 interface RulesScreenProps {
   onBack: () => void;
 }
 
 export function RulesScreen({ onBack }: RulesScreenProps) {
+  const { t } = useTexts();
   const basePath = import.meta.env.BASE_URL || '/';
 
   return (
     <div style={styles.container}>
       <div className="rules-bg" style={{
         ...styles.backgroundImage,
-        backgroundImage: `url(${basePath}images/background.png)`,
+        backgroundImage: `url(${basePath}images/background.webp)`,
       }} />
 
       <div style={styles.header}>
-        <h1 style={styles.title}>Правила игры</h1>
+        <h1 style={styles.title}>{t('rules.title', 'Правила игры')}</h1>
       </div>
 
       <div style={styles.contentContainer}>
         <div style={styles.contentPanel} className="hide-scrollbar">
           {/* How to Play */}
           <div style={styles.section}>
-            <h2 style={styles.sectionTitle}>🎮 Как играть</h2>
+            <h2 style={styles.sectionTitle}>🎮 {t('rules.how_to_play_title', 'Как играть')}</h2>
             <div style={styles.rulesList}>
               <div style={styles.rule}>
                 <span style={styles.ruleNumber}>1</span>
-                <p style={styles.ruleText}>Меняй местами соседние элементы, чтобы собрать 3 и более одинаковых в ряд</p>
+                <p style={styles.ruleText}>{t('rules.rule_1', 'Меняй местами соседние элементы, чтобы собрать 3 и более одинаковых в ряд')}</p>
               </div>
               <div style={styles.rule}>
                 <span style={styles.ruleNumber}>2</span>
-                <p style={styles.ruleText}>Совпавшие элементы исчезают, а сверху падают новые</p>
+                <p style={styles.ruleText}>{t('rules.rule_2', 'Совпавшие элементы исчезают, а сверху падают новые')}</p>
               </div>
               <div style={styles.rule}>
                 <span style={styles.ruleNumber}>3</span>
-                <p style={styles.ruleText}>Выполняй задание уровня до того, как закончатся ходы</p>
+                <p style={styles.ruleText}>{t('rules.rule_3', 'Выполняй задание уровня до того, как закончатся ходы')}</p>
               </div>
             </div>
           </div>
@@ -71,8 +73,7 @@ export function RulesScreen({ onBack }: RulesScreenProps) {
           <div style={styles.section}>
             <h2 style={styles.sectionTitle}>🎁 Призы</h2>
             <p style={styles.text}>
-              Лучшие игроки по итогам акции получат призы от ROSTIC'S!
-              Рейтинг разделён на два региона — следи за своим местом.
+              {t('rules.prizes_intro', "Лучшие игроки по итогам акции получат призы от Rostic's! Рейтинг разделён на два региона — следи за своим местом.")}
             </p>
           </div>
 
@@ -86,10 +87,9 @@ export function RulesScreen({ onBack }: RulesScreenProps) {
                   <span style={styles.prizePlaceText}>1–10 место</span>
                 </div>
                 <div style={styles.prizeDesc}>
-                  <strong style={styles.prizeTitle}>Встреча с космонавтом</strong>
+                  <strong style={styles.prizeTitle}>{t('rules.moscow_prize_1_title', 'Встреча с космонавтом')}</strong>
                   <p style={styles.prizeText}>
-                    Пригласительный билет на встречу с космонавтом Лавейкиным.
-                    Семейный билет: 1 взрослый + 1–2 ребёнка. Мерч-пакет вручается победителю.
+                    {t('rules.moscow_prize_1_text', 'Пригласительный билет на встречу с космонавтом А.И. Лавейкиным. Семейный билет: 1 взрослый + 1–2 ребёнка. Победитель также получает мерч-пакет.')}
                   </p>
                 </div>
               </div>
@@ -99,8 +99,8 @@ export function RulesScreen({ onBack }: RulesScreenProps) {
                   <span style={styles.prizePlaceText}>11–20 место</span>
                 </div>
                 <div style={styles.prizeDesc}>
-                  <strong style={styles.prizeTitle}>Промокод на скидку</strong>
-                  <p style={styles.prizeText}>Промокод на скидку ROSTIC'S</p>
+                  <strong style={styles.prizeTitle}>{t('rules.moscow_prize_2_title', 'Промокод на скидку')}</strong>
+                  <p style={styles.prizeText}>{t('rules.moscow_prize_2_text', "Промокод на скидку в ресторанах Rostic's")}</p>
                 </div>
               </div>
             </div>
@@ -116,8 +116,8 @@ export function RulesScreen({ onBack }: RulesScreenProps) {
                   <span style={styles.prizePlaceText}>1–10 место</span>
                 </div>
                 <div style={styles.prizeDesc}>
-                  <strong style={styles.prizeTitle}>Повышенная скидка</strong>
-                  <p style={styles.prizeText}>Промокод с повышенной скидкой (QR-код)</p>
+                  <strong style={styles.prizeTitle}>{t('rules.region_prize_1_title', 'Повышенная скидка')}</strong>
+                  <p style={styles.prizeText}>{t('rules.region_prize_1_text', "Промокод с повышенной скидкой в ресторанах Rostic's")}</p>
                 </div>
               </div>
               <div style={styles.prizeItem}>
@@ -126,12 +126,32 @@ export function RulesScreen({ onBack }: RulesScreenProps) {
                   <span style={styles.prizePlaceText}>11–20 место</span>
                 </div>
                 <div style={styles.prizeDesc}>
-                  <strong style={styles.prizeTitle}>Промокод на скидку</strong>
-                  <p style={styles.prizeText}>Промокод на скидку ROSTIC'S (QR-код)</p>
+                  <strong style={styles.prizeTitle}>{t('rules.region_prize_2_title', 'Промокод на скидку')}</strong>
+                  <p style={styles.prizeText}>{t('rules.region_prize_2_text', "Промокод на скидку в ресторанах Rostic's")}</p>
                 </div>
               </div>
             </div>
           </div>
+
+          {/* Full rules link */}
+          <div style={styles.section}>
+            <p style={styles.text}>
+              Полный текст правил акции доступен по{' '}
+              <a
+                href="https://rostics.ru/promo/legends-rules"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={styles.rulesLink}
+              >
+                ссылке
+              </a>
+            </p>
+          </div>
+
+          {/* Back button */}
+          <button onClick={onBack} style={styles.backButton}>
+            В меню
+          </button>
         </div>
       </div>
     </div>
@@ -355,6 +375,27 @@ const styles: Record<string, React.CSSProperties> = {
     fontFamily: "'RosticsCeraPro', sans-serif",
     fontWeight: 500,
   },
+  rulesLink: {
+    color: '#ED1C29',
+    textDecoration: 'underline',
+    fontWeight: 600,
+  },
+  backButton: {
+    width: '100%',
+    padding: '14px 0',
+    background: 'linear-gradient(135deg, #ED1C29 0%, #C41622 100%)',
+    color: '#fff',
+    border: 'none',
+    borderRadius: 12,
+    fontSize: 17,
+    fontWeight: 700,
+    fontFamily: "'RosticsCeraPro', sans-serif",
+    cursor: 'pointer',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    boxShadow: '0 4px 20px rgba(228, 0, 43, 0.4)',
+    flexShrink: 0,
+  },
 };
 
 // Add font import
@@ -365,7 +406,7 @@ rulesStyleSheet.textContent = `
   /* Mobile background for rules screen */
   @media (max-width: 500px) {
     .rules-bg {
-      background-image: url('/images/backgroundmob.png') !important;
+      background-image: url('/images/backgroundmob.webp') !important;
     }
   }
 `;
