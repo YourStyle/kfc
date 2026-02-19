@@ -4,6 +4,7 @@ from flask_migrate import Migrate
 from flask_cors import CORS
 from flask_mail import Mail
 from flask_jwt_extended import JWTManager
+from werkzeug.middleware.proxy_fix import ProxyFix
 from prometheus_flask_exporter import PrometheusMetrics
 import redis
 import os
@@ -18,6 +19,9 @@ redis_client = None
 
 def create_app():
     app = Flask(__name__)
+
+    # Trust X-Forwarded-For from nginx reverse proxy
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
     # Configuration
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key')
