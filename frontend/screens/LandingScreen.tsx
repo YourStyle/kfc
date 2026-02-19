@@ -100,19 +100,19 @@ export function LandingScreen({ onPlay, onLogin }: LandingScreenProps) {
           >
             <div className="feature-item" style={styles.feature}>
               <div className="feature-icon-float" style={{ ...styles.featureIcon, animationDelay: '0s' }}>
-                <img src={`${basePath}images/drumstick.png`} alt="" style={styles.featureImg} />
+                <img src={`${basePath}images/drumstick.webp`} alt="" style={styles.featureImg} />
               </div>
               <span style={styles.featureText}>Уровни</span>
             </div>
             <div className="feature-item" style={styles.feature}>
               <div className="feature-icon-float" style={{ ...styles.featureIcon, animationDelay: '1s' }}>
-                <img src={`${basePath}images/sputnik.png`} alt="" style={styles.featureImg} />
+                <img src={`${basePath}images/sputnik.webp`} alt="" style={styles.featureImg} />
               </div>
               <span style={styles.featureText}>Рейтинг</span>
             </div>
             <div className="feature-item" style={styles.feature}>
               <div className="feature-icon-float" style={{ ...styles.featureIcon, animationDelay: '2s' }}>
-                <img src={`${basePath}images/burger.png`} alt="" style={styles.featureImg} />
+                <img src={`${basePath}images/burger.webp`} alt="" style={styles.featureImg} />
               </div>
               <span style={styles.featureText}>Призы</span>
             </div>
@@ -274,22 +274,20 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 16,
   },
   logo: {
-    height: 60,
+    height: 70,
     width: 'auto',
     display: 'block',
     filter: 'drop-shadow(0 0 25px rgba(228, 0, 43, 0.5))',
   },
   logoDivider: {
     width: 2,
-    height: 50,
+    height: 55,
     background: 'linear-gradient(180deg, transparent, rgba(255,255,255,0.3), transparent)',
   },
   logoMk: {
-    height: 60,
+    height: 70,
     width: 'auto',
-    background: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 10,
-    padding: 6,
+    filter: 'drop-shadow(0 0 15px rgba(120, 112, 255, 0.4))',
   },
   logoGlow: {
     position: 'absolute',

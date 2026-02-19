@@ -166,7 +166,7 @@ export class PixiGame {
 
     for (const type of [...ITEM_TYPES, ...FIGURINE_TYPES]) {
       try {
-        const path = `${basePath}images/${type}.png`;
+        const path = `${basePath}images/${type}.webp`;
         this.textures[type] = await Assets.load(path);
       } catch {
         // Fallback: generate texture from emoji for items without PNG
@@ -872,6 +872,12 @@ export class PixiGame {
         // 3. Спавн новых тайлов сверху
         const filled = await this.fillFromTop();
         if (filled) hasMovement = true;
+
+        // 4. Фоллбэк: спавн в изолированные пустые ячейки (за препятствиями)
+        if (!hasMovement) {
+          const spawned = await this.fillIsolatedEmpty();
+          if (spawned) hasMovement = true;
+        }
       }
 
       // Ищем новые совпадения
@@ -1014,7 +1020,8 @@ export class PixiGame {
         await this.dropTiles();
         const pulled = await this.horizontalPull();
         const filled = await this.fillFromTop();
-        if (pulled || filled) hasEmpty = true;
+        const spawned = await this.fillIsolatedEmpty();
+        if (pulled || filled || spawned) hasEmpty = true;
       }
 
     } while (!this.findValidMove() && attempts < maxAttempts);
@@ -1447,6 +1454,53 @@ export class PixiGame {
             });
           })
         );
+      }
+    }
+
+    await Promise.all(animations);
+    return hasFilled;
+  }
+
+  /**
+   * Fallback: spawn new tiles in empty cells that can't be reached by
+   * gravity, horizontal pull, or top-fill (isolated behind obstacles).
+   */
+  private async fillIsolatedEmpty(): Promise<boolean> {
+    const animations: Promise<void>[] = [];
+    let hasFilled = false;
+
+    for (let row = 0; row < this.gridSize; row++) {
+      for (let col = 0; col < this.gridSize; col++) {
+        if (this.grid[row][col] === null) {
+          hasFilled = true;
+          const type = this.getSmartRandomType(row, col);
+          const tile = this.createTile(type, row, col);
+          this.grid[row][col] = tile;
+
+          tile.container.alpha = 0;
+          tile.container.scale.set(0.3);
+          const targetY = row * this.tileSize + this.tileSize / 2;
+          tile.container.y = targetY;
+
+          animations.push(
+            new Promise((resolve) => {
+              gsap.to(tile.container, {
+                alpha: 1,
+                duration: 0.2,
+              });
+              gsap.to(tile.container.scale, {
+                x: 1,
+                y: 1,
+                duration: 0.3,
+                ease: 'back.out(1.7)',
+                onComplete: () => {
+                  this.startFloatingAnimation(tile);
+                  resolve();
+                },
+              });
+            })
+          );
+        }
       }
     }
 
