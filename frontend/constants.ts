@@ -1,7 +1,7 @@
 
 import { ItemType } from './types';
 
-export const GAME_URL = 'https://yourstyle.github.io/kfc/';
+export const GAME_URL = 'https://rosticslegends.ru/match3';
 
 export const GRID_SIZE = 8;
 export const TILE_SIZE = 64;
