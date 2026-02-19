@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api, { LevelWithProgress, Level } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { useTexts } from '../contexts/TextsContext';
 import { LockIcon } from '../components/Icons';
 
 interface LevelSelectScreenProps {
@@ -17,11 +18,25 @@ const getDifficultyConfig = (order: number) => {
   return { label: 'СЛОЖНО', color: '#FF3366', glow: 'rgba(255, 51, 102, 0.5)' };
 };
 
+// Unique icon per level (so each card has a distinct image)
+const LEVEL_ICONS: Record<number, string> = {
+  1: 'drumstick',
+  2: 'burger',
+  3: 'fries',
+  4: 'wing',
+  5: 'ice_cream',
+};
+
+function getLevelIcon(level: LevelWithProgress): string {
+  return LEVEL_ICONS[level.order] || 'drumstick';
+}
+
 export function LevelSelectScreen({
   onSelectLevel,
   onShowAuth,
 }: LevelSelectScreenProps) {
   const { isAuthenticated } = useAuth();
+  const { t } = useTexts();
   const [levels, setLevels] = useState<LevelWithProgress[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loaded, setLoaded] = useState(false);
@@ -136,7 +151,7 @@ export function LevelSelectScreen({
                         {/* Название и картинка */}
                         <div style={styles.cardBody}>
                           <div style={styles.levelInfo}>
-                            <div style={styles.levelName}>{level.name}</div>
+                            <div style={styles.levelName}>{t(`level.name.${level.order}`, level.name)}</div>
                             {completed && (
                               <div style={styles.completedTag}>
                                 <span style={styles.checkIcon}>✓</span> ПРОЙДЕН
@@ -146,8 +161,8 @@ export function LevelSelectScreen({
                           <div className="bucket-container" style={styles.bucketContainer}>
                             <div className="bucket-glow" style={styles.bucketGlow} />
                             <img
-                              src={`${basePath}images/sputnik.png`}
-                              alt="Спутник"
+                              src={`${basePath}images/${getLevelIcon(level)}.png`}
+                              alt={level.name}
                               style={styles.bucketImage}
                               className="bucket-float"
                             />
