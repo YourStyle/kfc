@@ -1,4 +1,5 @@
-"""Update levels 3-5 with more obstacles and better names, add level names to game_texts
+"""Update levels 3-5 with more obstacles and better names, add level names to game_texts,
+increase item variety per level.
 
 Revision ID: 007_level_updates
 Revises: 006_translate_names
@@ -22,7 +23,7 @@ LEVEL_NAMES = {
     5: 'Миссия шефа',
 }
 
-# New obstacle layouts for levels 3-5 (more challenging but no isolated sections)
+# New obstacle layouts for levels 3-5
 LEVEL_OBSTACLES = {
     3: [
         # Scattered pattern — 6 obstacles, max 1 per column (no trapping)
@@ -34,31 +35,38 @@ LEVEL_OBSTACLES = {
         {"row": 5, "col": 2},
     ],
     4: [
-        # Corner L-shapes + center cross — 16 obstacles (was 12)
+        # Edge corner L-shapes — 12 obstacles (no center, corners at actual grid edges)
         # Top-left corner
-        {"row": 1, "col": 1}, {"row": 2, "col": 1}, {"row": 1, "col": 2},
+        {"row": 0, "col": 0}, {"row": 0, "col": 1}, {"row": 1, "col": 0},
         # Top-right corner
-        {"row": 1, "col": 5}, {"row": 2, "col": 5}, {"row": 1, "col": 4},
+        {"row": 0, "col": 5}, {"row": 0, "col": 6}, {"row": 1, "col": 6},
         # Bottom-left corner
-        {"row": 5, "col": 1}, {"row": 4, "col": 1}, {"row": 5, "col": 2},
+        {"row": 5, "col": 0}, {"row": 6, "col": 0}, {"row": 6, "col": 1},
         # Bottom-right corner
-        {"row": 5, "col": 5}, {"row": 4, "col": 5}, {"row": 5, "col": 4},
-        # Center cross
-        {"row": 2, "col": 3}, {"row": 3, "col": 2},
-        {"row": 3, "col": 4}, {"row": 4, "col": 3},
+        {"row": 5, "col": 6}, {"row": 6, "col": 5}, {"row": 6, "col": 6},
     ],
     5: [
-        # Frame pattern — 14 obstacles (was 10)
-        # Top row inner frame
-        {"row": 1, "col": 1}, {"row": 1, "col": 2}, {"row": 1, "col": 4}, {"row": 1, "col": 5},
-        # Middle barriers
-        {"row": 2, "col": 3},
-        {"row": 3, "col": 0}, {"row": 3, "col": 3}, {"row": 3, "col": 6},
-        {"row": 4, "col": 3},
-        # Bottom row inner frame
-        {"row": 5, "col": 1}, {"row": 5, "col": 2}, {"row": 5, "col": 3},
-        {"row": 5, "col": 4}, {"row": 5, "col": 5},
+        # Symmetric corridor — 12 obstacles (top/bottom rows + side pinch)
+        # Top row
+        {"row": 0, "col": 1}, {"row": 0, "col": 3}, {"row": 0, "col": 5},
+        # Side pinch upper
+        {"row": 1, "col": 0}, {"row": 1, "col": 6},
+        # Middle pinch
+        {"row": 3, "col": 1}, {"row": 3, "col": 5},
+        # Side pinch lower
+        {"row": 5, "col": 0}, {"row": 5, "col": 6},
+        # Bottom row
+        {"row": 6, "col": 1}, {"row": 6, "col": 3}, {"row": 6, "col": 5},
     ],
+}
+
+# Item type variety per level (more types = harder to match)
+LEVEL_ITEM_TYPES = {
+    1: ["drumstick", "wing", "burger", "fries", "bucket"],
+    2: ["drumstick", "wing", "burger", "fries", "bucket", "ice_cream"],
+    3: ["drumstick", "wing", "burger", "fries", "bucket", "ice_cream"],
+    4: ["drumstick", "wing", "burger", "fries", "bucket", "ice_cream", "cappuccino"],
+    5: ["drumstick", "wing", "burger", "fries", "bucket", "ice_cream", "cappuccino"],
 }
 
 # Level name texts to add to game_texts for admin editing
@@ -90,6 +98,15 @@ def upgrade():
         ), {'obstacles': obstacles_json, 'order': order})
         if result.rowcount > 0:
             print(f"  Level {order}: updated obstacles ({len(obstacles)} cells)")
+
+    # Update item types for all levels
+    for order, item_types in LEVEL_ITEM_TYPES.items():
+        item_types_json = json.dumps(item_types)
+        result = conn.execute(text(
+            "UPDATE levels SET item_types = :item_types WHERE \"order\" = :order"
+        ), {'item_types': item_types_json, 'order': order})
+        if result.rowcount > 0:
+            print(f"  Level {order}: updated item_types ({len(item_types)} types)")
 
     # Add level name texts to game_texts (if table exists)
     table_check = conn.execute(text(
@@ -143,6 +160,13 @@ def downgrade():
         conn.execute(text(
             "UPDATE levels SET obstacles = :obstacles WHERE \"order\" = :order"
         ), {'obstacles': json.dumps(obstacles), 'order': order})
+
+    # Revert item types to original (all 8 types for every level)
+    all_types = json.dumps(["drumstick", "wing", "burger", "fries", "bucket", "ice_cream", "donut", "cappuccino"])
+    for order in range(1, 6):
+        conn.execute(text(
+            "UPDATE levels SET item_types = :item_types WHERE \"order\" = :order"
+        ), {'item_types': all_types, 'order': order})
 
     # Remove added texts
     for key, _, _, _ in LEVEL_TEXT_ENTRIES:

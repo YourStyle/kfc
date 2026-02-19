@@ -374,7 +374,7 @@ const AppContent: React.FC = () => {
     <div className="relative w-full h-screen flex items-center justify-center overflow-hidden font-['RosticsCeraCondensed']" style={{ background: '#0a0f1e' }}>
       {/* Game background with darkening overlay */}
       <div
-        className="absolute inset-0 z-0"
+        className="absolute inset-0 z-0 game-bg"
         style={{
           backgroundImage: `url(${basePath}images/gamebg.webp)`,
           backgroundSize: 'cover',
@@ -382,6 +382,13 @@ const AppContent: React.FC = () => {
           backgroundRepeat: 'no-repeat',
         }}
       />
+      <style>{`
+        @media (max-width: 768px) {
+          .game-bg {
+            background-image: url('${basePath}images/gamebgmob.webp') !important;
+          }
+        }
+      `}</style>
       {/* Darkening layer */}
       <div className="absolute inset-0 z-0" style={{ background: 'rgba(0, 0, 0, 0.55)' }} />
       {/* Edge glow - top */}

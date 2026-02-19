@@ -18,6 +18,9 @@ const QuestResultScreen: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [animatedScore, setAnimatedScore] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [email, setEmail] = useState(user?.email || '');
+  const [emailSent, setEmailSent] = useState(false);
+  const [emailSending, setEmailSending] = useState(false);
   const rafRef = useRef<number>(0);
 
   // Load quest results on mount
@@ -58,9 +61,17 @@ const QuestResultScreen: React.FC = () => {
         };
         rafRef.current = requestAnimationFrame(tick);
 
-        // Check if promo code already claimed
+        // Auto-claim promo code if eligible
         if (data.claimed_code) {
           setPromoCode(data.claimed_code);
+        } else if (data.total_score >= 120) {
+          // Automatically claim promo code
+          try {
+            const promoResult = await api.claimPromoCode();
+            if (promoResult.data?.code) {
+              setPromoCode(promoResult.data.code);
+            }
+          } catch {}
         }
       } catch (err: any) {
         setError(err.message || 'Не удалось загрузить результаты');
@@ -100,6 +111,23 @@ const QuestResultScreen: React.FC = () => {
       alert(err.message || 'Не удалось получить промокод');
     } finally {
       setClaiming(false);
+    }
+  };
+
+  const handleSendPromoEmail = async () => {
+    if (!email || !promoCode || emailSending) return;
+    try {
+      setEmailSending(true);
+      const { error: apiError } = await api.sendPromoToEmail(email, promoCode);
+      if (apiError) {
+        alert(apiError);
+      } else {
+        setEmailSent(true);
+      }
+    } catch {
+      alert('Не удалось отправить письмо');
+    } finally {
+      setEmailSending(false);
     }
   };
 
@@ -281,49 +309,50 @@ const QuestResultScreen: React.FC = () => {
                   {copied ? (
                     <>
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <path
-                          d="M20 6L9 17L4 12"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
+                        <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                       Скопировано!
                     </>
                   ) : (
                     <>
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <rect
-                          x="9"
-                          y="9"
-                          width="13"
-                          height="13"
-                          rx="2"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        />
-                        <path
-                          d="M5 15H4C2.89543 15 2 14.1046 2 13V4C2 2.89543 2.89543 2 4 2H13C14.1046 2 15 2.89543 15 4V5"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        />
+                        <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" strokeWidth="2" />
+                        <path d="M5 15H4C2.89543 15 2 14.1046 2 13V4C2 2.89543 2.89543 2 4 2H13C14.1046 2 15 2.89543 15 4V5" stroke="currentColor" strokeWidth="2" />
                       </svg>
                       Скопировать
                     </>
                   )}
                 </button>
                 <p className="promo-hint">{t('quest.promo_hint', "Используйте промокод в ресторанах Rostic's")}</p>
+
+                {/* Optional email send */}
+                <div className="email-send-section">
+                  <div className="email-send-label">Отправить промокод на почту</div>
+                  {emailSent ? (
+                    <div className="email-sent-msg">Промокод отправлен на {email}</div>
+                  ) : (
+                    <div className="email-send-row">
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Введите email"
+                        className="email-input"
+                      />
+                      <button
+                        onClick={handleSendPromoEmail}
+                        disabled={emailSending || !email}
+                        className="email-send-btn"
+                      >
+                        {emailSending ? '...' : 'Отправить'}
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-            ) : (
-              <button
-                onClick={handleClaimPromo}
-                disabled={claiming}
-                className="claim-button primary-button"
-              >
-                {claiming ? 'Получение...' : 'Получить промокод'}
-              </button>
-            )}
+            ) : claiming ? (
+              <div className="promo-loading">Загружаем промокод...</div>
+            ) : null}
           </div>
         ) : (
           <div className="no-prize-section">
@@ -889,6 +918,83 @@ const QuestResultScreen: React.FC = () => {
           font-size: 12px;
           color: rgba(255, 255, 255, 0.5);
           margin: 0;
+        }
+
+        /* Email send section */
+        .email-send-section {
+          margin-top: 20px;
+          padding-top: 16px;
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .email-send-label {
+          font-family: 'RosticsCeraPro', sans-serif;
+          font-size: 13px;
+          color: rgba(255, 255, 255, 0.6);
+          margin-bottom: 10px;
+        }
+
+        .email-send-row {
+          display: flex;
+          gap: 8px;
+        }
+
+        .email-input {
+          flex: 1;
+          font-family: 'RosticsCeraPro', sans-serif;
+          font-size: 14px;
+          padding: 10px 14px;
+          border-radius: 8px;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          background: rgba(255, 255, 255, 0.05);
+          color: #fff;
+          outline: none;
+          transition: border-color 0.2s;
+        }
+
+        .email-input::placeholder {
+          color: rgba(255, 255, 255, 0.3);
+        }
+
+        .email-input:focus {
+          border-color: #ED1C29;
+        }
+
+        .email-send-btn {
+          font-family: 'RosticsCeraPro', sans-serif;
+          font-size: 14px;
+          font-weight: 600;
+          padding: 10px 20px;
+          border-radius: 8px;
+          border: none;
+          background: #ED1C29;
+          color: #fff;
+          cursor: pointer;
+          white-space: nowrap;
+          transition: opacity 0.2s;
+        }
+
+        .email-send-btn:hover {
+          opacity: 0.9;
+        }
+
+        .email-send-btn:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
+
+        .email-sent-msg {
+          font-family: 'RosticsCeraPro', sans-serif;
+          font-size: 14px;
+          color: #4caf50;
+          padding: 10px 0;
+        }
+
+        .promo-loading {
+          font-family: 'RosticsCeraPro', sans-serif;
+          font-size: 14px;
+          color: rgba(255, 255, 255, 0.6);
+          padding: 16px 0;
         }
 
         /* No Prize Section */

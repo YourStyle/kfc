@@ -161,7 +161,7 @@ export function LevelSelectScreen({
                           <div className="bucket-container" style={styles.bucketContainer}>
                             <div className="bucket-glow" style={styles.bucketGlow} />
                             <img
-                              src={`${basePath}images/${getLevelIcon(level)}.png`}
+                              src={`${basePath}images/${getLevelIcon(level)}.webp`}
                               alt={level.name}
                               style={styles.bucketImage}
                               className="bucket-float"

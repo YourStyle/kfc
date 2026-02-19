@@ -245,7 +245,7 @@ const Overlay: React.FC<OverlayProps> = ({ score, moves, collected, isGameOver, 
           ...(isShaking ? styles.statCardShaking : {}),
         }}>
           <img
-            src={`${import.meta.env.BASE_URL}images/sputnik.png`}
+            src={`${import.meta.env.BASE_URL}images/sputnik.webp`}
             alt="Собрано"
             style={{
               ...styles.bucketImage,
@@ -1055,7 +1055,7 @@ export const FigurineModal: React.FC<{ type: string; onDismiss: () => void }> = 
         <div className="figurine-image-float" style={figurineStyles.imageContainer}>
           <div className="figurine-glow" style={figurineStyles.imageGlow} />
           <img
-            src={`${basePath}images/${type}.png`}
+            src={`${basePath}images/${type}.webp`}
             alt={info.name}
             style={figurineStyles.image}
           />

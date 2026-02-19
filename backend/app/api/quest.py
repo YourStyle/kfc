@@ -7,6 +7,7 @@ from app.models.quest_progress import QuestProgress
 from app.models.promo_code import PromoCodePool, PromoCode
 from app.models.user_activity import log_activity
 from app.utils.timezone import now_moscow
+from app.services.email import send_promo_email
 
 bp = Blueprint('quest', __name__)
 
@@ -323,3 +324,37 @@ def claim_promo():
         'tier': eligible_pool.tier,
         'discount_label': eligible_pool.discount_label,
     })
+
+
+@bp.route('/send-promo-email', methods=['POST'])
+@jwt_required()
+def send_promo_email_endpoint():
+    """Send the user's claimed promo code to a given email address."""
+    user_id = get_jwt_identity()
+    data = request.get_json()
+    email = (data.get('email') or '').strip()
+
+    if not email or '@' not in email:
+        return jsonify({'error': 'Введите корректный email'}), 400
+
+    # Verify user has a claimed promo code
+    existing_claim = PromoCode.query.filter_by(used_by_user_id=user_id).first()
+    if not existing_claim:
+        return jsonify({'error': 'У вас нет промокода'}), 400
+
+    try:
+        send_promo_email(
+            email=email,
+            code=existing_claim.code,
+            tier=existing_claim.pool.tier if existing_claim.pool else '',
+            discount_label=existing_claim.pool.discount_label if existing_claim.pool else '',
+        )
+    except Exception as e:
+        return jsonify({'error': 'Не удалось отправить письмо'}), 500
+
+    log_activity(user_id, 'quest_promo_email', {
+        'email': email,
+        'code': existing_claim.code,
+    }, request)
+
+    return jsonify({'message': 'Промокод отправлен на ' + email})
