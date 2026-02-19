@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { PixiGame } from './game/PixiGame';
 import Overlay, { FigurineModal } from './components/Overlay';
 import { BottomNav } from './components/BottomNav';
@@ -30,8 +30,8 @@ const AppContent: React.FC = () => {
   const [screen, setScreen] = useState<Screen>('landing');
   const [showAuth, setShowAuth] = useState(false);
   const [currentLevel, setCurrentLevel] = useState<Level | null>(null);
-  const [sessionId, setSessionId] = useState<number | null>(null);
-  const [gameStartTime, setGameStartTime] = useState<number>(0);
+  const sessionIdRef = useRef<number | null>(null);
+  const gameStartTimeRef = useRef<number>(0);
   const [earnedStars, setEarnedStars] = useState(0);
   const [levels, setLevels] = useState<Level[]>([]);
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
@@ -184,15 +184,15 @@ const AppContent: React.FC = () => {
     const stars = completion.isWon ? calculateStars(gameStats.score, currentLevel?.targets) : 0;
     setEarnedStars(stars);
 
-    if (isAuthenticated && sessionId && currentLevel) {
-      const duration = Math.floor((Date.now() - gameStartTime) / 1000);
+    if (isAuthenticated && sessionIdRef.current && currentLevel) {
+      const duration = Math.floor((Date.now() - gameStartTimeRef.current) / 1000);
       const movesUsed = currentLevel.max_moves - gameStats.moves;
       // targets_met contains all collected items
       const targetsMet = {
         collect: gameStats.collected
       };
       await api.completeGame(
-        sessionId,
+        sessionIdRef.current,
         gameStats.score,
         movesUsed > 0 ? movesUsed : currentLevel.max_moves,
         targetsMet,
@@ -211,10 +211,10 @@ const AppContent: React.FC = () => {
 
     if (isAuthenticated) {
       const { data } = await api.startGame(level.id);
-      if (data) setSessionId(data.session_id);
+      if (data) sessionIdRef.current = data.session_id;
     }
 
-    setGameStartTime(Date.now());
+    gameStartTimeRef.current = Date.now();
     setScreen('game');
   };
 
@@ -249,10 +249,10 @@ const AppContent: React.FC = () => {
 
     if (isAuthenticated && currentLevel) {
       const { data } = await api.startGame(currentLevel.id);
-      if (data) setSessionId(data.session_id);
+      if (data) sessionIdRef.current = data.session_id;
     }
 
-    setGameStartTime(Date.now());
+    gameStartTimeRef.current = Date.now();
     gameRef.current?.reset();
   };
 
@@ -262,7 +262,7 @@ const AppContent: React.FC = () => {
       gameRef.current = null;
     }
     setCurrentLevel(null);
-    setSessionId(null);
+    sessionIdRef.current = null;
     setScreen('levels');
   };
 
