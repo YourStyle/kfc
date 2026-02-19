@@ -211,6 +211,13 @@ class ApiClient {
     });
   }
 
+  async sendPromoToEmail(email: string, code: string) {
+    return this.request<{ message: string }>('/quest/send-promo-email', {
+      method: 'POST',
+      body: JSON.stringify({ email, code }),
+    });
+  }
+
   // Texts endpoint (public, no auth needed)
   async getTexts() {
     return this.request<Record<string, string>>('/api/texts');
