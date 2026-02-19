@@ -1321,10 +1321,12 @@ export class PixiGame {
           // Ищем пустую ячейку, которая заблокирована сверху
           if (!this.grid[row][col] && this.isBlockedFromTop(row, col)) {
             // Сначала пробуем соседние ячейки (быстрее)
+            // Важно: тянем ТОЛЬКО из незаблокированных столбцов,
+            // иначе два заблокированных соседа будут бесконечно меняться тайлами
             let sourceCol = -1;
-            if (col > 0 && this.canBeHorizontalSource(row, col - 1)) {
+            if (col > 0 && this.canBeHorizontalSource(row, col - 1) && !this.isBlockedFromTop(row, col - 1)) {
               sourceCol = col - 1;
-            } else if (col < this.gridSize - 1 && this.canBeHorizontalSource(row, col + 1)) {
+            } else if (col < this.gridSize - 1 && this.canBeHorizontalSource(row, col + 1) && !this.isBlockedFromTop(row, col + 1)) {
               sourceCol = col + 1;
             }
 

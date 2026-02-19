@@ -25,12 +25,13 @@ LEVEL_NAMES = {
 # New obstacle layouts for levels 3-5 (more challenging but no isolated sections)
 LEVEL_OBSTACLES = {
     3: [
-        # Diamond pattern — 8 obstacles (was 4)
-        {"row": 1, "col": 3},
-        {"row": 2, "col": 2}, {"row": 2, "col": 4},
-        {"row": 3, "col": 1}, {"row": 3, "col": 5},
-        {"row": 4, "col": 2}, {"row": 4, "col": 4},
-        {"row": 5, "col": 3},
+        # Scattered pattern — 6 obstacles, max 1 per column (no trapping)
+        {"row": 1, "col": 1},
+        {"row": 2, "col": 5},
+        {"row": 3, "col": 3},
+        {"row": 4, "col": 0},
+        {"row": 4, "col": 4},
+        {"row": 5, "col": 2},
     ],
     4: [
         # Corner L-shapes + center cross — 16 obstacles (was 12)
