@@ -81,8 +81,9 @@
             position: absolute; inset: 0;
             background: linear-gradient(
                 180deg,
-                rgba(255,240,243,0.25) 0%,
-                rgba(255,235,240,0.40) 30%,
+                rgba(244,170,190,0.55) 0%,
+                rgba(255,200,215,0.45) 20%,
+                rgba(255,235,240,0.40) 35%,
                 rgba(255,228,235,0.55) 60%,
                 rgba(255,220,230,0.75) 100%
             );
@@ -114,7 +115,7 @@
         }
 
         .glass-card {
-            background: rgba(255,255,255,0.55);
+            background: linear-gradient(180deg, rgba(255,205,220,0.62) 0%, rgba(255,255,255,0.55) 35%);
             backdrop-filter: blur(50px) saturate(1.4);
             -webkit-backdrop-filter: blur(50px) saturate(1.4);
             border: 1px solid rgba(255,255,255,0.6);
@@ -439,14 +440,46 @@
             .card-wrapper { max-width: 640px; }
         }
 
-        @media (max-width: 374px) {
-            .glass-card { padding: 28px 16px; }
+        /* Compact mobile — fit everything on one screen */
+        @media (max-width: 767px) {
+            .page { align-items: flex-start; }
+            .card-wrapper { padding: 10px 14px; }
+            .glass-card { padding: 22px 18px; }
+            .brand-mark { margin-bottom: 6px; }
+            .brand-mark .brand-logo { height: 36px; }
+            .hero-title { max-width: 82%; margin-bottom: 8px; }
+            .countdown-grid { margin-bottom: 10px; gap: 6px; }
             .cd-num { font-size: 28px; }
-            .cd-cell { padding: 10px 4px 8px; }
-            .cat-mascot { width: 180px; }
-            .hero-title { font-size: 32px; }
-            .prize-card { padding: 14px; gap: 12px; }
-            .prize-icon { width: 42px; height: 42px; }
+            .cd-cell { padding: 8px 4px 6px; border-radius: 12px; }
+            .countdown-label { font-size: 14px; margin-bottom: 10px; letter-spacing: 1.5px; }
+            .cat-mascot { width: 120px; margin-bottom: 10px; }
+            .divider { margin-bottom: 10px; }
+            .fortune-card { margin-bottom: 8px; }
+            .fortune-card-header { padding: 8px 14px 3px; }
+            .fortune-card-header-text { font-size: 10px; letter-spacing: 2px; }
+            .fortune-card-body { padding: 4px 14px 10px; }
+            .fortune-text { font-size: 14px; }
+            .copyright-note { margin-top: 10px; }
+            .prize-section-title { font-size: 16px; margin-bottom: 4px; }
+            .prize-section-sub { font-size: 11px; margin-bottom: 10px; letter-spacing: 1px; }
+            .prize-stack { gap: 8px; margin-bottom: 12px; }
+            .prize-card { padding: 12px; gap: 10px; }
+            .prize-icon { width: 40px; height: 40px; border-radius: 11px; }
+            .prize-name { font-size: 13px; }
+            .prize-sub { font-size: 11px; }
+            .prize-arrow { width: 28px; height: 28px; font-size: 15px; }
+            #mainScreen .cat-mascot { width: 100px; margin-bottom: 8px; }
+        }
+
+        @media (max-width: 374px) {
+            .glass-card { padding: 18px 14px; }
+            .cd-num { font-size: 24px; }
+            .cd-cell { padding: 6px 4px 5px; }
+            .cat-mascot { width: 100px; }
+            .hero-title { max-width: 78%; }
+            .prize-card { padding: 10px; gap: 8px; }
+            .prize-icon { width: 36px; height: 36px; }
+            #mainScreen .cat-mascot { width: 80px; }
         }
     </style>
 </head>
