@@ -306,29 +306,6 @@
             100% { opacity: 1; transform: translateY(0) scale(1); }
         }
 
-        /* ===== BUTTONS ===== */
-        .btn-fortune {
-            font-family: 'RosticsCeraCondensed', Verdana, sans-serif;
-            font-weight: 700;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            padding: 12px 28px;
-            border: 2px solid var(--red);
-            border-radius: 100px;
-            background: var(--red);
-            color: var(--white);
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .btn-fortune:hover {
-            background: var(--red-dark);
-            border-color: var(--red-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(237,28,41,0.3);
-        }
-        .btn-fortune:active { transform: scale(0.97); }
-
         /* ===== PRIZE CARDS (main screen) ===== */
         .prize-section-title {
             font-family: 'RosticsCeraCondensed', Verdana, sans-serif;
@@ -527,8 +504,6 @@
                                 <p class="fortune-text" id="teaserFortuneText"></p>
                             </div>
                         </div>
-                        <button class="btn-fortune stagger" id="teaserNewFortuneBtn">Ещё предсказание</button>
-
                         <p class="copyright-note stagger" id="teaserCopyright" style="cursor:pointer">&copy; Юнирест, 2026</p>
                     </div>
                 </div>
@@ -584,8 +559,6 @@
                                 <p class="fortune-text" id="fortuneText"></p>
                             </div>
                         </div>
-                        <button class="btn-fortune stagger" id="newFortuneBtn">Ещё предсказание</button>
-
                         <p class="copyright-note stagger">&copy; Юнирест, 2026</p>
                     </div>
                 </div>
@@ -716,8 +689,6 @@
             if (mode === 'teaser') {
                 showFortune('teaserFortuneCard', 'teaserFortuneText');
             }
-            document.getElementById('newFortuneBtn').addEventListener('click', () => showFortune());
-            document.getElementById('teaserNewFortuneBtn').addEventListener('click', () => showFortune('teaserFortuneCard', 'teaserFortuneText'));
             document.getElementById('teaserCopyright').addEventListener('click', function() {
                 switchScreen('mainScreen');
                 showFortune();
