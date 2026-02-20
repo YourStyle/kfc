@@ -565,7 +565,7 @@
                                 <p class="fortune-text" id="teaserFortuneText"></p>
                             </div>
                         </div>
-                        <p class="copyright-note stagger" id="teaserCopyright" style="cursor:pointer">&copy; Юнирест, 2026</p>
+                        <p class="copyright-note stagger">&copy; Юнирест, 2026</p>
                     </div>
                 </div>
                 <p class="legal-note">Фест&nbsp;= фестиваль.</p>
@@ -901,22 +901,6 @@
             card.classList.add('fortune-anim');
         }
 
-        // ===== Hidden "skip" keyboard shortcut =====
-        (function() {
-            let buf = '';
-            let timer;
-            document.addEventListener('keydown', function(e) {
-                buf += e.key.toLowerCase();
-                clearTimeout(timer);
-                timer = setTimeout(() => { buf = ''; }, 1500);
-                if (buf.includes('skip')) {
-                    buf = '';
-                    switchScreen('mainScreen');
-                    showFortune();
-                }
-            });
-        })();
-
         document.addEventListener('DOMContentLoaded', () => {
             const mode = checkMode();
             if (mode === 'main') {
@@ -925,10 +909,6 @@
             if (mode === 'teaser') {
                 showFortune('teaserFortuneCard', 'teaserFortuneText');
             }
-            document.getElementById('teaserCopyright').addEventListener('click', function() {
-                switchScreen('mainScreen');
-                showFortune();
-            });
         });
     </script>
 </body>
