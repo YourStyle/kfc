@@ -456,6 +456,12 @@
             .card-wrapper { max-width: 640px; }
         }
 
+        /* Teaser screen — bigger content since legal is minimal */
+        #teaserScreen .cat-mascot { width: 260px; margin-bottom: 28px; }
+        #teaserScreen .countdown-grid { margin-bottom: 20px; }
+        #teaserScreen .countdown-label { margin-bottom: 28px; }
+        #teaserScreen .fortune-card { margin-bottom: 24px; }
+
         /* Compact mobile — fit on one screen but fill it */
         @media (max-width: 767px) {
             .card-wrapper { padding: 10px 16px; }
@@ -485,6 +491,10 @@
             .prize-sub { font-size: 11px; }
             .prize-arrow { width: 28px; height: 28px; font-size: 15px; }
             #mainScreen .cat-mascot { width: 110px; margin-bottom: 10px; }
+            #teaserScreen .cat-mascot { width: 170px; margin-bottom: 16px; }
+            #teaserScreen .countdown-grid { margin-bottom: 14px; }
+            #teaserScreen .countdown-label { margin-bottom: 16px; }
+            #teaserScreen .fortune-card { margin-bottom: 14px; }
         }
 
         @media (max-width: 374px) {
@@ -497,6 +507,7 @@
             .prize-card { padding: 10px; gap: 8px; }
             .prize-icon { width: 36px; height: 36px; }
             #mainScreen .cat-mascot { width: 100px; }
+            #teaserScreen .cat-mascot { width: 150px; }
         }
     </style>
 </head>
@@ -557,7 +568,7 @@
                         <p class="copyright-note stagger" id="teaserCopyright" style="cursor:pointer">&copy; Юнирест, 2026</p>
                     </div>
                 </div>
-                <p class="legal-note">Фест&nbsp;= фестиваль. Общий срок проведения акции с&nbsp;04.03.2026&nbsp;г. по&nbsp;31.05.2026&nbsp;г., в&nbsp;том числе срок участия в&nbsp;акции до&nbsp;21.04.2026&nbsp;г. Информация о&nbsp;продуктах, участвующих в&nbsp;акции, об&nbsp;организаторе акции, о&nbsp;правилах её проведения, количестве призов, сроках, месте и&nbsp;порядке их&nbsp;получения на&nbsp;<a href="https://rostics.ru/promo/sakurafest" target="_blank" rel="noopener">rostics.ru/promo/sakurafest</a>.</p>
+                <p class="legal-note">Фест&nbsp;= фестиваль.</p>
             </div>
         </div>
 
