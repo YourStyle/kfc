@@ -405,6 +405,22 @@
             color: rgba(0,0,0,0.35);
         }
 
+        /* ===== LEGAL DISCLAIMER ===== */
+        .legal-note {
+            margin-top: 10px;
+            padding: 0 4px;
+            text-align: center;
+            font-family: 'RosticsCeraPro', Verdana, sans-serif;
+            font-size: 10px;
+            line-height: 1.45;
+            color: rgba(0,0,0,0.45);
+        }
+        .legal-note a {
+            color: rgba(0,0,0,0.45);
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+
         /* ===== STAGGER ANIMATION ===== */
         .stagger { opacity: 0; transform: translateY(20px); animation: staggerIn 0.5s ease forwards; }
         .stagger:nth-child(1) { animation-delay: 0.1s; }
@@ -442,32 +458,33 @@
 
         /* Compact mobile — fit on one screen but fill it */
         @media (max-width: 767px) {
-            .card-wrapper { padding: 14px 16px; }
-            .glass-card { padding: 30px 22px; }
-            .brand-mark { margin-bottom: 10px; }
-            .brand-mark .brand-logo { height: 44px; }
-            .hero-title { max-width: 88%; margin-bottom: 14px; }
-            .countdown-grid { margin-bottom: 16px; gap: 6px; }
-            .cd-num { font-size: 32px; }
-            .cd-cell { padding: 10px 4px 8px; border-radius: 14px; }
-            .countdown-label { font-size: 16px; margin-bottom: 16px; }
-            .cat-mascot { width: 160px; margin-bottom: 16px; }
-            .divider { margin-bottom: 16px; }
-            .fortune-card { margin-bottom: 12px; }
-            .fortune-card-header { padding: 10px 16px 4px; }
-            .fortune-card-header-text { font-size: 11px; letter-spacing: 2.5px; }
-            .fortune-card-body { padding: 6px 18px 14px; }
-            .fortune-text { font-size: 15px; }
-            .copyright-note { margin-top: 14px; }
-            .prize-section-title { font-size: 18px; margin-bottom: 6px; }
-            .prize-section-sub { font-size: 12px; margin-bottom: 14px; letter-spacing: 1px; }
-            .prize-stack { gap: 10px; margin-bottom: 16px; }
-            .prize-card { padding: 14px; gap: 12px; }
-            .prize-icon { width: 44px; height: 44px; border-radius: 12px; }
-            .prize-name { font-size: 14px; }
-            .prize-sub { font-size: 12px; }
-            .prize-arrow { width: 30px; height: 30px; font-size: 16px; }
-            #mainScreen .cat-mascot { width: 120px; margin-bottom: 12px; }
+            .card-wrapper { padding: 10px 16px; }
+            .glass-card { padding: 24px 20px; }
+            .brand-mark { margin-bottom: 8px; }
+            .brand-mark .brand-logo { height: 40px; }
+            .hero-title { max-width: 86%; margin-bottom: 10px; }
+            .countdown-grid { margin-bottom: 12px; gap: 6px; }
+            .cd-num { font-size: 30px; }
+            .cd-cell { padding: 8px 4px 7px; border-radius: 13px; }
+            .countdown-label { font-size: 15px; margin-bottom: 12px; }
+            .cat-mascot { width: 140px; margin-bottom: 12px; }
+            .divider { margin-bottom: 12px; }
+            .fortune-card { margin-bottom: 10px; }
+            .fortune-card-header { padding: 8px 16px 3px; }
+            .fortune-card-header-text { font-size: 10px; letter-spacing: 2px; }
+            .fortune-card-body { padding: 5px 16px 12px; }
+            .fortune-text { font-size: 14px; }
+            .copyright-note { margin-top: 10px; }
+            .legal-note { margin-top: 6px; font-size: 9px; }
+            .prize-section-title { font-size: 17px; margin-bottom: 4px; }
+            .prize-section-sub { font-size: 11px; margin-bottom: 12px; letter-spacing: 1px; }
+            .prize-stack { gap: 8px; margin-bottom: 14px; }
+            .prize-card { padding: 12px; gap: 10px; }
+            .prize-icon { width: 42px; height: 42px; border-radius: 12px; }
+            .prize-name { font-size: 13px; }
+            .prize-sub { font-size: 11px; }
+            .prize-arrow { width: 28px; height: 28px; font-size: 15px; }
+            #mainScreen .cat-mascot { width: 110px; margin-bottom: 10px; }
         }
 
         @media (max-width: 374px) {
@@ -540,6 +557,7 @@
                         <p class="copyright-note stagger" id="teaserCopyright" style="cursor:pointer">&copy; Юнирест, 2026</p>
                     </div>
                 </div>
+                <p class="legal-note">Фест&nbsp;= фестиваль. Общий срок проведения акции с&nbsp;04.03.2026&nbsp;г. по&nbsp;31.05.2026&nbsp;г., в&nbsp;том числе срок участия в&nbsp;акции до&nbsp;21.04.2026&nbsp;г. Информация о&nbsp;продуктах, участвующих в&nbsp;акции, об&nbsp;организаторе акции, о&nbsp;правилах её проведения, количестве призов, сроках, месте и&nbsp;порядке их&nbsp;получения на&nbsp;<a href="https://rostics.ru/promo/sakurafest" target="_blank" rel="noopener">rostics.ru/promo/sakurafest</a>.</p>
             </div>
         </div>
 
@@ -595,6 +613,7 @@
                         <p class="copyright-note stagger">&copy; Юнирест, 2026</p>
                     </div>
                 </div>
+                <p class="legal-note">Фест&nbsp;= фестиваль. Общий срок проведения акции с&nbsp;04.03.2026&nbsp;г. по&nbsp;31.05.2026&nbsp;г., в&nbsp;том числе срок участия в&nbsp;акции до&nbsp;21.04.2026&nbsp;г. Информация о&nbsp;продуктах, участвующих в&nbsp;акции, об&nbsp;организаторе акции, о&nbsp;правилах её проведения, количестве призов, сроках, месте и&nbsp;порядке их&nbsp;получения на&nbsp;<a href="https://rostics.ru/promo/sakurafest" target="_blank" rel="noopener">rostics.ru/promo/sakurafest</a>.</p>
             </div>
         </div>
 
