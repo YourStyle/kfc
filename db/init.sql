@@ -80,6 +80,28 @@ CREATE TABLE IF NOT EXISTS user_activities (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Landing page visits tracking
+CREATE TABLE IF NOT EXISTS landing_visits (
+    id SERIAL PRIMARY KEY,
+    ip_address VARCHAR(45),
+    city VARCHAR(100),
+    country VARCHAR(100),
+    region VARCHAR(200),
+    user_agent VARCHAR(512),
+    referrer VARCHAR(500),
+    is_fake BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Landing stats sharing (password-protected public access)
+CREATE TABLE IF NOT EXISTS landing_stats_share (
+    id SERIAL PRIMARY KEY,
+    token VARCHAR(64) UNIQUE NOT NULL,
+    password_hash VARCHAR(256) NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_total_score ON users(total_score DESC);
@@ -91,6 +113,8 @@ CREATE INDEX IF NOT EXISTS idx_sessions_created ON game_sessions(created_at);
 CREATE INDEX IF NOT EXISTS idx_activities_user ON user_activities(user_id);
 CREATE INDEX IF NOT EXISTS idx_activities_action ON user_activities(action);
 CREATE INDEX IF NOT EXISTS idx_activities_created ON user_activities(created_at);
+CREATE INDEX IF NOT EXISTS idx_landing_visits_created ON landing_visits(created_at);
+CREATE INDEX IF NOT EXISTS idx_landing_visits_city ON landing_visits(city);
 
 -- Insert default levels
 INSERT INTO levels (name, "order", grid_width, grid_height, max_moves, item_types, targets, obstacles, is_active)

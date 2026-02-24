@@ -323,7 +323,7 @@ const QuestResultScreen: React.FC = () => {
                     </>
                   )}
                 </button>
-                <p className="promo-hint">{t('quest.promo_hint', "Используйте промокод в ресторанах Rostic's")}</p>
+                <p className="promo-hint">{t('quest.promo_hint', "Используйте промокод в мобильном приложении ROSTIC'S")}</p>
 
                 {/* Optional email send */}
                 <div className="email-send-section">
@@ -368,7 +368,7 @@ const QuestResultScreen: React.FC = () => {
               </svg>
             </div>
             <h3>{t('quest.result_no_prize', 'Вы отлично справились!')}</h3>
-            <p>{t('quest.result_no_prize_hint', "Наберите 120 баллов или больше, чтобы получить промокод в ресторанах Rostic's")}</p>
+            <p>{t('quest.result_no_prize_hint', "Наберите от 120 баллов, получите промокод на заказ в мобильном приложении ROSTIC'S")}</p>
             <p className="score-diff">Вам не хватило всего {120 - result.total_score} баллов</p>
           </div>
         )}
@@ -395,7 +395,7 @@ const QuestResultScreen: React.FC = () => {
                 strokeLinejoin="round"
               />
             </svg>
-            {t('quest.btn_game', "Играть в Rostic's Легенды космоса")}
+            {t('quest.btn_game', 'Играть в Легенды космоса')}
           </button>
         </div>
 

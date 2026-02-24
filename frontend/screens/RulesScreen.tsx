@@ -84,23 +84,33 @@ export function RulesScreen({ onBack }: RulesScreenProps) {
               <div style={styles.prizeItem}>
                 <div style={styles.prizePlace}>
                   <span style={styles.prizePlaceIcon}>🥇</span>
-                  <span style={styles.prizePlaceText}>1–10 место</span>
+                  <span style={styles.prizePlaceText}>1–20 место</span>
                 </div>
                 <div style={styles.prizeDesc}>
                   <strong style={styles.prizeTitle}>{t('rules.moscow_prize_1_title', 'Встреча с космонавтом')}</strong>
                   <p style={styles.prizeText}>
-                    {t('rules.moscow_prize_1_text', 'Пригласительный билет на встречу с космонавтом А.И. Лавейкиным. Семейный билет: 1 взрослый + 1–2 ребёнка. Победитель также получает мерч-пакет.')}
+                    {t('rules.moscow_prize_1_text', "Пригласительный билет на одного взрослого +1 на встречу с космонавтом А.И. Лавейкиным и набор космического мерча от ROSTIC'S")}
                   </p>
                 </div>
               </div>
               <div style={styles.prizeItem}>
                 <div style={styles.prizePlace}>
                   <span style={styles.prizePlaceIcon}>🎖️</span>
-                  <span style={styles.prizePlaceText}>11–20 место</span>
+                  <span style={styles.prizePlaceText}>21–50 место</span>
                 </div>
                 <div style={styles.prizeDesc}>
                   <strong style={styles.prizeTitle}>{t('rules.moscow_prize_2_title', 'Промокод на скидку')}</strong>
-                  <p style={styles.prizeText}>{t('rules.moscow_prize_2_text', "Промокод на скидку в ресторанах Rostic's")}</p>
+                  <p style={styles.prizeText}>{t('rules.moscow_prize_2_text', "Скидка 15% на заказ в ROSTIC'S через мобильное приложение")}</p>
+                </div>
+              </div>
+              <div style={styles.prizeItem}>
+                <div style={styles.prizePlace}>
+                  <span style={styles.prizePlaceIcon}>🏅</span>
+                  <span style={styles.prizePlaceText}>51+ место</span>
+                </div>
+                <div style={styles.prizeDesc}>
+                  <strong style={styles.prizeTitle}>{t('rules.moscow_prize_3_title', 'Промокод на скидку')}</strong>
+                  <p style={styles.prizeText}>{t('rules.moscow_prize_3_text', "Скидка 7% на заказ в ROSTIC'S через мобильное приложение")}</p>
                 </div>
               </div>
             </div>
@@ -113,21 +123,31 @@ export function RulesScreen({ onBack }: RulesScreenProps) {
               <div style={styles.prizeItem}>
                 <div style={styles.prizePlace}>
                   <span style={styles.prizePlaceIcon}>🥇</span>
-                  <span style={styles.prizePlaceText}>1–10 место</span>
+                  <span style={styles.prizePlaceText}>1–30 место</span>
                 </div>
                 <div style={styles.prizeDesc}>
-                  <strong style={styles.prizeTitle}>{t('rules.region_prize_1_title', 'Повышенная скидка')}</strong>
-                  <p style={styles.prizeText}>{t('rules.region_prize_1_text', "Промокод с повышенной скидкой в ресторанах Rostic's")}</p>
+                  <strong style={styles.prizeTitle}>{t('rules.region_prize_1_title', 'Промокод на скидку и набор мерча')}</strong>
+                  <p style={styles.prizeText}>{t('rules.region_prize_1_text', "Промокод на скидку 30% в Rostic's и набор космического мерча от Rostic's")}</p>
                 </div>
               </div>
               <div style={styles.prizeItem}>
                 <div style={styles.prizePlace}>
                   <span style={styles.prizePlaceIcon}>🎖️</span>
-                  <span style={styles.prizePlaceText}>11–20 место</span>
+                  <span style={styles.prizePlaceText}>31–50 место</span>
                 </div>
                 <div style={styles.prizeDesc}>
                   <strong style={styles.prizeTitle}>{t('rules.region_prize_2_title', 'Промокод на скидку')}</strong>
-                  <p style={styles.prizeText}>{t('rules.region_prize_2_text', "Промокод на скидку в ресторанах Rostic's")}</p>
+                  <p style={styles.prizeText}>{t('rules.region_prize_2_text', "Скидка 15% на заказ в ROSTIC'S через мобильное приложение")}</p>
+                </div>
+              </div>
+              <div style={styles.prizeItem}>
+                <div style={styles.prizePlace}>
+                  <span style={styles.prizePlaceIcon}>🏅</span>
+                  <span style={styles.prizePlaceText}>51+ место</span>
+                </div>
+                <div style={styles.prizeDesc}>
+                  <strong style={styles.prizeTitle}>{t('rules.region_prize_3_title', 'Промокод на скидку')}</strong>
+                  <p style={styles.prizeText}>{t('rules.region_prize_3_text', "Скидка 7% на заказ в ROSTIC'S через мобильное приложение")}</p>
                 </div>
               </div>
             </div>
