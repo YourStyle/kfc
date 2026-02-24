@@ -257,3 +257,41 @@ class GameText(db.Model):
 
     def __repr__(self):
         return f'<GameText {self.key}>'
+
+
+class LandingVisit(db.Model):
+    """Visits to the Sakura Fest landing page"""
+    __tablename__ = 'landing_visits'
+
+    id = db.Column(db.Integer, primary_key=True)
+    ip_address = db.Column(db.String(45))
+    city = db.Column(db.String(100))
+    country = db.Column(db.String(100))
+    region = db.Column(db.String(200))
+    user_agent = db.Column(db.String(512))
+    referrer = db.Column(db.String(500))
+    is_fake = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<LandingVisit {self.ip_address} {self.city}>'
+
+
+class LandingStatsShare(db.Model):
+    """Settings for public landing stats sharing"""
+    __tablename__ = 'landing_stats_share'
+
+    id = db.Column(db.Integer, primary_key=True)
+    token = db.Column(db.String(64), unique=True, nullable=False)
+    password_hash = db.Column(db.String(256), nullable=False)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password, method='pbkdf2:sha256')
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+    def __repr__(self):
+        return f'<LandingStatsShare {self.token[:8]}...>'

@@ -127,9 +127,9 @@ const QuestStartScreen: React.FC = () => {
             </h2>
             <div style={styles.prizesGrid}>
               {[
-                { pts: '200', label: 'Золото', reward: t('quest.prize_gold', "Скидка 15% в ресторанах Rostic's"), color: '#FFD700', bg: 'rgba(255, 215, 0, 0.12)' },
-                { pts: '160+', label: 'Серебро', reward: t('quest.prize_silver', "Скидка 10% в ресторанах Rostic's"), color: '#C0C0C0', bg: 'rgba(192, 192, 192, 0.1)' },
-                { pts: '120+', label: 'Бронза', reward: t('quest.prize_bronze', "Пирожок за 1₽ в ресторанах Rostic's"), color: '#CD7F32', bg: 'rgba(205, 127, 50, 0.1)' },
+                { pts: '200', label: 'Золото', reward: t('quest.prize_gold', "Скидка 15% на заказ в ROSTIC'S через мобильное приложение"), color: '#FFD700', bg: 'rgba(255, 215, 0, 0.12)' },
+                { pts: '160+', label: 'Серебро', reward: t('quest.prize_silver', "Скидка 10% на заказ в ROSTIC'S через мобильное приложение"), color: '#C0C0C0', bg: 'rgba(192, 192, 192, 0.1)' },
+                { pts: '120+', label: 'Бронза', reward: t('quest.prize_bronze', "Пирожок за 1₽ в ROSTIC'S"), color: '#CD7F32', bg: 'rgba(205, 127, 50, 0.1)' },
               ].map((tier, i) => (
                 <div key={i} className="quest-prize-card" style={{ ...styles.prizeCard, background: tier.bg, borderColor: `${tier.color}44` }} data-color={tier.color}>
                   <div>
@@ -152,6 +152,21 @@ const QuestStartScreen: React.FC = () => {
               <span style={styles.buttonIcon}>→</span>
               {user ? t('quest.btn_continue', 'Продолжить квест') : t('quest.btn_start', 'Начать квест')}
             </button>
+          </div>
+
+          {/* Landing link */}
+          <div style={{
+            ...styles.landingLink,
+            opacity: buttonsVisible ? 1 : 0,
+          }}>
+            <a
+              href="https://rostics.ru/promo/kosmokvest"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={styles.landingLinkAnchor}
+            >
+              rostics.ru/promo/kosmokvest
+            </a>
           </div>
 
           <div style={{
@@ -465,6 +480,19 @@ const styles: Record<string, React.CSSProperties> = {
     opacity: 0.9,
   },
 
+  landingLink: {
+    textAlign: 'center',
+    transition: 'opacity 0.6s ease-out',
+    transitionDelay: '0.45s',
+  },
+  landingLinkAnchor: {
+    fontSize: 13,
+    color: 'rgba(255,120,140,0.7)',
+    fontFamily: "'RosticsCeraPro', sans-serif",
+    fontWeight: 600,
+    textDecoration: 'underline',
+    letterSpacing: 0.5,
+  },
   footer: {
     textAlign: 'center',
     transition: 'opacity 0.6s ease-out',

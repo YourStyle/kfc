@@ -2,7 +2,7 @@
 from flask import Blueprint, render_template_string, redirect, url_for, request, flash, Response
 from flask_login import login_required, current_user
 from app import db
-from app.models import User, Level, UserLevelProgress, GameSession, UserActivity, AdminUser, GameText
+from app.models import User, Level, UserLevelProgress, GameSession, UserActivity, AdminUser, GameText, LandingVisit, LandingStatsShare
 
 bp = Blueprint('custom_admin', __name__)
 
@@ -197,6 +197,7 @@ BASE_TEMPLATE = '''
         <ul class="sidebar-nav">
             <li><a href="/admin" {% if active_page == 'dashboard' %}class="active"{% endif %}><i class="bi bi-grid-1x2"></i> Дашборд</a></li>
             <li><a href="/admin/analytics/" {% if active_page == 'analytics' %}class="active"{% endif %}><i class="bi bi-bar-chart-line"></i> Аналитика</a></li>
+            <li><a href="/admin/landing-stats/" {% if active_page == 'landing_stats' %}class="active"{% endif %}><i class="bi bi-flower2"></i> Sakura Fest</a></li>
         </ul>
         {% if admin_role in ('superadmin', 'game_admin', 'quest_admin') %}
         <div class="nav-section">Пользователи</div>
@@ -2252,6 +2253,457 @@ def render_public_analytics(data, token):
                     datasets: [{{ label: 'Прошли', data: {c['funnel_data']}, backgroundColor: ['rgba(99, 102, 241, 0.8)', 'rgba(16, 185, 129, 0.8)', 'rgba(245, 158, 11, 0.8)', 'rgba(239, 68, 68, 0.8)', 'rgba(6, 182, 212, 0.8)', 'rgba(168, 85, 247, 0.8)'], borderRadius: 8 }}]
                 }},
                 options: {{ responsive: true, plugins: {{ legend: {{ display: false }} }}, scales: {{ y: {{ beginAtZero: true, ticks: {{ precision: 0 }} }} }} }}
+            }});
+        </script>
+    </body>
+    </html>
+    '''
+
+
+# ============== LANDING STATS (Sakura Fest) ==============
+@bp.route('/landing-stats/')
+@login_required
+def landing_stats():
+    from sqlalchemy import func, distinct
+    from datetime import datetime, timedelta
+    import secrets
+
+    # Summary stats
+    total_visits = LandingVisit.query.count()
+    unique_ips = db.session.query(func.count(distinct(LandingVisit.ip_address))).scalar() or 0
+
+    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_visits = LandingVisit.query.filter(LandingVisit.created_at >= today_start).count()
+
+    first_visit = db.session.query(func.min(LandingVisit.created_at)).scalar()
+    if first_visit:
+        days_active = max((datetime.utcnow() - first_visit).days, 1)
+        avg_per_day = round(total_visits / days_active, 1)
+    else:
+        avg_per_day = 0
+
+    # Visits by day (all time)
+    visits_by_day = db.session.query(
+        func.date(LandingVisit.created_at).label('date'),
+        func.count(LandingVisit.id).label('count')
+    ).group_by(
+        func.date(LandingVisit.created_at)
+    ).order_by(func.date(LandingVisit.created_at)).all()
+
+    day_labels = [r.date.strftime('%d.%m') if r.date else '' for r in visits_by_day]
+    day_data = [r.count for r in visits_by_day]
+
+    # City breakdown
+    city_stats = db.session.query(
+        LandingVisit.city,
+        func.count(LandingVisit.id).label('count')
+    ).filter(LandingVisit.city.isnot(None)).group_by(
+        LandingVisit.city
+    ).order_by(func.count(LandingVisit.id).desc()).limit(20).all()
+
+    from markupsafe import escape
+
+    city_rows = ''
+    for cs in city_stats:
+        pct = round(cs.count / total_visits * 100, 1) if total_visits > 0 else 0
+        city_rows += f'''
+        <tr>
+            <td><strong>{escape(cs.city)}</strong></td>
+            <td>{cs.count:,}</td>
+            <td><div class="progress" style="height:6px;"><div class="progress-bar" style="width:{pct}%;background:var(--primary);"></div></div></td>
+            <td>{pct}%</td>
+        </tr>'''
+
+    # Recent visits (last 50)
+    recent_visits = LandingVisit.query.order_by(LandingVisit.created_at.desc()).limit(50).all()
+    recent_rows = ''
+    for v in recent_visits:
+        city_badge = f'<span class="badge badge-info">{escape(v.city)}</span>' if v.city else '<span class="text-muted">—</span>'
+        fake_badge = ' <span class="badge badge-warning">seed</span>' if v.is_fake else ''
+        ref = v.referrer[:40] + '...' if v.referrer and len(v.referrer) > 40 else (v.referrer or '—')
+        recent_rows += f'''
+        <tr>
+            <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;">{escape(v.ip_address or "—")}</code></td>
+            <td>{city_badge}{fake_badge}</td>
+            <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{escape(v.user_agent or "")}">{escape((v.user_agent or "—")[:60])}</td>
+            <td>{escape(ref)}</td>
+            <td>{v.created_at.strftime("%d.%m.%Y %H:%M") if v.created_at else "—"}</td>
+        </tr>'''
+
+    # Get or create share token
+    share = LandingStatsShare.query.first()
+    if not share:
+        share = LandingStatsShare(token=secrets.token_urlsafe(16), password_hash='')
+        db.session.add(share)
+        db.session.commit()
+
+    content = f'''
+    <div class="page-header">
+        <h1 class="page-title"><i class="bi bi-flower2 me-2"></i>Sakura Fest — Статистика лендинга</h1>
+        <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#shareModal"><i class="bi bi-share me-2"></i>Поделиться</button>
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div class="modal fade" id="shareModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-share me-2"></i>Поделиться статистикой лендинга</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST" action="/admin/landing-stats/share">
+                    <div class="modal-body">
+                        <p class="text-muted">Создайте защищённую ссылку на статистику лендинга. Получатель сможет просмотреть графики посещений.</p>
+                        <div class="mb-3">
+                            <label class="form-label">Пароль для доступа</label>
+                            <input type="password" name="share_password" class="form-control" placeholder="Введите пароль" required>
+                        </div>
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Публичная ссылка:</strong><br>
+                            <code id="shareUrl">{request.host_url}admin/public/landing/{share.token}</code>
+                            <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="navigator.clipboard.writeText(document.getElementById('shareUrl').innerText)">
+                                <i class="bi bi-clipboard"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-2"></i>Сохранить пароль</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;margin-bottom:2rem;">
+        <div class="card" style="margin:0;">
+            <div class="card-body text-center">
+                <div style="font-size:2rem;font-weight:700;color:var(--primary);">{total_visits:,}</div>
+                <div class="text-muted" style="font-size:0.875rem;">Всего визитов</div>
+            </div>
+        </div>
+        <div class="card" style="margin:0;">
+            <div class="card-body text-center">
+                <div style="font-size:2rem;font-weight:700;color:var(--success);">{unique_ips:,}</div>
+                <div class="text-muted" style="font-size:0.875rem;">Уникальных IP</div>
+            </div>
+        </div>
+        <div class="card" style="margin:0;">
+            <div class="card-body text-center">
+                <div style="font-size:2rem;font-weight:700;color:var(--warning);">{today_visits:,}</div>
+                <div class="text-muted" style="font-size:0.875rem;">Сегодня</div>
+            </div>
+        </div>
+        <div class="card" style="margin:0;">
+            <div class="card-body text-center">
+                <div style="font-size:2rem;font-weight:700;color:var(--info);">{avg_per_day}</div>
+                <div class="text-muted" style="font-size:0.875rem;">В среднем / день</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Daily Chart -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="bi bi-graph-up me-2"></i>Визиты по дням</h3>
+        </div>
+        <div class="card-body">
+            <canvas id="dailyChart" height="100"></canvas>
+        </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+        <!-- City Breakdown -->
+        <div class="card" style="margin:0;">
+            <div class="card-header">
+                <h3 class="card-title"><i class="bi bi-geo-alt me-2"></i>География</h3>
+            </div>
+            <div class="card-body" style="padding:0;">
+                <table class="table">
+                    <thead>
+                        <tr><th>Город</th><th>Визитов</th><th></th><th>%</th></tr>
+                    </thead>
+                    <tbody>
+                        {city_rows if city_rows else '<tr><td colspan="4" class="text-center text-muted">Нет данных о городах</td></tr>'}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recent Visits -->
+        <div class="card" style="margin:0;">
+            <div class="card-header">
+                <h3 class="card-title"><i class="bi bi-clock-history me-2"></i>Последние визиты</h3>
+            </div>
+            <div class="card-body" style="padding:0;max-height:400px;overflow-y:auto;">
+                <table class="table" style="font-size:0.8rem;">
+                    <thead>
+                        <tr><th>IP</th><th>Город</th><th>UA</th><th>Referrer</th><th>Дата</th></tr>
+                    </thead>
+                    <tbody>
+                        {recent_rows if recent_rows else '<tr><td colspan="5" class="text-center text-muted">Нет визитов</td></tr>'}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        new Chart(document.getElementById('dailyChart'), {{
+            type: 'bar',
+            data: {{
+                labels: {day_labels},
+                datasets: [{{
+                    label: 'Визиты',
+                    data: {day_data},
+                    backgroundColor: 'rgba(99, 102, 241, 0.7)',
+                    borderColor: 'rgba(99, 102, 241, 1)',
+                    borderWidth: 1,
+                    borderRadius: 6
+                }}]
+            }},
+            options: {{
+                responsive: true,
+                plugins: {{ legend: {{ display: false }} }},
+                scales: {{
+                    y: {{ beginAtZero: true, ticks: {{ precision: 0 }} }},
+                    x: {{ grid: {{ display: false }} }}
+                }}
+            }}
+        }});
+    </script>
+    '''
+
+    return render_page('Sakura Fest — Статистика', 'landing_stats', content)
+
+
+@bp.route('/landing-stats/share', methods=['POST'])
+@login_required
+def landing_stats_share_settings():
+    import secrets
+
+    password = request.form.get('share_password')
+    if not password or len(password) < 4:
+        flash('Пароль должен быть минимум 4 символа!', 'danger')
+        return redirect(url_for('custom_admin.landing_stats'))
+
+    share = LandingStatsShare.query.first()
+    if not share:
+        share = LandingStatsShare(token=secrets.token_urlsafe(16))
+        db.session.add(share)
+
+    share.set_password(password)
+    share.is_active = True
+    db.session.commit()
+
+    flash('Пароль для публичной ссылки обновлён!', 'success')
+    return redirect(url_for('custom_admin.landing_stats'))
+
+
+# ============== PUBLIC LANDING STATS PAGE ==============
+@bp.route('/public/landing/<token>', methods=['GET', 'POST'])
+def public_landing_stats(token):
+    share = LandingStatsShare.query.filter_by(token=token, is_active=True).first()
+    if not share:
+        return 'Ссылка недействительна или отключена', 404
+
+    session_key = f'landing_auth_{token}'
+    is_authenticated = request.cookies.get(session_key) == 'true'
+
+    if request.method == 'POST':
+        password = request.form.get('password', '')
+        if share.check_password(password):
+            response = redirect(url_for('custom_admin.public_landing_stats', token=token))
+            response.set_cookie(session_key, 'true', max_age=3600*24)
+            return response
+        else:
+            return render_landing_login(token, error='Неверный пароль')
+
+    if not is_authenticated:
+        return render_landing_login(token)
+
+    return render_public_landing_page(token)
+
+
+def render_landing_login(token, error=None):
+    error_html = f'<div class="alert alert-danger">{error}</div>' if error else ''
+    return f'''
+    <!DOCTYPE html>
+    <html lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Sakura Fest — Статистика</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <style>
+            body {{ background: linear-gradient(135deg, #FFF0F3, #FADADD); min-height: 100vh; display: flex; align-items: center; justify-content: center; }}
+            .login-card {{ background: white; border-radius: 20px; padding: 40px; max-width: 400px; width: 100%; box-shadow: 0 20px 60px rgba(200,100,120,0.2); }}
+            .brand {{ font-size: 1.5rem; font-weight: 700; color: #ED1C29; margin-bottom: 1rem; }}
+        </style>
+    </head>
+    <body>
+        <div class="login-card">
+            <div class="brand text-center">Sakura Fest — Статистика</div>
+            <p class="text-center text-muted mb-4">Введите пароль для просмотра</p>
+            {error_html}
+            <form method="POST">
+                <div class="mb-3">
+                    <input type="password" name="password" class="form-control form-control-lg" placeholder="Пароль" required autofocus>
+                </div>
+                <button type="submit" class="btn btn-danger w-100 btn-lg">Войти</button>
+            </form>
+        </div>
+    </body>
+    </html>
+    '''
+
+
+def render_public_landing_page(token):
+    from sqlalchemy import func, distinct
+    from datetime import datetime
+
+    total_visits = LandingVisit.query.count()
+    unique_ips = db.session.query(func.count(distinct(LandingVisit.ip_address))).scalar() or 0
+
+    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_visits = LandingVisit.query.filter(LandingVisit.created_at >= today_start).count()
+
+    first_visit = db.session.query(func.min(LandingVisit.created_at)).scalar()
+    if first_visit:
+        days_active = max((datetime.utcnow() - first_visit).days, 1)
+        avg_per_day = round(total_visits / days_active, 1)
+    else:
+        avg_per_day = 0
+
+    visits_by_day = db.session.query(
+        func.date(LandingVisit.created_at).label('date'),
+        func.count(LandingVisit.id).label('count')
+    ).group_by(func.date(LandingVisit.created_at)).order_by(func.date(LandingVisit.created_at)).all()
+
+    day_labels = [r.date.strftime('%d.%m') if r.date else '' for r in visits_by_day]
+    day_data = [r.count for r in visits_by_day]
+
+    city_stats = db.session.query(
+        LandingVisit.city,
+        func.count(LandingVisit.id).label('count')
+    ).filter(LandingVisit.city.isnot(None)).group_by(LandingVisit.city).order_by(
+        func.count(LandingVisit.id).desc()
+    ).limit(20).all()
+
+    city_rows = ''
+    for cs in city_stats:
+        pct = round(cs.count / total_visits * 100, 1) if total_visits > 0 else 0
+        city_rows += f'<tr><td><strong>{cs.city}</strong></td><td>{cs.count:,}</td><td>{pct}%</td></tr>'
+
+    return f'''
+    <!DOCTYPE html>
+    <html lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Sakura Fest — Статистика</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+        <style>
+            :root {{ --accent: #ED1C29; }}
+            body {{ background: linear-gradient(180deg, #FFF0F3 0%, #f8fafc 30%); }}
+            .header {{ background: linear-gradient(135deg, #ED1C29 0%, #C41420 100%); color: white; padding: 2rem; margin-bottom: 2rem; }}
+            .header h1 {{ font-weight: 700; margin: 0; }}
+            .stat-card {{ background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center; height: 100%; }}
+            .stat-value {{ font-size: 2.5rem; font-weight: 700; color: #1e293b; }}
+            .stat-label {{ color: #64748b; font-size: 0.875rem; }}
+            .card {{ border: none; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }}
+            .card-header {{ background: transparent; border-bottom: 1px solid #e2e8f0; font-weight: 600; }}
+            @media print {{
+                .no-print {{ display: none !important; }}
+                body {{ background: white; }}
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="header no-print">
+            <div class="container">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <h1><i class="bi bi-flower2 me-2"></i>Sakura Fest — Статистика</h1>
+                    <button onclick="window.print()" class="btn btn-light"><i class="bi bi-file-pdf me-2"></i>Скачать PDF</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="container pb-5">
+            <div class="row g-3 mb-4">
+                <div class="col-md-3 col-6">
+                    <div class="stat-card">
+                        <div class="stat-value">{total_visits:,}</div>
+                        <div class="stat-label">Всего визитов</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-card">
+                        <div class="stat-value">{unique_ips:,}</div>
+                        <div class="stat-label">Уникальных IP</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-card">
+                        <div class="stat-value">{today_visits:,}</div>
+                        <div class="stat-label">Сегодня</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-card">
+                        <div class="stat-value">{avg_per_day}</div>
+                        <div class="stat-label">В среднем / день</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header"><i class="bi bi-graph-up me-2"></i>Визиты по дням</div>
+                <div class="card-body">
+                    <canvas id="dailyChart" height="120"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><i class="bi bi-geo-alt me-2"></i>География</div>
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead><tr><th>Город</th><th>Визитов</th><th>%</th></tr></thead>
+                        <tbody>{city_rows if city_rows else '<tr><td colspan="3" class="text-center text-muted">Нет данных</td></tr>'}</tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            new Chart(document.getElementById('dailyChart'), {{
+                type: 'bar',
+                data: {{
+                    labels: {day_labels},
+                    datasets: [{{
+                        label: 'Визиты',
+                        data: {day_data},
+                        backgroundColor: 'rgba(237, 28, 41, 0.7)',
+                        borderColor: 'rgba(237, 28, 41, 1)',
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }}]
+                }},
+                options: {{
+                    responsive: true,
+                    plugins: {{ legend: {{ display: false }} }},
+                    scales: {{
+                        y: {{ beginAtZero: true, ticks: {{ precision: 0 }} }},
+                        x: {{ grid: {{ display: false }} }}
+                    }}
+                }}
             }});
         </script>
     </body>
