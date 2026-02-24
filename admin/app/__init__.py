@@ -324,6 +324,7 @@ DASHBOARD_TEMPLATE = '''
         <ul class="sidebar-nav">
             <li><a href="/admin" class="active"><i class="bi bi-grid-1x2"></i> Дашборд</a></li>
             <li><a href="/admin/analytics/"><i class="bi bi-bar-chart-line"></i> Аналитика</a></li>
+            <li><a href="/admin/landing-stats/"><i class="bi bi-flower2"></i> Sakura Fest</a></li>
         </ul>
 
         {% if admin_role in ('superadmin', 'game_admin', 'quest_admin') %}

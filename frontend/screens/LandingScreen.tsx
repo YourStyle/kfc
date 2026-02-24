@@ -140,6 +140,23 @@ export function LandingScreen({ onPlay, onLogin }: LandingScreenProps) {
           </div>
         </div>
 
+        {/* Landing link */}
+        <div
+          style={{
+            ...styles.landingLink,
+            opacity: buttonsVisible ? 1 : 0,
+          }}
+        >
+          <a
+            href="https://rostics.ru/promo/kosmokvest"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={styles.landingLinkAnchor}
+          >
+            rostics.ru/promo/kosmokvest
+          </a>
+        </div>
+
         {/* Footer outside card */}
         <div
           style={{
@@ -413,8 +430,22 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 14,
     opacity: 0.9,
   },
+  landingLink: {
+    marginTop: 16,
+    textAlign: 'center',
+    transition: 'opacity 0.6s ease-out',
+    transitionDelay: '0.45s',
+  },
+  landingLinkAnchor: {
+    fontSize: 13,
+    color: 'rgba(244, 166, 152, 0.7)',
+    fontFamily: "'RosticsCeraPro', sans-serif",
+    fontWeight: 600,
+    textDecoration: 'underline',
+    letterSpacing: 0.5,
+  },
   footer: {
-    marginTop: 24,
+    marginTop: 12,
     textAlign: 'center',
     transition: 'opacity 0.6s ease-out',
     transitionDelay: '0.5s',
