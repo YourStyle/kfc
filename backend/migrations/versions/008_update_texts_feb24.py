@@ -9,7 +9,7 @@ from alembic import op
 from sqlalchemy import text
 
 revision = '008_update_texts'
-down_revision = '007_update_levels'
+down_revision = '007_level_updates'
 branch_labels = None
 depends_on = None
 
