@@ -2530,6 +2530,140 @@ def public_landing_stats(token):
     return render_public_landing_page(token)
 
 
+@bp.route('/public/landing/<token>/export/xlsx')
+def public_landing_export_xlsx(token):
+    from flask import Response
+    from datetime import datetime
+    import io
+
+    share = LandingStatsShare.query.filter_by(token=token, is_active=True).first()
+    if not share:
+        return 'Ссылка недействительна', 404
+
+    session_key = f'landing_auth_{token}'
+    if request.cookies.get(session_key) != 'true':
+        return 'Не авторизован', 401
+
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+    from sqlalchemy import func, distinct
+
+    wb = openpyxl.Workbook()
+
+    # --- Sheet 1: Summary ---
+    ws = wb.active
+    ws.title = 'Сводка'
+
+    total_visits = LandingVisit.query.count()
+    unique_ips = db.session.query(func.count(distinct(LandingVisit.ip_address))).scalar() or 0
+    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_visits = LandingVisit.query.filter(LandingVisit.created_at >= today_start).count()
+
+    header_font = Font(bold=True, size=14)
+    bold_font = Font(bold=True)
+    header_fill = PatternFill(start_color='FFED1C29', end_color='FFED1C29', fill_type='solid')
+    header_text = Font(bold=True, color='FFFFFF')
+
+    ws['A1'] = 'Sakura Fest — Статистика'
+    ws['A1'].font = header_font
+    ws['A2'] = f'Экспорт: {datetime.utcnow().strftime("%d.%m.%Y %H:%M UTC")}'
+
+    ws['A4'] = 'Метрика'
+    ws['B4'] = 'Значение'
+    ws['A4'].font = bold_font
+    ws['B4'].font = bold_font
+
+    summary_rows = [
+        ('Всего визитов', total_visits),
+        ('Уникальных IP', unique_ips),
+        ('Сегодня', today_visits),
+    ]
+    for i, (metric, value) in enumerate(summary_rows, 5):
+        ws[f'A{i}'] = metric
+        ws[f'B{i}'] = value
+
+    # --- Sheet 2: Daily stats ---
+    ws_daily = wb.create_sheet('По дням')
+    for col, title in [('A', 'Дата'), ('B', 'Визиты')]:
+        cell = ws_daily[f'{col}1']
+        cell.value = title
+        cell.font = header_text
+        cell.fill = header_fill
+
+    visits_by_day = db.session.query(
+        func.date(LandingVisit.created_at).label('date'),
+        func.count(LandingVisit.id).label('count')
+    ).group_by(func.date(LandingVisit.created_at)).order_by(func.date(LandingVisit.created_at)).all()
+
+    for i, row in enumerate(visits_by_day, 2):
+        ws_daily[f'A{i}'] = row.date.strftime('%d.%m.%Y') if row.date else ''
+        ws_daily[f'B{i}'] = row.count
+
+    # --- Sheet 3: Geography ---
+    ws_geo = wb.create_sheet('География')
+    for col, title in [('A', 'Город'), ('B', 'Визиты'), ('C', '%')]:
+        cell = ws_geo[f'{col}1']
+        cell.value = title
+        cell.font = header_text
+        cell.fill = header_fill
+
+    city_stats = db.session.query(
+        LandingVisit.city,
+        func.count(LandingVisit.id).label('count')
+    ).filter(LandingVisit.city.isnot(None), LandingVisit.city != '').group_by(
+        LandingVisit.city
+    ).order_by(func.count(LandingVisit.id).desc()).all()
+
+    for i, cs in enumerate(city_stats, 2):
+        pct = round(cs.count / total_visits * 100, 1) if total_visits > 0 else 0
+        ws_geo[f'A{i}'] = cs.city
+        ws_geo[f'B{i}'] = cs.count
+        ws_geo[f'C{i}'] = pct
+
+    # --- Sheet 4: All visitors ---
+    ws_visitors = wb.create_sheet('Посетители')
+    visitor_headers = ['#', 'IP-адрес', 'Город', 'Регион', 'Страна', 'User-Agent', 'Дата']
+    for col_idx, title in enumerate(visitor_headers, 1):
+        cell = ws_visitors.cell(row=1, column=col_idx)
+        cell.value = title
+        cell.font = header_text
+        cell.fill = header_fill
+
+    all_visits = LandingVisit.query.order_by(LandingVisit.created_at.desc()).all()
+    for i, v in enumerate(all_visits, 2):
+        ws_visitors.cell(row=i, column=1, value=i - 1)
+        ws_visitors.cell(row=i, column=2, value=v.ip_address or '')
+        ws_visitors.cell(row=i, column=3, value=v.city or '')
+        ws_visitors.cell(row=i, column=4, value=v.region or '')
+        ws_visitors.cell(row=i, column=5, value=v.country or '')
+        ws_visitors.cell(row=i, column=6, value=v.user_agent or '')
+        ws_visitors.cell(row=i, column=7, value=v.created_at.strftime('%d.%m.%Y %H:%M') if v.created_at else '')
+
+    # Auto-width columns
+    for sheet in wb.worksheets:
+        for column in sheet.columns:
+            max_length = 0
+            col_letter = column[0].column_letter
+            for cell in column:
+                try:
+                    if cell.value and len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            sheet.column_dimensions[col_letter].width = min(max_length + 3, 60)
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    fname = f'sakura_fest_stats_{datetime.utcnow().strftime("%Y%m%d")}.xlsx'
+    return Response(
+        output.getvalue(),
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        headers={'Content-Disposition': f'attachment; filename={fname}'}
+    )
+
+
 def render_landing_login(token, error=None):
     error_html = f'<div style="background:rgba(237,28,41,0.08);color:#C41420;border:1px solid rgba(237,28,41,0.2);border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:14px;text-align:center;">{error}</div>' if error else ''
     return f'''
@@ -3048,9 +3182,14 @@ def render_public_landing_page(token):
                             <div style="font-size:14px;color:#94a3b8;font-weight:600;">sakura-fest-rostics.ru</div>
                         </div>
                     </div>
-                    <button onclick="window.print()" class="print-btn no-print" style="align-self:center;">
-                        <i class="bi bi-file-pdf"></i> Скачать PDF
-                    </button>
+                    <div class="no-print" style="display:flex;flex-direction:column;gap:10px;align-self:center;">
+                        <button onclick="downloadPDF()" id="pdfBtn" class="print-btn">
+                            <i class="bi bi-file-pdf"></i> Скачать PDF
+                        </button>
+                        <a href="/admin/public/landing/{token}/export/xlsx" class="print-btn" style="text-decoration:none;text-align:center;">
+                            <i class="bi bi-file-earmark-excel"></i> Скачать Excel
+                        </a>
+                    </div>
                 </div>
             </div>
 
@@ -3083,6 +3222,7 @@ def render_public_landing_page(token):
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
         <script>
             new Chart(document.getElementById('dailyChart'), {{
                 type: 'bar',
@@ -3122,6 +3262,30 @@ def render_public_landing_page(token):
                     }}
                 }}
             }});
+
+            function downloadPDF() {{
+                var btn = document.getElementById('pdfBtn');
+                btn.textContent = 'Генерация PDF...';
+                btn.disabled = true;
+
+                var element = document.querySelector('.container');
+                var opt = {{
+                    margin:       [10, 10, 10, 10],
+                    filename:     'sakura-fest-stats.pdf',
+                    image:        {{ type: 'jpeg', quality: 0.95 }},
+                    html2canvas:  {{ scale: 2, useCORS: true, backgroundColor: '#FFF0F3' }},
+                    jsPDF:        {{ unit: 'mm', format: 'a4', orientation: 'portrait' }},
+                    pagebreak:    {{ mode: ['avoid-all', 'css', 'legacy'] }}
+                }};
+
+                html2pdf().set(opt).from(element).save().then(function() {{
+                    btn.innerHTML = '<i class="bi bi-file-pdf"></i> Скачать PDF';
+                    btn.disabled = false;
+                }}).catch(function() {{
+                    btn.innerHTML = '<i class="bi bi-file-pdf"></i> Скачать PDF';
+                    btn.disabled = false;
+                }});
+            }}
         </script>
     </body>
     </html>
