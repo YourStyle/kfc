@@ -3,11 +3,20 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTexts } from '../contexts/TextsContext';
 import api from '../services/api';
-import type { QuestResultData } from '../services/api';
+import type { QuestResultData, GuestProgressEntry, QuestPageSummary } from '../services/api';
+
+const GUEST_PROGRESS_KEY = 'rostics_quest_guest';
+
+function loadGuestProgress(): GuestProgressEntry[] {
+  try {
+    const raw = localStorage.getItem(GUEST_PROGRESS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
 
 const QuestResultScreen: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, login, register, verify, resendCode } = useAuth();
   const { t } = useTexts();
 
   const [loading, setLoading] = useState(true);
@@ -18,14 +27,87 @@ const QuestResultScreen: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [animatedScore, setAnimatedScore] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
-  const [email, setEmail] = useState(user?.email || '');
+  const [email, setEmail] = useState('');
   const [emailSent, setEmailSent] = useState(false);
   const [emailSending, setEmailSending] = useState(false);
   const rafRef = useRef<number>(0);
 
+  // Guest auth form state
+  const [isGuest, setIsGuest] = useState(!user);
+  const [authMode, setAuthMode] = useState<'login' | 'register' | 'verify'>('register');
+  const [authEmail, setAuthEmail] = useState(() => {
+    // Prefill email from match3 auth if available
+    return localStorage.getItem('rostics_user_email') || '';
+  });
+  const [authUsername, setAuthUsername] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authCode, setAuthCode] = useState('');
+  const [authError, setAuthError] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState('');
+
+  // Start score animation helper
+  const animateScore = (target: number) => {
+    const duration = 2000;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setAnimatedScore(Math.round(eased * target));
+      if (progress < 1) {
+        rafRef.current = requestAnimationFrame(tick);
+      } else if (target >= 120) {
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 5000);
+      }
+    };
+    rafRef.current = requestAnimationFrame(tick);
+  };
+
   // Load quest results on mount
   useEffect(() => {
     const fetchResult = async () => {
+      // --- Guest mode: compute results from localStorage ---
+      if (!user) {
+        setIsGuest(true);
+        const guestEntries = loadGuestProgress();
+
+        if (guestEntries.length === 0) {
+          navigate('/spacequest');
+          return;
+        }
+
+        // Fetch page count from API for totals
+        let totalPages = guestEntries.length;
+        try {
+          const pagesRes = await api.getQuestPages();
+          if (pagesRes.data?.pages) {
+            totalPages = pagesRes.data.pages.length;
+          }
+        } catch {}
+
+        const correctCount = guestEntries.filter(e => e.is_correct).length;
+        const skippedCount = guestEntries.filter(e => e.is_skipped).length;
+        const totalScore = guestEntries.reduce((sum, e) => sum + e.points_earned, 0);
+
+        const guestResult: QuestResultData = {
+          total_score: totalScore,
+          total_pages: totalPages,
+          correct_answers: correctCount,
+          skipped_answers: skippedCount,
+          answered_pages: guestEntries.length,
+          eligible_tier: totalScore >= 200 ? 'gold' : totalScore >= 160 ? 'silver' : totalScore >= 120 ? 'bronze' : undefined,
+          already_claimed: false,
+        };
+
+        setResult(guestResult);
+        animateScore(totalScore);
+        setLoading(false);
+        return;
+      }
+
+      // --- Authenticated mode: load from API ---
       try {
         setLoading(true);
         const { data, error: apiError } = await api.getQuestResult();
@@ -36,36 +118,13 @@ const QuestResultScreen: React.FC = () => {
         }
 
         setResult(data);
-
-        // Start score animation with requestAnimationFrame
-        const duration = 2000;
-        const target = data.total_score;
-        const start = performance.now();
-
-        const tick = (now: number) => {
-          const elapsed = now - start;
-          const progress = Math.min(elapsed / duration, 1);
-          // Ease-out cubic for decelerating feel
-          const eased = 1 - Math.pow(1 - progress, 3);
-          setAnimatedScore(Math.round(eased * target));
-
-          if (progress < 1) {
-            rafRef.current = requestAnimationFrame(tick);
-          } else {
-            // Show confetti if score is 30+
-            if (target >= 120) {
-              setShowConfetti(true);
-              setTimeout(() => setShowConfetti(false), 5000);
-            }
-          }
-        };
-        rafRef.current = requestAnimationFrame(tick);
+        setEmail(user.email || '');
+        animateScore(data.total_score);
 
         // Auto-claim promo code if eligible
         if (data.claimed_code) {
           setPromoCode(data.claimed_code);
         } else if (data.total_score >= 120) {
-          // Automatically claim promo code
           try {
             const promoResult = await api.claimPromoCode();
             if (promoResult.data?.code) {
@@ -84,7 +143,102 @@ const QuestResultScreen: React.FC = () => {
     return () => {
       if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = 0; }
     };
-  }, []);
+  }, [user]);
+
+  // After guest registers and gets authenticated, sync progress + reload
+  const handleGuestAuthComplete = async () => {
+    try {
+      // Sync guest progress to backend
+      const guestEntries = loadGuestProgress();
+      if (guestEntries.length > 0) {
+        await api.syncGuestProgress(guestEntries);
+        localStorage.removeItem(GUEST_PROGRESS_KEY);
+      }
+
+      // Reload results from API
+      const { data } = await api.getQuestResult();
+      if (data) {
+        setResult(data);
+        setEmail(data.total_score >= 0 ? authEmail : '');
+        animateScore(data.total_score);
+
+        // Auto-claim promo
+        if (data.claimed_code) {
+          setPromoCode(data.claimed_code);
+        } else if (data.total_score >= 120) {
+          try {
+            const promoResult = await api.claimPromoCode();
+            if (promoResult.data?.code) {
+              setPromoCode(promoResult.data.code);
+            }
+          } catch {}
+        }
+      }
+
+      setIsGuest(false);
+    } catch (err) {
+      console.error('Failed to sync guest progress:', err);
+    }
+  };
+
+  // Guest auth handlers
+  const handleGuestLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError('');
+    setAuthLoading(true);
+
+    const result = await login(authEmail, authPassword);
+    setAuthLoading(false);
+
+    if (result.success) {
+      await handleGuestAuthComplete();
+    } else {
+      setAuthError(result.error || 'Не удалось войти');
+    }
+  };
+
+  const handleGuestRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError('');
+    setAuthLoading(true);
+
+    const result = await register(authEmail, authUsername, authPassword, 'region', 'Москва', 'quest');
+    setAuthLoading(false);
+
+    if (result.success) {
+      setPendingEmail(authEmail);
+      setAuthMode('verify');
+    } else {
+      setAuthError(result.error || 'Не удалось зарегистрироваться');
+    }
+  };
+
+  const handleGuestVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError('');
+    setAuthLoading(true);
+
+    const result = await verify(pendingEmail, authCode);
+    setAuthLoading(false);
+
+    if (result.success) {
+      // Store email for future prefill
+      localStorage.setItem('rostics_user_email', pendingEmail);
+      await handleGuestAuthComplete();
+    } else {
+      setAuthError(result.error || 'Неверный код');
+    }
+  };
+
+  const handleGuestResendCode = async () => {
+    setAuthError('');
+    setAuthLoading(true);
+    const result = await resendCode(pendingEmail);
+    setAuthLoading(false);
+    if (!result.success) {
+      setAuthError(result.error || 'Не удалось отправить код');
+    }
+  };
 
   // Get tier info based on score (200 = gold, 160 = silver, 120 = bronze)
   const getTier = (score: number): { name: string; color: string; label: string } | null => {
@@ -285,7 +439,117 @@ const QuestResultScreen: React.FC = () => {
         </div>
 
         {/* Promo Code Section */}
-        {tier ? (
+        {tier && isGuest ? (
+          /* Guest with enough points — show auth form to claim promo */
+          <div className="promo-section">
+            <div className="tier-badge" style={{ borderColor: tier.color }}>
+              <div className="tier-icon" style={{ color: tier.color }}>
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+                </svg>
+              </div>
+              <div className="tier-label" style={{ color: tier.color }}>
+                {tier.label} ПРОМОКОД
+              </div>
+            </div>
+
+            <div className="guest-auth-card">
+              <p className="guest-auth-hint">
+                Зарегистрируйтесь, чтобы получить промокод
+              </p>
+
+              {authError && <div className="guest-auth-error">{authError}</div>}
+
+              {authMode === 'register' && (
+                <form onSubmit={handleGuestRegister} className="guest-auth-form">
+                  <input
+                    type="email"
+                    placeholder="Email"
+                    value={authEmail}
+                    onChange={(e) => setAuthEmail(e.target.value)}
+                    className="guest-auth-input"
+                    required
+                  />
+                  <input
+                    type="text"
+                    placeholder="Имя"
+                    value={authUsername}
+                    onChange={(e) => setAuthUsername(e.target.value)}
+                    className="guest-auth-input"
+                    required
+                    minLength={3}
+                  />
+                  <input
+                    type="password"
+                    placeholder="Пароль"
+                    value={authPassword}
+                    onChange={(e) => setAuthPassword(e.target.value)}
+                    className="guest-auth-input"
+                    required
+                    minLength={6}
+                  />
+                  <button type="submit" className="guest-auth-btn" disabled={authLoading}>
+                    {authLoading ? 'Загрузка...' : 'Зарегистрироваться'}
+                  </button>
+                  <p className="guest-auth-switch">
+                    Уже есть аккаунт?{' '}
+                    <span onClick={() => { setAuthMode('login'); setAuthError(''); }}>Войти</span>
+                  </p>
+                </form>
+              )}
+
+              {authMode === 'login' && (
+                <form onSubmit={handleGuestLogin} className="guest-auth-form">
+                  <input
+                    type="email"
+                    placeholder="Email"
+                    value={authEmail}
+                    onChange={(e) => setAuthEmail(e.target.value)}
+                    className="guest-auth-input"
+                    required
+                  />
+                  <input
+                    type="password"
+                    placeholder="Пароль"
+                    value={authPassword}
+                    onChange={(e) => setAuthPassword(e.target.value)}
+                    className="guest-auth-input"
+                    required
+                  />
+                  <button type="submit" className="guest-auth-btn" disabled={authLoading}>
+                    {authLoading ? 'Загрузка...' : 'Войти'}
+                  </button>
+                  <p className="guest-auth-switch">
+                    Нет аккаунта?{' '}
+                    <span onClick={() => { setAuthMode('register'); setAuthError(''); }}>Зарегистрироваться</span>
+                  </p>
+                </form>
+              )}
+
+              {authMode === 'verify' && (
+                <form onSubmit={handleGuestVerify} className="guest-auth-form">
+                  <p className="guest-auth-verify-hint">Код отправлен на {pendingEmail}</p>
+                  <input
+                    type="text"
+                    placeholder="000000"
+                    value={authCode}
+                    onChange={(e) => setAuthCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    className="guest-auth-input guest-auth-code"
+                    required
+                    maxLength={6}
+                  />
+                  <button type="submit" className="guest-auth-btn" disabled={authLoading || authCode.length !== 6}>
+                    {authLoading ? 'Загрузка...' : 'Подтвердить'}
+                  </button>
+                  <p className="guest-auth-switch">
+                    Не получили код?{' '}
+                    <span onClick={handleGuestResendCode}>Отправить повторно</span>
+                  </p>
+                </form>
+              )}
+            </div>
+          </div>
+        ) : tier ? (
           <div className="promo-section">
             <div className="tier-badge" style={{ borderColor: tier.color }}>
               <div className="tier-icon" style={{ color: tier.color }}>
@@ -353,6 +617,20 @@ const QuestResultScreen: React.FC = () => {
             ) : claiming ? (
               <div className="promo-loading">Загружаем промокод...</div>
             ) : null}
+          </div>
+        ) : isGuest ? (
+          <div className="no-prize-section">
+            <div className="no-prize-icon">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
+                <path d="M8 12H16M12 8V16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </div>
+            <h3>{t('quest.result_no_prize', 'Вы отлично справились!')}</h3>
+            <p>{t('quest.result_no_prize_hint', "Наберите от 120 баллов, получите промокод на заказ в мобильном приложении ROSTIC'S")}</p>
+            {result.total_score < 120 && (
+              <p className="score-diff">Вам не хватило всего {120 - result.total_score} баллов</p>
+            )}
           </div>
         ) : (
           <div className="no-prize-section">
@@ -995,6 +1273,126 @@ const QuestResultScreen: React.FC = () => {
           font-size: 14px;
           color: rgba(255, 255, 255, 0.6);
           padding: 16px 0;
+        }
+
+        /* Guest Auth Card */
+        .guest-auth-card {
+          background: rgba(0, 0, 0, 0.3);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          border-radius: 12px;
+          padding: 24px;
+          margin-top: 20px;
+        }
+
+        .guest-auth-hint {
+          font-family: 'RosticsCeraPro', sans-serif;
+          font-size: 15px;
+          color: rgba(255, 255, 255, 0.8);
+          margin: 0 0 16px 0;
+          text-align: center;
+        }
+
+        .guest-auth-error {
+          background: rgba(200, 0, 0, 0.2);
+          border: 1px solid rgba(255, 100, 100, 0.3);
+          color: #ff8888;
+          padding: 10px 14px;
+          border-radius: 8px;
+          font-family: 'RosticsCeraPro', sans-serif;
+          font-size: 13px;
+          text-align: center;
+          margin-bottom: 12px;
+        }
+
+        .guest-auth-form {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .guest-auth-input {
+          padding: 14px 16px;
+          border-radius: 8px;
+          border: 1px solid rgba(228, 0, 43, 0.25);
+          background: rgba(255, 255, 255, 0.05);
+          font-family: 'RosticsCeraPro', sans-serif;
+          font-size: 15px;
+          color: #fff;
+          outline: none;
+          transition: border-color 0.2s, box-shadow 0.2s;
+          width: 100%;
+          box-sizing: border-box;
+        }
+
+        .guest-auth-input:focus {
+          border-color: rgba(228, 0, 43, 0.5);
+          box-shadow: 0 0 12px rgba(228, 0, 43, 0.2);
+        }
+
+        .guest-auth-input::placeholder {
+          color: rgba(255, 255, 255, 0.35);
+        }
+
+        .guest-auth-code {
+          text-align: center;
+          font-size: 24px;
+          letter-spacing: 8px;
+          font-weight: 700;
+          font-family: 'RosticsCeraCondensed', monospace;
+        }
+
+        .guest-auth-btn {
+          padding: 14px;
+          border: none;
+          border-radius: 8px 16px 8px 16px;
+          background: #ED1C29;
+          color: #fff;
+          font-family: 'RosticsCeraPro', sans-serif;
+          font-size: 15px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          cursor: pointer;
+          box-shadow: 0 0 20px rgba(228, 0, 43, 0.4);
+          transition: all 0.2s ease;
+        }
+
+        .guest-auth-btn:hover {
+          box-shadow: 0 0 30px rgba(228, 0, 43, 0.6);
+          transform: translateY(-1px);
+        }
+
+        .guest-auth-btn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        .guest-auth-switch {
+          font-family: 'RosticsCeraPro', sans-serif;
+          font-size: 13px;
+          color: rgba(255, 255, 255, 0.5);
+          text-align: center;
+          margin: 4px 0 0 0;
+        }
+
+        .guest-auth-switch span {
+          color: #F4A698;
+          cursor: pointer;
+          font-weight: 600;
+        }
+
+        .guest-auth-switch span:hover {
+          color: #FFB3C1;
+          text-decoration: underline;
+        }
+
+        .guest-auth-verify-hint {
+          font-family: 'RosticsCeraPro', sans-serif;
+          font-size: 14px;
+          color: rgba(244, 166, 152, 0.8);
+          text-align: center;
+          margin: 0 0 4px 0;
         }
 
         /* No Prize Section */

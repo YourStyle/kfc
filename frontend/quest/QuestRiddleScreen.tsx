@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTexts } from '../contexts/TextsContext';
 import api from '../services/api';
 import QuestProgressBar from './QuestProgressBar';
-import type { QuestPageSummary, QuestProgressData } from '../services/api';
+import type { QuestPageSummary, QuestProgressData, GuestProgressEntry } from '../services/api';
 
 type ScreenState = 'loading' | 'riddle' | 'scanner' | 'success' | 'error' | 'skip_confirm';
 
@@ -15,6 +15,7 @@ interface SuccessData {
 }
 
 const QUEST_CACHE_KEY = 'rostics_quest_cache';
+const GUEST_PROGRESS_KEY = 'rostics_quest_guest';
 
 interface QuestCache {
   pages: QuestPageSummary[];
@@ -45,6 +46,56 @@ function loadQuestCache(): QuestCache | null {
   }
 }
 
+// --- Guest progress helpers ---
+function loadGuestProgress(): GuestProgressEntry[] {
+  try {
+    const raw = localStorage.getItem(GUEST_PROGRESS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+function saveGuestProgress(entries: GuestProgressEntry[]): void {
+  try {
+    localStorage.setItem(GUEST_PROGRESS_KEY, JSON.stringify(entries));
+  } catch {}
+}
+
+function buildGuestProgressData(
+  pages: QuestPageSummary[],
+  guestEntries: GuestProgressEntry[],
+): QuestProgressData {
+  const answeredSlugs = new Set(guestEntries.map(e => e.page_slug));
+  const totalScore = guestEntries.reduce((sum, e) => sum + e.points_earned, 0);
+
+  let currentSlug: string | undefined;
+  for (const page of pages) {
+    if (!answeredSlugs.has(page.slug)) {
+      currentSlug = page.slug;
+      break;
+    }
+  }
+
+  return {
+    progress: pages.map(p => {
+      const entry = guestEntries.find(e => e.page_slug === p.slug);
+      return {
+        page_slug: p.slug,
+        page_order: p.order,
+        page_title: p.title,
+        is_answered: !!entry,
+        is_correct: entry?.is_correct ?? false,
+        is_skipped: entry?.is_skipped ?? false,
+        points_earned: entry?.points_earned ?? 0,
+      };
+    }),
+    total_score: totalScore,
+    total_pages: pages.length,
+    answered_pages: guestEntries.length,
+    current_page_slug: currentSlug,
+    quest_completed: currentSlug === undefined,
+  };
+}
+
 const QuestRiddleScreen: React.FC = () => {
   const { user } = useAuth();
   const { t } = useTexts();
@@ -61,10 +112,60 @@ const QuestRiddleScreen: React.FC = () => {
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const qrReaderDivId = 'qr-reader';
 
+  const isGuest = !user;
+
   // Fetch quest data on mount
   useEffect(() => {
     const fetchQuestData = async () => {
+      // --- Guest mode: pages from API, progress from localStorage ---
+      if (isGuest) {
+        try {
+          const pagesRes = await api.getQuestPages();
+          if (pagesRes.error || !pagesRes.data) {
+            setErrorMessage(pagesRes.error || 'Не удалось загрузить страницы квеста');
+            setState('error');
+            return;
+          }
+
+          const pagesData = pagesRes.data.pages;
+          const guestEntries = loadGuestProgress();
+          const progressData = buildGuestProgressData(pagesData, guestEntries);
+
+          setPages(pagesData);
+          setProgress(progressData);
+
+          if (progressData.quest_completed) {
+            navigate('/spacequest/result');
+            return;
+          }
+
+          if (progressData.current_page_slug) {
+            const page = pagesData.find(p => p.slug === progressData.current_page_slug);
+            if (page) {
+              setCurrentPage(page);
+              setState('riddle');
+              return;
+            }
+          }
+
+          navigate('/spacequest/result');
+        } catch (error) {
+          console.error('Failed to fetch quest pages:', error);
+          setErrorMessage('Не удалось загрузить данные квеста');
+          setState('error');
+        }
+        return;
+      }
+
+      // --- Authenticated mode: sync any guest progress first, then load from API ---
       try {
+        // If user has guest progress in localStorage, sync it before loading
+        const guestEntries = loadGuestProgress();
+        if (guestEntries.length > 0) {
+          await api.syncGuestProgress(guestEntries);
+          localStorage.removeItem(GUEST_PROGRESS_KEY);
+        }
+
         const [pagesRes, progressRes] = await Promise.all([
           api.getQuestPages(),
           api.getQuestProgress()
@@ -160,7 +261,7 @@ const QuestRiddleScreen: React.FC = () => {
     };
 
     fetchQuestData();
-  }, [navigate]);
+  }, [navigate, isGuest]);
 
   // Start QR scanner
   const startScanner = async () => {
@@ -210,6 +311,7 @@ const QuestRiddleScreen: React.FC = () => {
 
     await stopScanner();
 
+    // The scan endpoint now works for both authenticated and guest users
     const { data, error } = await api.scanQuestQR(token);
 
     if (error || !data) {
@@ -225,17 +327,36 @@ const QuestRiddleScreen: React.FC = () => {
       });
       setState('success');
 
-      // Update local progress
-      if (progress) {
-        const updatedProgress = {
-          ...progress,
-          total_score: data.total_quest_score,
-          answered_pages: progress.answered_pages + 1,
-          current_page_slug: data.next_page_slug,
-          quest_completed: data.quest_completed,
-        };
+      if (isGuest) {
+        // Guest mode: save progress to localStorage
+        const guestEntries = loadGuestProgress();
+        const pageSlug = data.page_slug || currentPage?.slug || '';
+        if (pageSlug && !guestEntries.some(e => e.page_slug === pageSlug)) {
+          guestEntries.push({
+            page_slug: pageSlug,
+            is_correct: true,
+            is_skipped: false,
+            points_earned: data.points_earned,
+          });
+          saveGuestProgress(guestEntries);
+        }
+
+        // Update progress state from guest entries
+        const updatedProgress = buildGuestProgressData(pages, guestEntries);
         setProgress(updatedProgress);
-        saveQuestCache(pages, updatedProgress);
+      } else {
+        // Authenticated mode: progress already saved server-side
+        if (progress) {
+          const updatedProgress = {
+            ...progress,
+            total_score: data.total_quest_score,
+            answered_pages: progress.answered_pages + 1,
+            current_page_slug: data.next_page_slug,
+            quest_completed: data.quest_completed,
+          };
+          setProgress(updatedProgress);
+          saveQuestCache(pages, updatedProgress);
+        }
       }
     } else {
       setErrorMessage('Неверный QR-код. Найдите экспонат по текущей подсказке.');
@@ -260,6 +381,43 @@ const QuestRiddleScreen: React.FC = () => {
 
   // Skip question
   const skipQuestion = async () => {
+    if (isGuest) {
+      // Guest mode: skip locally without API call
+      if (!currentPage) return;
+
+      const guestEntries = loadGuestProgress();
+      if (!guestEntries.some(e => e.page_slug === currentPage.slug)) {
+        guestEntries.push({
+          page_slug: currentPage.slug,
+          is_correct: false,
+          is_skipped: true,
+          points_earned: 0,
+        });
+        saveGuestProgress(guestEntries);
+      }
+
+      const updatedProgress = buildGuestProgressData(pages, guestEntries);
+      setProgress(updatedProgress);
+
+      if (updatedProgress.quest_completed) {
+        navigate('/spacequest/result');
+        return;
+      }
+
+      if (updatedProgress.current_page_slug) {
+        const nextPage = pages.find(p => p.slug === updatedProgress.current_page_slug);
+        if (nextPage) {
+          setCurrentPage(nextPage);
+          setState('riddle');
+          return;
+        }
+      }
+
+      navigate('/spacequest/result');
+      return;
+    }
+
+    // Authenticated mode: existing API call
     const { data, error } = await api.skipQuestQuestion();
 
     if (error || !data) {

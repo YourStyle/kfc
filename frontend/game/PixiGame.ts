@@ -10,6 +10,8 @@ interface TileData {
   container: Container;
   row: number;
   col: number;
+  frozen?: boolean;
+  frozenOverlay?: Graphics;
 }
 
 interface LevelConfig {
@@ -21,8 +23,9 @@ interface LevelConfig {
     collect?: Record<string, number>;
     combos?: Record<string, number>;
     min_score?: number;
+    frozen?: number; // break N frozen tiles
   };
-  obstacles?: { row: number; col: number }[];
+  obstacles?: { row: number; col: number; type?: string }[];
 }
 
 export class PixiGame {
@@ -44,6 +47,8 @@ export class PixiGame {
   private gridSize = 8; // Dynamic grid size (7 for mobile, 8 for desktop)
   private tileSize = 64; // Tile size always 64
   private spriteSize = 48; // Sprite size inside tile (smaller on mobile)
+  private frozenPositions: Set<string> = new Set();
+  private frozenCount = 0;
   private hintTimeout: ReturnType<typeof setTimeout> | null = null;
   private hintTweens: gsap.core.Tween[] = [];
   private onStatsUpdate: (stats: typeof this.stats) => void;
@@ -79,6 +84,15 @@ export class PixiGame {
       ) as ItemType[];
       if (this.activeItemTypes.length === 0) {
         this.activeItemTypes = ITEM_TYPES;
+      }
+      // Initialize frozen positions (non-blocking obstacles)
+      if (levelConfig.obstacles) {
+        for (const obs of levelConfig.obstacles) {
+          if (obs.type === 'frozen') {
+            this.frozenPositions.add(`${obs.row},${obs.col}`);
+            this.frozenCount++;
+          }
+        }
       }
     }
 
@@ -277,6 +291,11 @@ export class PixiGame {
         const type = isObstaclePos ? 'obstacle' : this.getRandomType(row, col);
         const tile = this.createTile(type, row, col);
         this.grid[row][col] = tile;
+
+        // Add frozen overlay for frozen positions (non-blocking obstacles)
+        if (!isObstaclePos && this.isFrozenPosition(row, col)) {
+          this.addFrozenOverlay(tile);
+        }
 
         // Анимация появления
         tile.container.scale.set(0);
@@ -596,7 +615,71 @@ export class PixiGame {
 
   private isObstaclePosition(row: number, col: number): boolean {
     if (!this.levelConfig?.obstacles) return false;
-    return this.levelConfig.obstacles.some(o => o.row === row && o.col === col);
+    // Only blocking obstacles (no type or type !== 'frozen')
+    return this.levelConfig.obstacles.some(o => o.row === row && o.col === col && o.type !== 'frozen');
+  }
+
+  private isFrozenPosition(row: number, col: number): boolean {
+    return this.frozenPositions.has(`${row},${col}`);
+  }
+
+  private addFrozenOverlay(tile: TileData) {
+    tile.frozen = true;
+    const overlay = new Graphics();
+    const s = this.tileSize * 0.42;
+
+    // Ice crystal border
+    this.drawSciFiRect(overlay, -s, -s, s * 2, s * 2, 4, 12);
+    overlay.fill({ color: 0x88CCFF, alpha: 0.25 });
+    overlay.stroke({ color: 0xAADDFF, width: 2, alpha: 0.7 });
+
+    // Inner frost pattern - small dots
+    for (let i = 0; i < 5; i++) {
+      const fx = (Math.random() - 0.5) * s * 1.4;
+      const fy = (Math.random() - 0.5) * s * 1.4;
+      overlay.circle(fx, fy, 2 + Math.random() * 2);
+      overlay.fill({ color: 0xFFFFFF, alpha: 0.3 + Math.random() * 0.3 });
+    }
+
+    // Diagonal crack lines
+    overlay.moveTo(-s * 0.6, -s * 0.3);
+    overlay.lineTo(0, s * 0.1);
+    overlay.lineTo(s * 0.4, -s * 0.5);
+    overlay.stroke({ color: 0xFFFFFF, width: 1, alpha: 0.4 });
+
+    tile.frozenOverlay = overlay;
+    tile.container.addChild(overlay);
+  }
+
+  private breakIce(tile: TileData) {
+    if (!tile.frozen) return;
+    tile.frozen = false;
+    this.frozenCount--;
+
+    // Ice breaking particle effect
+    const stageX = this.gridContainer.x + tile.container.x;
+    const stageY = this.gridContainer.y + tile.container.y;
+    this.particles.emitIceBreak(stageX, stageY);
+
+    // Remove overlay with shatter animation
+    if (tile.frozenOverlay) {
+      const overlay = tile.frozenOverlay;
+      gsap.to(overlay, {
+        alpha: 0,
+        duration: 0.25,
+        ease: 'power2.out',
+        onComplete: () => {
+          tile.container.removeChild(overlay);
+          overlay.destroy();
+          tile.frozenOverlay = undefined;
+        }
+      });
+      gsap.to(overlay.scale, {
+        x: 1.3, y: 1.3,
+        duration: 0.25,
+        ease: 'power2.out',
+      });
+    }
   }
 
   private isFigurine(type: ItemType): boolean {
@@ -774,6 +857,11 @@ export class PixiGame {
         for (const pos of match) {
           const tile = this.grid[pos.row][pos.col];
           if (tile) {
+            // Break ice on frozen tiles
+            if (tile.frozen) {
+              this.breakIce(tile);
+            }
+
             // Координаты в системе stage
             const stageX = this.gridContainer.x + tile.container.x;
             const stageY = this.gridContainer.y + tile.container.y;
