@@ -2953,6 +2953,36 @@ def render_public_landing_page(token):
                 font-size: 14px;
                 margin-top: 4px;
             }}
+            .header-actions {{
+                display: flex;
+                gap: 10px;
+                justify-content: center;
+                margin-top: 16px;
+            }}
+            .export-btn {{
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 9px 18px;
+                border-radius: 12px;
+                font-size: 13px;
+                font-weight: 600;
+                font-family: inherit;
+                cursor: pointer;
+                transition: all 0.2s;
+                border: 1px solid rgba(237,28,41,0.2);
+                background: rgba(255,255,255,0.7);
+                color: var(--red);
+                text-decoration: none;
+                backdrop-filter: blur(8px);
+            }}
+            .export-btn:hover {{
+                background: var(--red);
+                color: white;
+                border-color: var(--red);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(237,28,41,0.3);
+            }}
 
             /* Glass card */
             .glass {{
@@ -3073,24 +3103,6 @@ def render_public_landing_page(token):
                 transition: width 0.6s ease;
             }}
 
-            /* Print button */
-            .print-btn {{
-                background: var(--red);
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 12px;
-                font-weight: 600;
-                font-size: 13px;
-                cursor: pointer;
-                display: inline-flex;
-                align-items: center;
-                gap: 6px;
-                transition: all 0.2s;
-                box-shadow: 0 4px 12px rgba(237,28,41,0.3);
-            }}
-            .print-btn:hover {{ transform: translateY(-1px); box-shadow: 0 6px 20px rgba(237,28,41,0.4); }}
-
             /* Scrollable visitors */
             .visitors-scroll {{
                 max-height: 600px;
@@ -3100,14 +3112,11 @@ def render_public_landing_page(token):
             .visitors-scroll::-webkit-scrollbar-track {{ background: transparent; }}
             .visitors-scroll::-webkit-scrollbar-thumb {{ background: var(--pink-mid); border-radius: 3px; }}
 
-            /* Two-col layout */
-            .two-col {{ display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }}
-
             @media (max-width: 768px) {{
                 .stats-grid {{ grid-template-columns: repeat(2, 1fr); }}
-                .two-col {{ grid-template-columns: 1fr; }}
                 .stat-value {{ font-size: 28px; }}
                 .header h1 {{ font-size: 22px; }}
+                .header-actions {{ flex-wrap: wrap; }}
             }}
 
             @media print {{
@@ -3134,6 +3143,14 @@ def render_public_landing_page(token):
             <div class="header">
                 <h1><i class="bi bi-flower2"></i> Sakura Fest</h1>
                 <p>Статистика посещений лендинга</p>
+                <div class="header-actions no-print">
+                    <button onclick="downloadPDF()" id="pdfBtn" class="export-btn">
+                        <i class="bi bi-file-pdf"></i> PDF
+                    </button>
+                    <a href="/admin/public/landing/{token}/export/xlsx" class="export-btn">
+                        <i class="bi bi-file-earmark-excel"></i> Excel
+                    </a>
+                </div>
             </div>
 
             <!-- Stats -->
@@ -3164,32 +3181,14 @@ def render_public_landing_page(token):
                 </div>
             </div>
 
-            <!-- Geography + Print -->
-            <div class="two-col">
-                <div class="glass">
-                    <div class="glass-header"><i class="bi bi-geo-alt"></i> География</div>
-                    <div class="glass-body-flush">
-                        <table class="data-table">
-                            <thead><tr><th>Город</th><th>Визитов</th><th></th><th>%</th></tr></thead>
-                            <tbody>{city_rows if city_rows else '<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:24px;">Нет данных о городах</td></tr>'}</tbody>
-                        </table>
-                    </div>
-                </div>
-                <div style="display:flex;flex-direction:column;gap:20px;">
-                    <div class="glass" style="flex:1;display:flex;align-items:center;justify-content:center;">
-                        <div style="text-align:center;padding:32px;">
-                            <div style="font-size:64px;margin-bottom:12px;">🌸</div>
-                            <div style="font-size:14px;color:#94a3b8;font-weight:600;">sakura-fest-rostics.ru</div>
-                        </div>
-                    </div>
-                    <div class="no-print" style="display:flex;flex-direction:column;gap:10px;align-self:center;">
-                        <button onclick="downloadPDF()" id="pdfBtn" class="print-btn">
-                            <i class="bi bi-file-pdf"></i> Скачать PDF
-                        </button>
-                        <a href="/admin/public/landing/{token}/export/xlsx" class="print-btn" style="text-decoration:none;text-align:center;">
-                            <i class="bi bi-file-earmark-excel"></i> Скачать Excel
-                        </a>
-                    </div>
+            <!-- Geography -->
+            <div class="glass">
+                <div class="glass-header"><i class="bi bi-geo-alt"></i> География</div>
+                <div class="glass-body-flush">
+                    <table class="data-table">
+                        <thead><tr><th>Город</th><th>Визитов</th><th></th><th>%</th></tr></thead>
+                        <tbody>{city_rows if city_rows else '<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:24px;">Нет данных о городах</td></tr>'}</tbody>
+                    </table>
                 </div>
             </div>
 
