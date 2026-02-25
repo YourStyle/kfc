@@ -9,6 +9,91 @@ bp = Blueprint('landing', __name__)
 # MaxMind GeoLite2 reader (lazy initialization)
 _geo_reader = None
 
+# Russian translations for cities/regions missing from DB-IP Lite free database
+_RU_CITIES = {
+    'Moscow': 'Москва', 'St Petersburg': 'Санкт-Петербург', 'Saint Petersburg': 'Санкт-Петербург',
+    'Novosibirsk': 'Новосибирск', 'Yekaterinburg': 'Екатеринбург', 'Kazan': 'Казань',
+    'Nizhny Novgorod': 'Нижний Новгород', 'Chelyabinsk': 'Челябинск', 'Samara': 'Самара',
+    'Omsk': 'Омск', 'Rostov-on-Don': 'Ростов-на-Дону', 'Ufa': 'Уфа', 'Krasnoyarsk': 'Красноярск',
+    'Voronezh': 'Воронеж', 'Perm': 'Пермь', 'Volgograd': 'Волгоград', 'Krasnodar': 'Краснодар',
+    'Saratov': 'Саратов', 'Tyumen': 'Тюмень', 'Tolyatti': 'Тольятти', 'Izhevsk': 'Ижевск',
+    'Barnaul': 'Барнаул', 'Ulyanovsk': 'Ульяновск', 'Irkutsk': 'Иркутск', 'Khabarovsk': 'Хабаровск',
+    'Yaroslavl': 'Ярославль', 'Vladivostok': 'Владивосток', 'Makhachkala': 'Махачкала',
+    'Tomsk': 'Томск', 'Orenburg': 'Оренбург', 'Kemerovo': 'Кемерово', 'Novokuznetsk': 'Новокузнецк',
+    'Ryazan': 'Рязань', 'Astrakhan': 'Астрахань', 'Penza': 'Пенза', 'Lipetsk': 'Липецк',
+    'Tula': 'Тула', 'Kirov': 'Киров', 'Cheboksary': 'Чебоксары', 'Kaliningrad': 'Калининград',
+    'Bryansk': 'Брянск', 'Kursk': 'Курск', 'Ivanovo': 'Иваново', 'Magnitogorsk': 'Магнитогорск',
+    'Tver': 'Тверь', 'Stavropol': 'Ставрополь', 'Belgorod': 'Белгород', 'Sochi': 'Сочи',
+    'Surgut': 'Сургут', 'Vladimir': 'Владимир', 'Arkhangelsk': 'Архангельск', 'Chita': 'Чита',
+    'Smolensk': 'Смоленск', 'Kaluga': 'Калуга', 'Volzhskiy': 'Волжский', 'Kurgan': 'Курган',
+    'Orel': 'Орёл', 'Murmansk': 'Мурманск', 'Tambov': 'Тамбов', 'Petrozavodsk': 'Петрозаводск',
+    'Kostroma': 'Кострома', 'Novorossiysk': 'Новороссийск', 'Yoshkar-Ola': 'Йошкар-Ола',
+    'Taganrog': 'Таганрог', 'Syktyvkar': 'Сыктывкар', 'Nizhnevartovsk': 'Нижневартовск',
+    'Komsomolsk-on-Amur': 'Комсомольск-на-Амуре', 'Nalchik': 'Нальчик', 'Dzerzhinsk': 'Дзержинск',
+    'Shakhty': 'Шахты', 'Orsk': 'Орск', 'Sterlitamak': 'Стерлитамак', 'Angarsk': 'Ангарск',
+    'Blagoveshchensk': 'Благовещенск', 'Zheleznogorsk': 'Железногорск', 'Rybinsk': 'Рыбинск',
+    'Prokopyevsk': 'Прокопьевск', 'Armavir': 'Армавир', 'Abakan': 'Абакан',
+    'Norilsk': 'Норильск', 'Noyabrsk': 'Ноябрьск', 'Nefteyugansk': 'Нефтеюганск',
+    'Severodvinsk': 'Северодвинск', 'Orekhovo-Borisovo Yuzhnoye': 'Москва',
+    'Belyy Yar': 'Белый Яр', 'Murmino': 'Мурмино', 'Sargazy': 'Саргазы',
+    'Mednogorsk': 'Медногорск',
+    # Foreign (VPN)
+    'Frankfurt': 'Франкфурт', 'Amsterdam': 'Амстердам', 'London': 'Лондон',
+    'Helsinki': 'Хельсинки', 'Berlin': 'Берлин', 'Paris': 'Париж', 'Warsaw': 'Варшава',
+    'Prague': 'Прага', 'Istanbul': 'Стамбул', 'Dubai': 'Дубай', 'Singapore': 'Сингапур',
+    'Tokyo': 'Токио', 'New York': 'Нью-Йорк', 'Los Angeles': 'Лос-Анджелес',
+}
+
+_RU_REGIONS = {
+    'Moscow': 'Москва', 'Moscow Oblast': 'Московская область',
+    'St.-Petersburg': 'Санкт-Петербург', 'Saint Petersburg': 'Санкт-Петербург',
+    'Novosibirsk Oblast': 'Новосибирская область', 'Sverdlovsk': 'Свердловская область',
+    'Sverdlovsk Oblast': 'Свердловская область',
+    'Tatarstan': 'Татарстан', 'Nizhny Novgorod Oblast': 'Нижегородская область',
+    'Chelyabinsk': 'Челябинская область', 'Chelyabinsk Oblast': 'Челябинская область',
+    'Samara Oblast': 'Самарская область', 'Omsk': 'Омская область', 'Omsk Oblast': 'Омская область',
+    'Rostov': 'Ростовская область', 'Rostov Oblast': 'Ростовская область',
+    'Bashkortostan': 'Башкортостан', 'Krasnoyarsk Krai': 'Красноярский край',
+    'Voronezh Oblast': 'Воронежская область', 'Perm Krai': 'Пермский край', 'Perm': 'Пермский край',
+    'Volgograd Oblast': 'Волгоградская область', 'Krasnodar Krai': 'Краснодарский край',
+    'Saratov Oblast': 'Саратовская область', 'Tyumen Oblast': 'Тюменская область',
+    'Udmurtia': 'Удмуртия', 'Altai Krai': 'Алтайский край',
+    'Ulyanovsk Oblast': 'Ульяновская область', 'Irkutsk Oblast': 'Иркутская область',
+    'Khabarovsk Krai': 'Хабаровский край', 'Yaroslavl Oblast': 'Ярославская область',
+    'Primorye': 'Приморский край', 'Primorsky Krai': 'Приморский край',
+    'Dagestan': 'Дагестан', 'Tomsk Oblast': 'Томская область',
+    'Orenburg Oblast': 'Оренбургская область', 'Kemerovo Oblast': 'Кемеровская область',
+    'Ryazan Oblast': 'Рязанская область', 'Astrakhan Oblast': 'Астраханская область',
+    'Penza Oblast': 'Пензенская область', 'Lipetsk Oblast': 'Липецкая область',
+    'Tula Oblast': 'Тульская область', 'Kirov Oblast': 'Кировская область',
+    'Chuvashia': 'Чувашия', 'Kaliningrad Oblast': 'Калининградская область',
+    'Bryansk Oblast': 'Брянская область', 'Kursk Oblast': 'Курская область',
+    'Ivanovo Oblast': 'Ивановская область', 'Stavropol Krai': 'Ставропольский край',
+    'Belgorod Oblast': 'Белгородская область', 'Vladimir Oblast': 'Владимирская область',
+    'Arkhangelsk Oblast': 'Архангельская область', 'Zabaykalsky Krai': 'Забайкальский край',
+    'Smolensk Oblast': 'Смоленская область', 'Kaluga Oblast': 'Калужская область',
+    'Kurgan Oblast': 'Курганская область', 'Murmansk Oblast': 'Мурманская область',
+    'Tambov Oblast': 'Тамбовская область', 'Karelia': 'Карелия',
+    'Kostroma Oblast': 'Костромская область', 'Komi': 'Коми',
+    'Khanty-Mansia': 'Ханты-Мансийский АО', 'Khanty-Mansiysk': 'Ханты-Мансийский АО',
+    'Yamalo-Nenets': 'Ямало-Ненецкий АО', 'Kabardino-Balkaria': 'Кабардино-Балкария',
+    'North Ossetia': 'Северная Осетия', 'Buryatia': 'Бурятия', 'Sakha': 'Якутия',
+    'Kamchatka Krai': 'Камчатский край', 'Amur Oblast': 'Амурская область',
+    'Sakhalin Oblast': 'Сахалинская область', 'Magadan Oblast': 'Магаданская область',
+    'Tver Oblast': 'Тверская область', 'Novgorod Oblast': 'Новгородская область',
+    'Pskov Oblast': 'Псковская область', 'Vologda Oblast': 'Вологодская область',
+    # Foreign
+    'England': 'Англия', 'Hessen': 'Гессен', 'North Holland': 'Северная Голландия',
+    'Bavaria': 'Бавария', 'Ile-de-France': 'Иль-де-Франс',
+}
+
+
+def _translate(name, mapping):
+    """Translate an English geo name to Russian using the mapping."""
+    if not name:
+        return name
+    return mapping.get(name, name)
+
 
 def get_geo_reader():
     """Lazily initialize MaxMind GeoLite2 reader"""
@@ -42,12 +127,14 @@ def lookup_geo(ip_address):
 
     try:
         response = reader.city(ip_address)
-        city = response.city.names.get('ru') or response.city.names.get('en')
+        city_en = response.city.names.get('en')
+        city = response.city.names.get('ru') or _translate(city_en, _RU_CITIES) or city_en
         country = response.country.names.get('ru') or response.country.names.get('en')
         region = None
         if response.subdivisions:
+            region_en = response.subdivisions.most_specific.names.get('en')
             region = response.subdivisions.most_specific.names.get('ru') or \
-                     response.subdivisions.most_specific.names.get('en')
+                     _translate(region_en, _RU_REGIONS) or region_en
         return city, country, region
     except Exception:
         return None, None, None

@@ -122,6 +122,7 @@ services:
     restart: unless-stopped
     ports:
       - "${LANDING_PORT:-3002}:80"
+      - "8082:80"
     networks:
       - rostics-network
 
