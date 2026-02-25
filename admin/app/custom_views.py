@@ -2531,7 +2531,7 @@ def public_landing_stats(token):
 
 
 def render_landing_login(token, error=None):
-    error_html = f'<div class="alert alert-danger">{error}</div>' if error else ''
+    error_html = f'<div style="background:rgba(237,28,41,0.08);color:#C41420;border:1px solid rgba(237,28,41,0.2);border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:14px;text-align:center;">{error}</div>' if error else ''
     return f'''
     <!DOCTYPE html>
     <html lang="ru">
@@ -2539,23 +2539,120 @@ def render_landing_login(token, error=None):
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Sakura Fest — Статистика</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
         <style>
-            body {{ background: linear-gradient(135deg, #FFF0F3, #FADADD); min-height: 100vh; display: flex; align-items: center; justify-content: center; }}
-            .login-card {{ background: white; border-radius: 20px; padding: 40px; max-width: 400px; width: 100%; box-shadow: 0 20px 60px rgba(200,100,120,0.2); }}
-            .brand {{ font-size: 1.5rem; font-weight: 700; color: #ED1C29; margin-bottom: 1rem; }}
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+            *, *::before, *::after {{ margin: 0; padding: 0; box-sizing: border-box; }}
+            body {{
+                font-family: 'Inter', -apple-system, sans-serif;
+                background: #FFF0F3;
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+                overflow: hidden;
+            }}
+            body::before {{
+                content: '';
+                position: fixed;
+                inset: 0;
+                background:
+                    radial-gradient(ellipse at 30% 20%, rgba(244,166,184,0.4) 0%, transparent 50%),
+                    radial-gradient(ellipse at 70% 80%, rgba(255,200,215,0.3) 0%, transparent 50%);
+                z-index: 0;
+            }}
+            .petal {{
+                position: fixed;
+                width: 14px; height: 14px;
+                background: radial-gradient(ellipse at 30% 30%, #FFB7D5, #E8819E);
+                border-radius: 50% 0 50% 50%;
+                opacity: 0;
+                pointer-events: none;
+                z-index: 0;
+                animation: pd linear infinite;
+            }}
+            @keyframes pd {{
+                0%   {{ transform: translate(0, -60px) rotate(0deg); opacity: 0; }}
+                8%   {{ opacity: 0.6; }}
+                50%  {{ transform: translate(var(--sway), 50vh) rotate(180deg); opacity: 0.4; }}
+                100% {{ transform: translate(calc(var(--sway) * -0.5), calc(100vh + 60px)) rotate(360deg); opacity: 0; }}
+            }}
+            .login-card {{
+                position: relative;
+                z-index: 1;
+                background: linear-gradient(180deg, rgba(255,255,255,0.85) 0%, rgba(255,240,243,0.7) 100%);
+                backdrop-filter: blur(24px);
+                -webkit-backdrop-filter: blur(24px);
+                border: 1px solid rgba(255,255,255,0.7);
+                border-radius: 28px;
+                padding: 48px 36px 40px;
+                max-width: 400px;
+                width: calc(100% - 40px);
+                box-shadow: 0 24px 80px rgba(180,100,120,0.15);
+                text-align: center;
+            }}
+            .login-card::before {{
+                content: '';
+                position: absolute;
+                top: -1px; left: 20%; right: 20%;
+                height: 2px;
+                background: linear-gradient(90deg, transparent, #ED1C29, transparent);
+                border-radius: 1px;
+            }}
+            .brand-icon {{ font-size: 40px; margin-bottom: 12px; display: block; }}
+            .brand-title {{ font-size: 22px; font-weight: 800; color: #ED1C29; margin-bottom: 4px; }}
+            .brand-sub {{ font-size: 13px; color: #94a3b8; margin-bottom: 28px; }}
+            input[type="password"] {{
+                width: 100%;
+                padding: 14px 18px;
+                border: 1px solid rgba(237,28,41,0.15);
+                border-radius: 14px;
+                font-size: 16px;
+                font-family: inherit;
+                background: rgba(255,255,255,0.7);
+                outline: none;
+                transition: border-color 0.2s, box-shadow 0.2s;
+                margin-bottom: 16px;
+            }}
+            input[type="password"]:focus {{
+                border-color: #ED1C29;
+                box-shadow: 0 0 0 4px rgba(237,28,41,0.1);
+            }}
+            .submit-btn {{
+                width: 100%;
+                padding: 14px;
+                background: #ED1C29;
+                color: white;
+                border: none;
+                border-radius: 14px;
+                font-size: 16px;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all 0.2s;
+                box-shadow: 0 4px 16px rgba(237,28,41,0.3);
+            }}
+            .submit-btn:hover {{
+                transform: translateY(-1px);
+                box-shadow: 0 6px 24px rgba(237,28,41,0.4);
+            }}
         </style>
     </head>
     <body>
+        <div class="petal" style="left:10%;--sway:40px;animation-duration:12s;animation-delay:0s;"></div>
+        <div class="petal" style="left:25%;--sway:-35px;animation-duration:15s;animation-delay:2s;width:9px;height:9px;"></div>
+        <div class="petal" style="left:55%;--sway:50px;animation-duration:13s;animation-delay:1s;width:20px;height:20px;"></div>
+        <div class="petal" style="left:75%;--sway:-30px;animation-duration:14s;animation-delay:3s;"></div>
+        <div class="petal" style="left:90%;--sway:25px;animation-duration:16s;animation-delay:5s;width:9px;height:9px;"></div>
+
         <div class="login-card">
-            <div class="brand text-center">Sakura Fest — Статистика</div>
-            <p class="text-center text-muted mb-4">Введите пароль для просмотра</p>
+            <span class="brand-icon">🌸</span>
+            <div class="brand-title">Sakura Fest</div>
+            <div class="brand-sub">Введите пароль для просмотра статистики</div>
             {error_html}
             <form method="POST">
-                <div class="mb-3">
-                    <input type="password" name="password" class="form-control form-control-lg" placeholder="Пароль" required autofocus>
-                </div>
-                <button type="submit" class="btn btn-danger w-100 btn-lg">Войти</button>
+                <input type="password" name="password" placeholder="Пароль" required autofocus>
+                <button type="submit" class="submit-btn">Войти</button>
             </form>
         </div>
     </body>
@@ -2566,6 +2663,7 @@ def render_landing_login(token, error=None):
 def render_public_landing_page(token):
     from sqlalchemy import func, distinct
     from datetime import datetime
+    from markupsafe import escape
 
     total_visits = LandingVisit.query.count()
     unique_ips = db.session.query(func.count(distinct(LandingVisit.ip_address))).scalar() or 0
@@ -2598,7 +2696,32 @@ def render_public_landing_page(token):
     city_rows = ''
     for cs in city_stats:
         pct = round(cs.count / total_visits * 100, 1) if total_visits > 0 else 0
-        city_rows += f'<tr><td><strong>{cs.city}</strong></td><td>{cs.count:,}</td><td>{pct}%</td></tr>'
+        city_rows += f'''<tr>
+            <td><strong>{escape(cs.city)}</strong></td>
+            <td>{cs.count:,}</td>
+            <td><div class="pct-bar"><div class="pct-fill" style="width:{pct}%"></div></div></td>
+            <td>{pct}%</td>
+        </tr>'''
+
+    # Detailed visitors table (all visits, no referrer, no seed badge)
+    all_visits = LandingVisit.query.order_by(LandingVisit.created_at.desc()).all()
+    visitor_rows = ''
+    for i, v in enumerate(all_visits):
+        city_text = escape(v.city) if v.city else '<span class="dim">—</span>'
+        country_text = escape(v.country) if v.country else '<span class="dim">—</span>'
+        region_text = escape(v.region) if v.region else '<span class="dim">—</span>'
+        ua_short = escape((v.user_agent or '—')[:80])
+        ua_full = escape(v.user_agent or '')
+        date_str = v.created_at.strftime('%d.%m.%Y %H:%M') if v.created_at else '—'
+        visitor_rows += f'''<tr>
+            <td class="row-num">{i + 1}</td>
+            <td><code class="ip-code">{escape(v.ip_address or "—")}</code></td>
+            <td>{city_text}</td>
+            <td>{region_text}</td>
+            <td>{country_text}</td>
+            <td class="ua-cell" title="{ua_full}">{ua_short}</td>
+            <td class="date-cell">{date_str}</td>
+        </tr>'''
 
     return f'''
     <!DOCTYPE html>
@@ -2607,77 +2730,355 @@ def render_public_landing_page(token):
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Sakura Fest — Статистика</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
         <style>
-            :root {{ --accent: #ED1C29; }}
-            body {{ background: linear-gradient(180deg, #FFF0F3 0%, #f8fafc 30%); }}
-            .header {{ background: linear-gradient(135deg, #ED1C29 0%, #C41420 100%); color: white; padding: 2rem; margin-bottom: 2rem; }}
-            .header h1 {{ font-weight: 700; margin: 0; }}
-            .stat-card {{ background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center; height: 100%; }}
-            .stat-value {{ font-size: 2.5rem; font-weight: 700; color: #1e293b; }}
-            .stat-label {{ color: #64748b; font-size: 0.875rem; }}
-            .card {{ border: none; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }}
-            .card-header {{ background: transparent; border-bottom: 1px solid #e2e8f0; font-weight: 600; }}
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+            :root {{
+                --red: #ED1C29;
+                --red-dark: #C41420;
+                --pink-light: #FFF0F3;
+                --pink-mid: #FADADD;
+                --pink-deep: #F4A6B8;
+                --glass-bg: rgba(255,205,220,0.35);
+                --glass-border: rgba(255,255,255,0.6);
+                --card-shadow: 0 8px 32px rgba(180,100,120,0.12);
+            }}
+
+            *, *::before, *::after {{ margin: 0; padding: 0; box-sizing: border-box; }}
+
+            body {{
+                font-family: 'Inter', -apple-system, sans-serif;
+                background: var(--pink-light);
+                color: #1e293b;
+                min-height: 100vh;
+                position: relative;
+            }}
+
+            /* Sakura background */
+            body::before {{
+                content: '';
+                position: fixed;
+                inset: 0;
+                background:
+                    radial-gradient(ellipse at 20% 20%, rgba(244,166,184,0.3) 0%, transparent 50%),
+                    radial-gradient(ellipse at 80% 80%, rgba(255,200,215,0.25) 0%, transparent 50%),
+                    linear-gradient(180deg, var(--pink-light) 0%, #fff5f7 40%, #fef2f4 100%);
+                z-index: -1;
+            }}
+
+            /* Floating petals */
+            .petal {{
+                position: fixed;
+                width: 14px; height: 14px;
+                background: radial-gradient(ellipse at 30% 30%, #FFB7D5, #E8819E);
+                border-radius: 50% 0 50% 50%;
+                opacity: 0;
+                pointer-events: none;
+                z-index: 0;
+                animation: petalDrift linear infinite;
+            }}
+            @keyframes petalDrift {{
+                0%   {{ transform: translate(0, -60px) rotate(0deg); opacity: 0; }}
+                8%   {{ opacity: 0.6; }}
+                50%  {{ transform: translate(var(--sway), 50vh) rotate(180deg); opacity: 0.4; }}
+                100% {{ transform: translate(calc(var(--sway) * -0.5), calc(100vh + 60px)) rotate(360deg); opacity: 0; }}
+            }}
+
+            .container {{
+                max-width: 1100px;
+                margin: 0 auto;
+                padding: 0 20px;
+                position: relative;
+                z-index: 1;
+            }}
+
+            /* Header */
+            .header {{
+                text-align: center;
+                padding: 48px 20px 32px;
+            }}
+            .header-brand {{
+                display: inline-flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 12px;
+            }}
+            .header-brand img {{
+                height: 48px;
+                filter: drop-shadow(0 0 12px rgba(237,28,41,0.5));
+            }}
+            .header h1 {{
+                font-size: 28px;
+                font-weight: 800;
+                color: var(--red);
+                letter-spacing: -0.5px;
+            }}
+            .header p {{
+                color: #94a3b8;
+                font-size: 14px;
+                margin-top: 4px;
+            }}
+
+            /* Glass card */
+            .glass {{
+                background: linear-gradient(180deg, rgba(255,255,255,0.75) 0%, rgba(255,240,243,0.6) 100%);
+                backdrop-filter: blur(24px);
+                -webkit-backdrop-filter: blur(24px);
+                border: 1px solid var(--glass-border);
+                border-radius: 24px;
+                box-shadow: var(--card-shadow);
+                overflow: hidden;
+                margin-bottom: 20px;
+            }}
+            .glass-header {{
+                padding: 16px 24px;
+                border-bottom: 1px solid rgba(237,28,41,0.1);
+                font-weight: 700;
+                font-size: 15px;
+                color: #334155;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }}
+            .glass-header i {{ color: var(--red); }}
+            .glass-body {{ padding: 20px 24px; }}
+            .glass-body-flush {{ padding: 0; }}
+
+            /* Stat cards */
+            .stats-grid {{
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 16px;
+                margin-bottom: 20px;
+            }}
+            .stat-card {{
+                background: linear-gradient(180deg, rgba(255,255,255,0.8) 0%, rgba(255,240,243,0.5) 100%);
+                backdrop-filter: blur(16px);
+                border: 1px solid var(--glass-border);
+                border-radius: 20px;
+                padding: 24px 16px;
+                text-align: center;
+                box-shadow: 0 4px 16px rgba(180,100,120,0.08);
+                transition: transform 0.2s;
+            }}
+            .stat-card:hover {{ transform: translateY(-2px); }}
+            .stat-value {{
+                font-size: 36px;
+                font-weight: 800;
+                color: var(--red);
+                line-height: 1;
+                margin-bottom: 6px;
+            }}
+            .stat-label {{
+                font-size: 12px;
+                font-weight: 600;
+                color: #94a3b8;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }}
+
+            /* Tables */
+            .data-table {{
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 13px;
+            }}
+            .data-table thead th {{
+                background: rgba(237,28,41,0.05);
+                padding: 10px 14px;
+                font-weight: 700;
+                font-size: 11px;
+                color: #64748b;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                border-bottom: 2px solid rgba(237,28,41,0.1);
+                text-align: left;
+                position: sticky;
+                top: 0;
+                z-index: 2;
+            }}
+            .data-table tbody td {{
+                padding: 8px 14px;
+                border-bottom: 1px solid rgba(0,0,0,0.04);
+                vertical-align: middle;
+            }}
+            .data-table tbody tr:hover {{ background: rgba(237,28,41,0.03); }}
+            .row-num {{ color: #cbd5e1; font-weight: 600; font-size: 11px; width: 40px; }}
+            .ip-code {{
+                background: rgba(237,28,41,0.06);
+                color: var(--red-dark);
+                padding: 2px 8px;
+                border-radius: 6px;
+                font-size: 12px;
+                font-family: 'SF Mono', 'Fira Code', monospace;
+            }}
+            .ua-cell {{
+                max-width: 250px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                color: #94a3b8;
+                font-size: 11px;
+            }}
+            .date-cell {{ white-space: nowrap; color: #64748b; font-size: 12px; }}
+            .dim {{ color: #cbd5e1; }}
+
+            /* Percent bar */
+            .pct-bar {{
+                height: 6px;
+                background: rgba(237,28,41,0.08);
+                border-radius: 3px;
+                overflow: hidden;
+                min-width: 80px;
+            }}
+            .pct-fill {{
+                height: 100%;
+                background: linear-gradient(90deg, var(--red), var(--pink-deep));
+                border-radius: 3px;
+                transition: width 0.6s ease;
+            }}
+
+            /* Print button */
+            .print-btn {{
+                background: var(--red);
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 12px;
+                font-weight: 600;
+                font-size: 13px;
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                transition: all 0.2s;
+                box-shadow: 0 4px 12px rgba(237,28,41,0.3);
+            }}
+            .print-btn:hover {{ transform: translateY(-1px); box-shadow: 0 6px 20px rgba(237,28,41,0.4); }}
+
+            /* Scrollable visitors */
+            .visitors-scroll {{
+                max-height: 600px;
+                overflow-y: auto;
+            }}
+            .visitors-scroll::-webkit-scrollbar {{ width: 6px; }}
+            .visitors-scroll::-webkit-scrollbar-track {{ background: transparent; }}
+            .visitors-scroll::-webkit-scrollbar-thumb {{ background: var(--pink-mid); border-radius: 3px; }}
+
+            /* Two-col layout */
+            .two-col {{ display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }}
+
+            @media (max-width: 768px) {{
+                .stats-grid {{ grid-template-columns: repeat(2, 1fr); }}
+                .two-col {{ grid-template-columns: 1fr; }}
+                .stat-value {{ font-size: 28px; }}
+                .header h1 {{ font-size: 22px; }}
+            }}
+
             @media print {{
                 .no-print {{ display: none !important; }}
-                body {{ background: white; }}
+                body, body::before {{ background: white !important; }}
+                .glass {{ box-shadow: none; border: 1px solid #e2e8f0; }}
+                .petal {{ display: none; }}
             }}
         </style>
     </head>
     <body>
-        <div class="header no-print">
-            <div class="container">
-                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                    <h1><i class="bi bi-flower2 me-2"></i>Sakura Fest — Статистика</h1>
-                    <button onclick="window.print()" class="btn btn-light"><i class="bi bi-file-pdf me-2"></i>Скачать PDF</button>
-                </div>
-            </div>
-        </div>
+        <!-- Sakura petals -->
+        <div class="petal" style="left:5%;--sway:40px;animation-duration:12s;animation-delay:0s;"></div>
+        <div class="petal" style="left:15%;--sway:-30px;animation-duration:15s;animation-delay:2s;width:9px;height:9px;"></div>
+        <div class="petal" style="left:30%;--sway:50px;animation-duration:13s;animation-delay:4s;"></div>
+        <div class="petal" style="left:50%;--sway:-45px;animation-duration:14s;animation-delay:1s;width:20px;height:20px;"></div>
+        <div class="petal" style="left:65%;--sway:35px;animation-duration:16s;animation-delay:3s;"></div>
+        <div class="petal" style="left:80%;--sway:-25px;animation-duration:11s;animation-delay:5s;width:9px;height:9px;"></div>
+        <div class="petal" style="left:92%;--sway:30px;animation-duration:14s;animation-delay:7s;"></div>
+        <div class="petal" style="left:40%;--sway:-40px;animation-duration:17s;animation-delay:6s;width:20px;height:20px;"></div>
 
-        <div class="container pb-5">
-            <div class="row g-3 mb-4">
-                <div class="col-md-3 col-6">
-                    <div class="stat-card">
-                        <div class="stat-value">{total_visits:,}</div>
-                        <div class="stat-label">Всего визитов</div>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6">
-                    <div class="stat-card">
-                        <div class="stat-value">{unique_ips:,}</div>
-                        <div class="stat-label">Уникальных IP</div>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6">
-                    <div class="stat-card">
-                        <div class="stat-value">{today_visits:,}</div>
-                        <div class="stat-label">Сегодня</div>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6">
-                    <div class="stat-card">
-                        <div class="stat-value">{avg_per_day}</div>
-                        <div class="stat-label">В среднем / день</div>
-                    </div>
-                </div>
+        <div class="container">
+            <!-- Header -->
+            <div class="header">
+                <h1><i class="bi bi-flower2"></i> Sakura Fest</h1>
+                <p>Статистика посещений лендинга</p>
             </div>
 
-            <div class="card mb-4">
-                <div class="card-header"><i class="bi bi-graph-up me-2"></i>Визиты по дням</div>
-                <div class="card-body">
-                    <canvas id="dailyChart" height="120"></canvas>
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">{total_visits:,}</div>
+                    <div class="stat-label">Всего визитов</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{unique_ips:,}</div>
+                    <div class="stat-label">Уникальных IP</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{today_visits:,}</div>
+                    <div class="stat-label">Сегодня</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{avg_per_day}</div>
+                    <div class="stat-label">В среднем / день</div>
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card-header"><i class="bi bi-geo-alt me-2"></i>География</div>
-                <div class="table-responsive">
-                    <table class="table table-sm mb-0">
-                        <thead><tr><th>Город</th><th>Визитов</th><th>%</th></tr></thead>
-                        <tbody>{city_rows if city_rows else '<tr><td colspan="3" class="text-center text-muted">Нет данных</td></tr>'}</tbody>
+            <!-- Chart -->
+            <div class="glass">
+                <div class="glass-header"><i class="bi bi-graph-up"></i> Визиты по дням</div>
+                <div class="glass-body">
+                    <canvas id="dailyChart" height="100"></canvas>
+                </div>
+            </div>
+
+            <!-- Geography + Print -->
+            <div class="two-col">
+                <div class="glass">
+                    <div class="glass-header"><i class="bi bi-geo-alt"></i> География</div>
+                    <div class="glass-body-flush">
+                        <table class="data-table">
+                            <thead><tr><th>Город</th><th>Визитов</th><th></th><th>%</th></tr></thead>
+                            <tbody>{city_rows if city_rows else '<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:24px;">Нет данных о городах</td></tr>'}</tbody>
+                        </table>
+                    </div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:20px;">
+                    <div class="glass" style="flex:1;display:flex;align-items:center;justify-content:center;">
+                        <div style="text-align:center;padding:32px;">
+                            <div style="font-size:64px;margin-bottom:12px;">🌸</div>
+                            <div style="font-size:14px;color:#94a3b8;font-weight:600;">sakura-fest-rostics.ru</div>
+                        </div>
+                    </div>
+                    <button onclick="window.print()" class="print-btn no-print" style="align-self:center;">
+                        <i class="bi bi-file-pdf"></i> Скачать PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- Detailed visitors table -->
+            <div class="glass">
+                <div class="glass-header"><i class="bi bi-people"></i> Все посетители ({total_visits:,})</div>
+                <div class="glass-body-flush visitors-scroll">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>IP-адрес</th>
+                                <th>Город</th>
+                                <th>Регион</th>
+                                <th>Страна</th>
+                                <th>Устройство</th>
+                                <th>Дата</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {visitor_rows if visitor_rows else '<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:24px;">Нет посетителей</td></tr>'}
+                        </tbody>
                     </table>
                 </div>
+            </div>
+
+            <div style="text-align:center;padding:32px 0;color:#cbd5e1;font-size:12px;">
+                Sakura Fest — ROSTIC'S &copy; 2026
             </div>
         </div>
 
@@ -2690,18 +3091,34 @@ def render_public_landing_page(token):
                     datasets: [{{
                         label: 'Визиты',
                         data: {day_data},
-                        backgroundColor: 'rgba(237, 28, 41, 0.7)',
+                        backgroundColor: 'rgba(237, 28, 41, 0.65)',
                         borderColor: 'rgba(237, 28, 41, 1)',
                         borderWidth: 1,
-                        borderRadius: 6
+                        borderRadius: 8,
+                        hoverBackgroundColor: 'rgba(237, 28, 41, 0.85)'
                     }}]
                 }},
                 options: {{
                     responsive: true,
-                    plugins: {{ legend: {{ display: false }} }},
+                    plugins: {{
+                        legend: {{ display: false }},
+                        tooltip: {{
+                            backgroundColor: 'rgba(30,30,30,0.9)',
+                            titleFont: {{ weight: '600' }},
+                            cornerRadius: 8,
+                            padding: 12
+                        }}
+                    }},
                     scales: {{
-                        y: {{ beginAtZero: true, ticks: {{ precision: 0 }} }},
-                        x: {{ grid: {{ display: false }} }}
+                        y: {{
+                            beginAtZero: true,
+                            ticks: {{ precision: 0, color: '#94a3b8' }},
+                            grid: {{ color: 'rgba(237,28,41,0.06)' }}
+                        }},
+                        x: {{
+                            grid: {{ display: false }},
+                            ticks: {{ color: '#94a3b8' }}
+                        }}
                     }}
                 }}
             }});
