@@ -602,9 +602,6 @@ const styles: Record<string, React.CSSProperties> = {
     width: 80,
     height: 'auto',
     filter: 'drop-shadow(0 0 12px rgba(140,140,220,0.4))',
-    background: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 6,
-    padding: 3,
   },
   form: {
     display: 'flex',

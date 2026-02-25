@@ -1551,9 +1551,6 @@ const QuestResultScreen: React.FC = () => {
           width: 64px;
           height: auto;
           filter: drop-shadow(0 0 10px rgba(140,140,220,0.3));
-          background: rgba(255, 255, 255, 0.9);
-          border-radius: 6px;
-          padding: 3px;
         }
 
         .quest-copyright {
