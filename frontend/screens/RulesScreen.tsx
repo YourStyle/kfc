@@ -28,11 +28,11 @@ export function RulesScreen({ onBack }: RulesScreenProps) {
             <div style={styles.rulesList}>
               <div style={styles.rule}>
                 <span style={styles.ruleNumber}>1</span>
-                <p style={styles.ruleText}>{t('rules.rule_1', 'Меняй местами соседние элементы, чтобы собрать 3 и более одинаковых в ряд')}</p>
+                <p style={styles.ruleText}>{t('rules.rule_1', 'Меняй местами соседние элементы и собирай ряды из 3 и более одинаковых блюд')}</p>
               </div>
               <div style={styles.rule}>
                 <span style={styles.ruleNumber}>2</span>
-                <p style={styles.ruleText}>{t('rules.rule_2', 'Совпавшие элементы исчезают, а сверху падают новые')}</p>
+                <p style={styles.ruleText}>{t('rules.rule_2', 'Совпавшие элементы исчезают, на их место падают новые')}</p>
               </div>
               <div style={styles.rule}>
                 <span style={styles.ruleNumber}>3</span>
@@ -126,7 +126,7 @@ export function RulesScreen({ onBack }: RulesScreenProps) {
                   <span style={styles.prizePlaceText}>1–30 место</span>
                 </div>
                 <div style={styles.prizeDesc}>
-                  <strong style={styles.prizeTitle}>{t('rules.region_prize_1_title', 'Промокод на скидку и набор мерча')}</strong>
+                  <strong style={styles.prizeTitle}>{t('rules.region_prize_1_title', 'Промокод на скидку набор мерча')}</strong>
                   <p style={styles.prizeText}>{t('rules.region_prize_1_text', "Промокод на скидку 30% в Rostic's и набор космического мерча от Rostic's")}</p>
                 </div>
               </div>

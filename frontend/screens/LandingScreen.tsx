@@ -129,7 +129,7 @@ export function LandingScreen({ onPlay, onLogin }: LandingScreenProps) {
             {isAuthenticated ? (
               <button className="cta-button" style={styles.primaryButton} onClick={onPlay}>
                 <span style={styles.buttonIcon}>▶</span>
-                {t('game.btn_play', 'Продолжить игру')}
+                {t('game.btn_play', 'Продолжить')}
               </button>
             ) : (
               <button className="cta-button" style={styles.primaryButton} onClick={onLogin}>
