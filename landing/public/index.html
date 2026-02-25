@@ -876,7 +876,7 @@
         }
 
         function checkMode() {
-            if (Date.now() >= LAUNCH_DATE.getTime()) {
+            if (new URLSearchParams(location.search).has('main') || Date.now() >= LAUNCH_DATE.getTime()) {
                 switchScreen('mainScreen');
                 return 'main';
             }
