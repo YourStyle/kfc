@@ -12,7 +12,7 @@ from sqlalchemy import text
 import json
 
 revision = '010_frozen_levels'
-down_revision = '009_load_promo_codes'
+down_revision = '009_promo_codes'
 branch_labels = None
 depends_on = None
 
