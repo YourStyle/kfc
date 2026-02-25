@@ -19,7 +19,7 @@ const QuestStartScreen: React.FC = () => {
   }, []);
 
   const handleStartQuest = () => {
-    navigate(user ? '/spacequest/play' : '/spacequest/auth');
+    navigate('/spacequest/play');
   };
 
   return (

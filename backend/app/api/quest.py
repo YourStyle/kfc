@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity, verify_jwt_in_request
 from app import db
 from app.models.user import User
 from app.models.quest_page import QuestPage
@@ -31,24 +31,46 @@ def get_page(slug):
 
 
 @bp.route('/scan', methods=['POST'])
-@jwt_required()
 def scan_qr():
-    """Validate a QR code scan. Checks if qr_token matches user's current step."""
-    user_id = get_jwt_identity()
+    """Validate a QR code scan. Works for both authenticated and guest users.
+
+    Authenticated: saves progress to DB (full validation + step matching).
+    Guest: validates QR token and returns page info without saving.
+    """
+    # Try to get JWT identity (optional)
+    user_id = None
+    try:
+        verify_jwt_in_request(optional=True)
+        user_id = get_jwt_identity()
+    except Exception:
+        pass
+
     data = request.get_json()
     qr_token = data.get('qr_token', '').strip()
 
     if not qr_token:
         return jsonify({'error': 'qr_token is required'}), 400
 
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({'error': 'User not found'}), 404
-
     # Find the page matching this QR token
     scanned_page = QuestPage.query.filter_by(qr_token=qr_token, is_active=True).first()
     if not scanned_page:
-        return jsonify({'error': 'Invalid QR code'}), 400
+        return jsonify({'error': 'Invalid QR code', 'is_correct': False}), 400
+
+    # --- Guest mode: just validate and return page info ---
+    if not user_id:
+        points = scanned_page.points or 10
+        return jsonify({
+            'is_correct': True,
+            'points_earned': points,
+            'fact_text': scanned_page.fact_text,
+            'page': scanned_page.to_dict(include_answer=False),
+            'page_slug': scanned_page.slug,
+        })
+
+    # --- Authenticated mode: full validation + save ---
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
 
     # Check if already answered this page
     existing = QuestProgress.query.filter_by(user_id=user_id, quest_page_id=scanned_page.id).first()
@@ -123,6 +145,77 @@ def scan_qr():
         'page': scanned_page.to_dict(),
         'next_page_slug': next_page.slug if next_page else None,
         'quest_completed': next_page is None,
+    })
+
+
+@bp.route('/sync-guest', methods=['POST'])
+@jwt_required()
+def sync_guest_progress():
+    """Sync guest quest progress after registration/login.
+
+    Accepts an array of {page_slug, is_correct, is_skipped, points_earned}
+    and creates QuestProgress entries for the authenticated user.
+    """
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    data = request.get_json()
+    entries = data.get('progress', [])
+
+    if not entries:
+        return jsonify({'synced': 0, 'total_score': user.quest_score or 0})
+
+    # Build page lookup
+    all_pages = {p.slug: p for p in QuestPage.query.filter_by(is_active=True).all()}
+
+    # Get existing progress to avoid duplicates
+    existing_page_ids = set(
+        p.quest_page_id for p in QuestProgress.query.filter_by(user_id=user_id).all()
+    )
+
+    total_points = 0
+    synced = 0
+
+    for entry in entries:
+        slug = entry.get('page_slug')
+        page = all_pages.get(slug)
+        if not page or page.id in existing_page_ids:
+            continue
+
+        is_correct = entry.get('is_correct', False)
+        is_skipped = entry.get('is_skipped', False)
+        points = entry.get('points_earned', 0)
+
+        progress = QuestProgress(
+            user_id=user_id,
+            quest_page_id=page.id,
+            is_correct=is_correct,
+            is_skipped=is_skipped,
+            points_earned=points,
+        )
+        db.session.add(progress)
+        existing_page_ids.add(page.id)
+        total_points += points
+        synced += 1
+
+    if synced > 0:
+        user.quest_score = (user.quest_score or 0) + total_points
+
+        if user.registration_source == 'game':
+            user.registration_source = 'transferred'
+
+        db.session.commit()
+
+        log_activity(user_id, 'quest_sync_guest', {
+            'synced_pages': synced,
+            'total_points': total_points,
+        }, request)
+
+    return jsonify({
+        'synced': synced,
+        'total_score': user.quest_score or 0,
     })
 
 

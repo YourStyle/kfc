@@ -218,6 +218,13 @@ class ApiClient {
     });
   }
 
+  async syncGuestProgress(progress: GuestProgressEntry[]) {
+    return this.request<{ synced: number; total_score: number }>('/quest/sync-guest', {
+      method: 'POST',
+      body: JSON.stringify({ progress }),
+    });
+  }
+
   // Texts endpoint (public, no auth needed)
   async getTexts() {
     return this.request<Record<string, string>>('/api/texts');
@@ -377,6 +384,13 @@ export interface PromoClaimResult {
   code: string;
   tier: string;
   discount_label: string;
+}
+
+export interface GuestProgressEntry {
+  page_slug: string;
+  is_correct: boolean;
+  is_skipped: boolean;
+  points_earned: number;
 }
 
 export const api = new ApiClient();

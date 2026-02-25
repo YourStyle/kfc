@@ -384,6 +384,44 @@ export class ParticleSystem {
     }
   }
 
+  // Замороженный тайл — осколки льда
+  public emitIceBreak(x: number, y: number) {
+    const iceColors = [0x88CCFF, 0xAADDFF, 0xCCEEFF, 0xFFFFFF, 0x66BBEE];
+    for (let i = 0; i < 8; i++) {
+      const g = new Graphics();
+      const color = iceColors[Math.floor(Math.random() * iceColors.length)];
+      // Угловатые осколки льда
+      const w = 4 + Math.random() * 6;
+      const h = 3 + Math.random() * 5;
+      g.moveTo(-w / 2, -h / 2);
+      g.lineTo(w * 0.3, -h / 2);
+      g.lineTo(w / 2, h * 0.2);
+      g.lineTo(0, h / 2);
+      g.lineTo(-w / 2, h * 0.1);
+      g.closePath();
+      g.fill({ color, alpha: 0.8 });
+
+      g.x = x + (Math.random() - 0.5) * 20;
+      g.y = y + (Math.random() - 0.5) * 20;
+      g.rotation = Math.random() * Math.PI * 2;
+      this.container.addChild(g);
+
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 130 + Math.random() * 100;
+
+      this.particles.push({
+        graphics: g,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 120,
+        gravity: 350,
+        life: 1,
+        maxLife: 0.6 + Math.random() * 0.4,
+        rotationSpeed: (Math.random() - 0.5) * 12,
+        scaleDecay: 0.3
+      });
+    }
+  }
+
   private emitGeneric(x: number, y: number, color: number) {
     for (let i = 0; i < 6; i++) {
       const g = new Graphics();
