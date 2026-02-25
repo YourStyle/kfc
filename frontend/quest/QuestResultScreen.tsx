@@ -159,7 +159,7 @@ const QuestResultScreen: React.FC = () => {
           <h2>Ошибка</h2>
           <p>{error || 'Не удалось загрузить результаты'}</p>
           <button onClick={() => navigate('/spacequest')} className="primary-button">
-            Вернуться к квесту
+            Вернуться
           </button>
         </div>
       </div>
@@ -198,7 +198,7 @@ const QuestResultScreen: React.FC = () => {
           <div className="corner-decoration bottom-left"></div>
           <div className="corner-decoration bottom-right"></div>
 
-          <h1 className="result-title">{t('quest.result_title', 'КВЕСТ ЗАВЕРШЕН')}</h1>
+          <h1 className="result-title">{t('quest.result_title', 'ЭКСПЕДИЦИЯ ЗАВЕРШЕНА')}</h1>
 
           {/* Score Display */}
           <div className="score-display">
@@ -376,7 +376,7 @@ const QuestResultScreen: React.FC = () => {
         {/* Navigation Buttons */}
         <div className="navigation-buttons">
           <button onClick={() => navigate('/spacequest')} className="secondary-button">
-            {t('quest.btn_back', 'Вернуться к квесту')}
+            {t('quest.btn_back', 'Вернуться')}
           </button>
           <button onClick={() => navigate('/match3')} className="primary-button game-link">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -407,7 +407,7 @@ const QuestResultScreen: React.FC = () => {
         </div>
 
         <div className="quest-copyright">
-          {t('quest.copyright', '© Музей космонавтики, 2026  |  © Юнирест')}
+          {t('quest.copyright', "© 2026 ROSTIC'S")}
         </div>
       </div>
 

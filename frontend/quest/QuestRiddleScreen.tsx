@@ -1024,7 +1024,7 @@ const QuestRiddleScreen: React.FC = () => {
 
       {/* Copyright */}
       <div className="quest-copyright">
-        © Музей космонавтики, 2026 &nbsp;|&nbsp; © Юнирест
+        © 2026 ROSTIC'S
       </div>
 
       {/* Skip Confirm Modal */}

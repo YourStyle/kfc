@@ -419,7 +419,7 @@ const AppContent: React.FC = () => {
             {currentLevel ? currentLevel.name : 'Подготовка кухни...'}
           </h2>
           <p className="font-bold mb-8 uppercase tracking-widest text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
-            {t('game.loading_text', 'Готовим космическое меню...')}
+            {t('game.loading_text', 'Загружаем космическое меню...')}
           </p>
         </div>
       )}

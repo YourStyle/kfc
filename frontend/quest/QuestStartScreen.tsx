@@ -63,9 +63,9 @@ const QuestStartScreen: React.FC = () => {
               opacity: contentVisible ? 1 : 0,
               transform: contentVisible ? 'translateY(0)' : 'translateY(15px)',
             }}>
-              <h1 style={styles.title}>{t('quest.title', 'Квест легенды космоса')}</h1>
+              <h1 style={styles.title}>{t('quest.title', 'Квест «Легенды космоса»')}</h1>
               <p style={styles.description}>
-                {t('quest.description', "Исследуйте Музей космонавтики, отгадывайте загадки у экспонатов и выигрывайте призы от ROSTIC'S!")}
+                {t('quest.description', "Отправляйтесь в экспедицию по Музею космонавтики: разгадывайте загадки, находите экспонаты и выигрывайте уникальные призы от ROSTIC'S!")}
               </p>
             </div>
 
@@ -101,9 +101,9 @@ const QuestStartScreen: React.FC = () => {
             </h2>
             <div style={styles.rulesList}>
               {[
-                t('quest.rule_1', 'Прочитайте загадку на экране — она приведёт вас к нужному экспонату'),
+                t('quest.rule_1', 'Прочитайте загадку на экране, она приведёт вас к нужному экспонату'),
                 t('quest.rule_2', 'Найдите QR-код рядом с экспонатом и отсканируйте его'),
-                t('quest.rule_3', 'За каждый верный скан — 10 баллов. Можно пропустить без штрафа'),
+                t('quest.rule_3', 'Правильный ответ принесет 10 баллов. Если ответ не находится, загадку можно пропустить'),
                 t('quest.rule_4', "Наберите максимум баллов и получите промокод ROSTIC'S!"),
               ].map((rule, i) => (
                 <div key={i} style={styles.ruleItem}>
@@ -129,7 +129,7 @@ const QuestStartScreen: React.FC = () => {
               {[
                 { pts: '200', label: 'Золото', reward: t('quest.prize_gold', "Скидка 15% на заказ в ROSTIC'S через мобильное приложение"), color: '#FFD700', bg: 'rgba(255, 215, 0, 0.12)' },
                 { pts: '160+', label: 'Серебро', reward: t('quest.prize_silver', "Скидка 10% на заказ в ROSTIC'S через мобильное приложение"), color: '#C0C0C0', bg: 'rgba(192, 192, 192, 0.1)' },
-                { pts: '120+', label: 'Бронза', reward: t('quest.prize_bronze', "Пирожок за 1₽ в ROSTIC'S"), color: '#CD7F32', bg: 'rgba(205, 127, 50, 0.1)' },
+                { pts: '120+', label: 'Бронза', reward: t('quest.prize_bronze', "Пирожок за 1₽ в ресторанах ROSTIC'S"), color: '#CD7F32', bg: 'rgba(205, 127, 50, 0.1)' },
               ].map((tier, i) => (
                 <div key={i} className="quest-prize-card" style={{ ...styles.prizeCard, background: tier.bg, borderColor: `${tier.color}44` }} data-color={tier.color}>
                   <div>
@@ -150,7 +150,7 @@ const QuestStartScreen: React.FC = () => {
           }}>
             <button className="quest-cta-button" style={styles.primaryButton} onClick={handleStartQuest}>
               <span style={styles.buttonIcon}>→</span>
-              {user ? t('quest.btn_continue', 'Продолжить квест') : t('quest.btn_start', 'Начать квест')}
+              {user ? t('quest.btn_continue', 'Продолжить') : t('quest.btn_start', 'Начать экспедицию')}
             </button>
           </div>
 
@@ -174,7 +174,7 @@ const QuestStartScreen: React.FC = () => {
             opacity: buttonsVisible ? 1 : 0,
           }}>
             <span style={styles.footerText}>
-              {user ? `Добро пожаловать, ${user.username}!` : t('quest.copyright', '© Музей космонавтики, 2026  |  © Юнирест')}
+              {user ? `Добро пожаловать, ${user.username}!` : t('quest.copyright', "© 2026 ROSTIC'S")}
             </span>
           </div>
         </div>
