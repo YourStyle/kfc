@@ -597,9 +597,6 @@ const styles: Record<string, React.CSSProperties> = {
   logoMk: {
     height: 28,
     width: 'auto',
-    background: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 6,
-    padding: 3,
   },
 
   // Stats bar
@@ -889,9 +886,6 @@ const styles: Record<string, React.CSSProperties> = {
   gameOverLogoMk: {
     height: 32,
     width: 'auto',
-    background: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 8,
-    padding: 4,
   },
   gameUrl: {
     color: 'rgba(255, 255, 255, 0.3)',
