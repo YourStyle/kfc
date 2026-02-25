@@ -53,6 +53,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (data) {
       api.setToken(data.access_token);
       setUser(data.user);
+      // Store email for quest prefill
+      try { localStorage.setItem('rostics_user_email', email); } catch {}
       return { success: true };
     }
     return { success: false, error: 'Unknown error' };
@@ -74,6 +76,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (data) {
       api.setToken(data.access_token);
       setUser(data.user);
+      // Store email for quest prefill
+      try { localStorage.setItem('rostics_user_email', email); } catch {}
       return { success: true };
     }
     return { success: false, error: 'Unknown error' };
