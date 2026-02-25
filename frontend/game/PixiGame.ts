@@ -900,7 +900,7 @@ export class PixiGame {
     this.showSpecialEffect(
       fieldCenterX,
       fieldCenterY,
-      'ГЕНЕРАЛЬНАЯ УБОРКА!',
+      'КОСМОС!',
       0xED1C29,
       true  // slow mode
     );

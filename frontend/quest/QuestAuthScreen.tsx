@@ -495,7 +495,7 @@ export function QuestAuthScreen() {
           </form>
         )}
       </div>
-      <div style={styles.copyright}>© Музей космонавтики, 2026 &nbsp;|&nbsp; © Юнирест</div>
+      <div style={styles.copyright}>© 2026 ROSTIC'S</div>
     </div>
   );
 }
