@@ -21,7 +21,7 @@ interface MyRankData {
 export function LeaderboardScreen({ onBack }: LeaderboardScreenProps) {
   const { user, isAuthenticated } = useAuth();
   const [type, setType] = useState<LeaderboardType>('global');
-  const [regionFilter, setRegionFilter] = useState<RegionFilter>('all');
+  const [regionFilter, setRegionFilter] = useState<RegionFilter>('moscow');
   const [globalData, setGlobalData] = useState<GlobalLeaderboardEntry[]>([]);
   const [weeklyData, setWeeklyData] = useState<WeeklyLeaderboardEntry[]>([]);
   const [myRank, setMyRank] = useState<MyRankData | null>(null);
@@ -42,8 +42,8 @@ export function LeaderboardScreen({ onBack }: LeaderboardScreenProps) {
     const cityParam = regionFilter === 'all' ? undefined : regionFilter;
 
     const [globalRes, weeklyRes] = await Promise.all([
-      api.getGlobalLeaderboard(50, cityParam as 'moscow' | 'region' | undefined),
-      api.getWeeklyLeaderboard(50),
+      api.getGlobalLeaderboard(100, cityParam as 'moscow' | 'region' | undefined),
+      api.getWeeklyLeaderboard(100),
     ]);
 
     if (globalRes.data) {
@@ -139,16 +139,6 @@ export function LeaderboardScreen({ onBack }: LeaderboardScreenProps) {
           {/* Region Filter Tabs */}
           {type === 'global' && (
             <div style={styles.regionTabs}>
-              <button
-                className={`region-tab ${regionFilter === 'all' ? 'region-tab-active' : ''}`}
-                style={{
-                  ...styles.regionTab,
-                  ...(regionFilter === 'all' ? styles.regionTabActive : {}),
-                }}
-                onClick={() => setRegionFilter('all')}
-              >
-                Все
-              </button>
               <button
                 className={`region-tab ${regionFilter === 'moscow' ? 'region-tab-active' : ''}`}
                 style={{
