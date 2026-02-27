@@ -113,7 +113,7 @@ export const FIGURINE_SPAWN_CHANCE = 0.10; // 10% chance per tile to be a figuri
 export const FIGURINE_INFO: Record<string, { name: string; description: string }> = {
   belka: {
     name: 'БЕЛКА',
-    description: 'Легендарная собака-космонавт! В 1960 году вместе со Стрелкой совершила орбитальный полёт на корабле «Спутник-5» и благополучно вернулась на Землю.',
+    description: 'Легендарная собака-космонавт! В 1960 году вместе со Стрелкой совершила орбитальный полёт на втором корабле-спутнике и благополучно вернулась на Землю.',
   },
   strelka: {
     name: 'СТРЕЛКА',
