@@ -11,8 +11,10 @@ _geo_reader = None
 
 # Russian translations for cities/regions missing from DB-IP Lite free database
 _RU_CITIES = {
+    # Major Russian cities
     'Moscow': 'Москва', 'St Petersburg': 'Санкт-Петербург', 'Saint Petersburg': 'Санкт-Петербург',
     'Novosibirsk': 'Новосибирск', 'Yekaterinburg': 'Екатеринбург', 'Kazan': 'Казань',
+    "Kazan'": 'Казань',
     'Nizhny Novgorod': 'Нижний Новгород', 'Chelyabinsk': 'Челябинск', 'Samara': 'Самара',
     'Omsk': 'Омск', 'Rostov-on-Don': 'Ростов-на-Дону', 'Ufa': 'Уфа', 'Krasnoyarsk': 'Красноярск',
     'Voronezh': 'Воронеж', 'Perm': 'Пермь', 'Volgograd': 'Волгоград', 'Krasnodar': 'Краснодар',
@@ -34,14 +36,49 @@ _RU_CITIES = {
     'Blagoveshchensk': 'Благовещенск', 'Zheleznogorsk': 'Железногорск', 'Rybinsk': 'Рыбинск',
     'Prokopyevsk': 'Прокопьевск', 'Armavir': 'Армавир', 'Abakan': 'Абакан',
     'Norilsk': 'Норильск', 'Noyabrsk': 'Ноябрьск', 'Nefteyugansk': 'Нефтеюганск',
-    'Severodvinsk': 'Северодвинск', 'Orekhovo-Borisovo Yuzhnoye': 'Москва',
-    'Belyy Yar': 'Белый Яр', 'Murmino': 'Мурмино', 'Sargazy': 'Саргазы',
-    'Mednogorsk': 'Медногорск',
-    # Foreign (VPN)
-    'Frankfurt': 'Франкфурт', 'Amsterdam': 'Амстердам', 'London': 'Лондон',
-    'Helsinki': 'Хельсинки', 'Berlin': 'Берлин', 'Paris': 'Париж', 'Warsaw': 'Варшава',
+    'Severodvinsk': 'Северодвинск', 'Vladikavkaz': 'Владикавказ', 'Nizhnekamsk': 'Нижнекамск',
+    # Moscow suburbs/districts → Москва
+    'Orekhovo-Borisovo Yuzhnoye': 'Москва', 'Khimki': 'Москва', 'Mytishchi': 'Москва',
+    'Podolsk': 'Москва', 'Zelenograd': 'Москва', 'Moskovskiy': 'Москва',
+    'Cheremushki': 'Москва', 'Vostochnoe Degunino': 'Москва', 'Obruchevo': 'Москва',
+    'Shcherbinka': 'Москва', 'Nikolina Gora': 'Москва', 'Belyaninovo': 'Москва',
+    'Rzhavki': 'Москва', 'Zagorskie Dali': 'Москва', 'Obolensk': 'Москва',
+    'Novopodrezkovo': 'Москва', "Sheremet'yevskiy": 'Москва', 'Tomilino': 'Москва',
+    'Chernogolovka': 'Москва', 'Taldom': 'Москва', "Zavety Il'icha": 'Москва',
+    'Ozyory': 'Москва', 'Chepelevo': 'Москва', 'Kolomna': 'Москва', 'Sychevo': 'Москва',
+    'Rozhdestveno': 'Москва', 'Detchino': 'Москва', 'Bogorodskoye': 'Москва',
+    "Arkhangel'skoye": 'Москва', "Ostashëvo": 'Москва',
+    # SPb suburbs → Санкт-Петербург
+    'Pargolovo': 'Санкт-Петербург', 'Shushary': 'Санкт-Петербург', 'Kolpino': 'Санкт-Петербург',
+    'Gatchina': 'Санкт-Петербург', 'Siverskiy': 'Санкт-Петербург',
+    # Suburbs → nearest major city
+    'Kuznechikha': 'Нижний Новгород', 'Bolshoye Kozino': 'Нижний Новгород', 'Kamenka': 'Нижний Новгород',
+    'Donskoy': 'Тула', 'Gritsovskiy': 'Тула',
+    'Barsovo': 'Сургут', 'Salym': 'Сургут', 'Pyt-Yakh': 'Сургут',
+    'Tolbazy': 'Уфа', 'Sterlibashevo': 'Уфа', 'Mednogorsk': 'Уфа',
+    'Kochenevo': 'Новосибирск', 'Mochishche': 'Новосибирск', 'Sokur': 'Новосибирск',
+    "Teren'ga": 'Ульяновск', "Otradnyy": 'Самара', "Borskoye": 'Самара',
+    'Kugesi': 'Чебоксары', 'Vysokaya Gora': 'Казань', 'Yelabuga': 'Казань',
+    'Shchelkun': 'Екатеринбург', "Sysert'": 'Екатеринбург', 'Nizhnyaya Salda': 'Екатеринбург',
+    'Pervomayskiy': 'Екатеринбург', 'Sargazy': 'Екатеринбург', 'Murmino': 'Москва',
+    'Belyy Yar': 'Сургут', 'Druzhba': 'Тюмень',
+    'Kashin': 'Тверь', 'Kalyazin': 'Тверь', 'Korablino': 'Рязань',
+    'Promyshlennovskiy': 'Кемерово', 'Znamensk': 'Астрахань',
+    'Usolye-Sibirskoye': 'Иркутск', 'Kusa': 'Челябинск',
+    "Fëdorovka": 'Тольятти', 'Kalinovo': 'Калуга',
+    # Foreign (VPN / proxy)
+    'Frankfurt': 'Франкфурт', 'Frankfurt am Main': 'Франкфурт',
+    'Amsterdam': 'Амстердам', 'London': 'Лондон', 'Helsinki': 'Хельсинки',
+    'Berlin': 'Берлин', 'Paris': 'Париж', 'Warsaw': 'Варшава',
     'Prague': 'Прага', 'Istanbul': 'Стамбул', 'Dubai': 'Дубай', 'Singapore': 'Сингапур',
     'Tokyo': 'Токио', 'New York': 'Нью-Йорк', 'Los Angeles': 'Лос-Анджелес',
+    'Hong Kong': 'Гонконг', 'Toronto': 'Торонто', 'Atlanta': 'Атланта',
+    'Ashburn': 'Вашингтон', 'North Bergen': 'Нью-Йорк',
+    'Gravelines': 'Париж', 'Roubaix': 'Париж', 'Marseille': 'Марсель',
+    'São Paulo': 'Сан-Паулу', 'San Francisco': 'Сан-Франциско', 'Santa Clara': 'Сан-Франциско',
+    'Astana': 'Астана', 'Minsk': 'Минск', 'Riga': 'Рига',
+    'Bengaluru': 'Бангалор', 'Melbourne': 'Мельбурн', 'Stockholm': 'Стокгольм',
+    'Hangzhou': 'Ханчжоу', 'New Delhi': 'Дели', 'Tiraspol': 'Тирасполь',
 }
 
 _RU_REGIONS = {
@@ -89,10 +126,22 @@ _RU_REGIONS = {
 
 
 def _translate(name, mapping):
-    """Translate an English geo name to Russian using the mapping."""
+    """Translate an English geo name to Russian using the mapping.
+    Also handles GeoIP suffixes like 'Moscow (Tsentralnyy ...)' by
+    stripping the parenthesized part and retrying the lookup.
+    """
     if not name:
         return name
-    return mapping.get(name, name)
+    result = mapping.get(name)
+    if result:
+        return result
+    # Strip parenthesized suffix: "Frankfurt am Main (West)" → "Frankfurt am Main"
+    if '(' in name:
+        base = name[:name.index('(')].strip()
+        result = mapping.get(base)
+        if result:
+            return result
+    return name
 
 
 def get_geo_reader():

@@ -1,4 +1,5 @@
 from app import db
+from app.utils.encryption import EncryptedString
 from datetime import datetime
 
 
@@ -7,11 +8,11 @@ class LandingVisit(db.Model):
     __tablename__ = 'landing_visits'
 
     id = db.Column(db.Integer, primary_key=True)
-    ip_address = db.Column(db.String(45))
+    ip_address = db.Column(EncryptedString())  # Encrypted PII
     city = db.Column(db.String(100))
     country = db.Column(db.String(100))
     region = db.Column(db.String(200))
-    user_agent = db.Column(db.String(512))
+    user_agent = db.Column(EncryptedString())  # Encrypted PII
     referrer = db.Column(db.String(500))
     is_fake = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

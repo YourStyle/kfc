@@ -1,5 +1,6 @@
 from app import db
 from app.utils.timezone import now_moscow
+from app.utils.encryption import EncryptedString, compute_hash
 
 
 class PromoCodePool(db.Model):
@@ -8,6 +9,7 @@ class PromoCodePool(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     tier = db.Column(db.String(20), nullable=False)
+    category = db.Column(db.String(20), nullable=False, default='quest')  # 'quest' | 'match3'
     min_score = db.Column(db.Integer, nullable=False)
     discount_label = db.Column(db.String(200))
     total_codes = db.Column(db.Integer, default=0)
@@ -49,7 +51,8 @@ class PromoCode(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     pool_id = db.Column(db.Integer, db.ForeignKey('promo_code_pools.id', ondelete='CASCADE'), nullable=False, index=True)
-    code = db.Column(db.String(50), unique=True, nullable=False, index=True)
+    code = db.Column(EncryptedString(), nullable=False)
+    code_hash = db.Column(db.String(64), unique=True, nullable=False, index=True)
     is_used = db.Column(db.Boolean, default=False)
     used_by_user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
     used_at = db.Column(db.DateTime)

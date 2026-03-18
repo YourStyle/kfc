@@ -5,7 +5,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string; needs_verification?: boolean }>;
   register: (email: string, username: string, password: string, city: 'moscow' | 'region', cityName: string, source?: 'game' | 'quest') => Promise<{ success: boolean; error?: string }>;
   verify: (email: string, code: string) => Promise<{ success: boolean; error?: string }>;
   resendCode: (email: string) => Promise<{ success: boolean; error?: string }>;
@@ -46,9 +46,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (email: string, password: string) => {
-    const { data, error } = await api.login(email, password);
+    const { data, error, needs_verification } = await api.login(email, password);
     if (error) {
-      return { success: false, error };
+      return { success: false, error, needs_verification };
     }
     if (data) {
       api.setToken(data.access_token);

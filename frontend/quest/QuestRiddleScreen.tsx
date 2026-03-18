@@ -1061,6 +1061,9 @@ const QuestRiddleScreen: React.FC = () => {
           .btn-primary, .btn-secondary { min-width: 100%; }
           .scanner-frame { padding: 16px; }
           .points-earned { font-size: 40px; }
+          .modal-buttons { flex-direction: column-reverse; }
+          .modal-buttons .btn-primary,
+          .modal-buttons .btn-secondary { min-width: 100%; }
         }
       `}</style>
 

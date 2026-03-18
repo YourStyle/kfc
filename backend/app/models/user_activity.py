@@ -1,17 +1,19 @@
 from app import db
 from app.utils.timezone import now_moscow
+from app.utils.encryption import EncryptedString
 
 
 class UserActivity(db.Model):
     __tablename__ = 'user_activities'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=True, index=True)
     action = db.Column(db.String(50), nullable=False)
-    # Actions: 'register', 'login', 'verify_email', 'start_game', 'complete_game', 'view_leaderboard'
+    # Actions: 'register', 'login', 'login_failed', 'verify_email', 'start_game',
+    #          'complete_game', 'view_leaderboard', 'admin_action', 'data_change'
     activity_data = db.Column('metadata', db.JSON)  # Additional data about the action (column name 'metadata' in DB)
-    ip_address = db.Column(db.String(45))  # IPv6 compatible
-    user_agent = db.Column(db.Text)
+    ip_address = db.Column(EncryptedString())  # Encrypted, IPv6 compatible
+    user_agent = db.Column(EncryptedString())  # Encrypted
     created_at = db.Column(db.DateTime, default=now_moscow, index=True)
 
     def to_dict(self):

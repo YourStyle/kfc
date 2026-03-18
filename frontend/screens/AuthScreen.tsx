@@ -200,6 +200,10 @@ export function AuthScreen({ onClose, onSuccess }: AuthScreenProps) {
 
     if (result.success) {
       onSuccess();
+    } else if (result.needs_verification) {
+      // Unverified user — code was resent automatically, switch to verify screen
+      setPendingEmail(email);
+      changeMode('verify');
     } else {
       setError(result.error || 'Login failed');
     }

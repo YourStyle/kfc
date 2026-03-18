@@ -1,16 +1,63 @@
 """Quest management views for admin panel"""
 import io
 import os
-from flask import Blueprint, render_template_string, redirect, url_for, request, flash, send_file
+from flask import Blueprint, render_template_string, redirect, url_for, request, flash, send_file, current_app
 from flask_login import login_required, current_user
+from flask_mail import Message
 from functools import wraps
 from datetime import datetime
-from app import db
+from app import db, mail
 from app.models import QuestPage, QuestProgress, PromoCodePool, PromoCode, User
+from app.utils.encryption import compute_hash
 from sqlalchemy import func, distinct
 import segno
 import base64
 from markupsafe import escape
+
+
+def _send_promo_email(email: str, code: str, tier: str = '', discount_label: str = '') -> bool:
+    """Send promo code email. Returns True on success."""
+    subject = "ROSTIC'S — Ваш промокод из Космического квеста"
+
+    tier_label = {'gold': 'Золотой', 'silver': 'Серебряный', 'bronze': 'Бронзовый'}.get(tier, tier.capitalize() if tier else '')
+    discount_text = f' ({discount_label})' if discount_label else ''
+
+    html_body = f"""<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+  body{{font-family:Arial,sans-serif;background:#f5f5f5;margin:0;padding:20px;}}
+  .container{{max-width:500px;margin:0 auto;background:white;border-radius:20px;padding:40px;box-shadow:0 4px 20px rgba(0,0,0,.1);}}
+  .logo{{text-align:center;margin-bottom:30px;}}
+  .logo span{{background:#E4002B;color:white;padding:10px 20px;border-radius:25px;font-weight:bold;font-size:18px;}}
+  h1{{color:#E4002B;text-align:center;margin-bottom:20px;}}
+  .promo{{background:#f8f8f8;border:3px solid #FFD700;border-radius:15px;padding:20px;text-align:center;margin:30px 0;}}
+  .promo span{{font-size:32px;font-weight:bold;letter-spacing:4px;color:#E4002B;}}
+  p{{color:#666;line-height:1.6;text-align:center;}}
+  .footer{{text-align:center;margin-top:30px;color:#999;font-size:12px;}}
+</style></head>
+<body><div class="container">
+  <div class="logo"><span>ROSTIC'S</span></div>
+  <h1>Ваш промокод</h1>
+  <p>Поздравляем с прохождением Космического квеста в Музее космонавтики!</p>
+  {f'<p><strong>{tier_label} промокод{discount_text}</strong></p>' if tier_label else ''}
+  <div class="promo"><span>{code}</span></div>
+  <p>Используйте промокод в ресторанах Rostic's.</p>
+  <div class="footer">© Музей космонавтики, 2026 | © Юнирест</div>
+</div></body></html>"""
+
+    text_body = f"ROSTIC'S — Ваш промокод: {code}\n\nИспользуйте промокод в ресторанах Rostic's.\n\n© Музей космонавтики, 2026 | © Юнирест"
+
+    if not current_app.config.get('MAIL_USERNAME'):
+        current_app.logger.warning(f"ADMIN_PROMO_EMAIL email={email} code={code}")
+        return True
+
+    try:
+        msg = Message(subject=subject, recipients=[email], body=text_body, html=html_body)
+        mail.send(msg)
+        return True
+    except Exception as e:
+        current_app.logger.error(f"Failed to send promo email to {email}: {e}")
+        return False
 
 bp = Blueprint('quest_admin', __name__, url_prefix='/admin/quest')
 
@@ -249,10 +296,16 @@ QUEST_BASE_TEMPLATE = '''
         <ul class="sidebar-nav">
             <li><a href="/admin/quest/pages/" {% if active_page == 'quest_pages' %}class="active"{% endif %}><i class="bi bi-file-text"></i> Страницы квеста</a></li>
             <li><a href="/admin/quest/promo/" {% if active_page == 'quest_promo' %}class="active"{% endif %}><i class="bi bi-ticket-perforated"></i> Промокоды</a></li>
+            <li><a href="/admin/quest/promo/bulk-email" {% if active_page == 'quest_bulk_email' %}class="active"{% endif %}><i class="bi bi-envelope-at"></i> Рассылка</a></li>
             <li><a href="/admin/quest/progress/" {% if active_page == 'quest_progress' %}class="active"{% endif %}><i class="bi bi-trophy"></i> Прогресс участников</a></li>
             <li><a href="/admin/quest/qr-codes/" {% if active_page == 'quest_qr' %}class="active"{% endif %}><i class="bi bi-qr-code"></i> QR-коды</a></li>
         </ul>
         {% endif %}
+        <div class="nav-section">Мэтч-3</div>
+        <ul class="sidebar-nav">
+            <li><a href="/admin/match3/prizes/" {% if active_page == 'match3_prizes' %}class="active"{% endif %}><i class="bi bi-award"></i> Призы рейтинга</a></li>
+            <li><a href="/admin/match3/pools/" {% if active_page == 'match3_pools' %}class="active"{% endif %}><i class="bi bi-ticket-detailed"></i> Пулы промокодов</a></li>
+        </ul>
         <div class="nav-section">Система</div>
         <ul class="sidebar-nav">
             <li><a href="/admin/adminuser/" {% if active_page == 'admins' %}class="active"{% endif %}><i class="bi bi-shield-lock"></i> Админы</a></li>
@@ -827,7 +880,7 @@ def promo_codes_upload():
 
         for code_text in codes:
             # Check if code already exists
-            existing = PromoCode.query.filter_by(code=code_text).first()
+            existing = PromoCode.query.filter_by(code_hash=compute_hash(code_text)).first()
             if existing:
                 duplicates += 1
                 continue
@@ -835,6 +888,7 @@ def promo_codes_upload():
             code = PromoCode(
                 pool_id=pool_id,
                 code=code_text,
+                code_hash=compute_hash(code_text),
                 is_used=False
             )
             db.session.add(code)
@@ -1143,6 +1197,156 @@ def quest_progress_reset(user_id):
         flash(f'Ошибка при сбросе прогресса: {str(e)}', 'danger')
 
     return redirect(url_for('quest_admin.quest_progress_list'))
+
+
+# ============== BULK EMAIL ==============
+@bp.route('/promo/bulk-email', methods=['GET', 'POST'])
+@require_role('quest_admin', 'superadmin')
+def promo_bulk_email():
+    """Send promo codes via email to all users who claimed one and have an email."""
+    # Query users with claimed promo codes and email addresses
+    claimed = db.session.query(
+        User.id,
+        User.username,
+        User.email,
+        PromoCode.code,
+        PromoCodePool.tier,
+        PromoCodePool.discount_label,
+    ).join(
+        PromoCode, PromoCode.used_by_user_id == User.id
+    ).join(
+        PromoCodePool, PromoCode.pool_id == PromoCodePool.id
+    ).filter(
+        User.email.isnot(None),
+        User.email != '',
+    ).all()
+
+    results = []
+    sent_count = 0
+    failed_count = 0
+    test_email = ''
+
+    if request.method == 'POST':
+        action = request.form.get('action', '')
+
+        if action == 'send_test':
+            test_email = request.form.get('test_email', '').strip()
+            test_code = request.form.get('test_code', 'TEST-PROMO-CODE').strip()
+            if test_email:
+                ok = _send_promo_email(test_email, test_code, 'gold', 'Тестовый промокод')
+                if ok:
+                    flash(f'Тестовое письмо отправлено на {test_email}', 'success')
+                else:
+                    flash(f'Ошибка отправки на {test_email}', 'danger')
+
+        elif action == 'send_all':
+            for row in claimed:
+                ok = _send_promo_email(row.email, row.code, row.tier or '', row.discount_label or '')
+                results.append({'email': row.email, 'code': row.code, 'ok': ok})
+                if ok:
+                    sent_count += 1
+                else:
+                    failed_count += 1
+            flash(f'Отправлено: {sent_count}, ошибок: {failed_count}', 'success' if not failed_count else 'warning')
+
+        elif action == 'send_one':
+            user_id = request.form.get('user_id', type=int)
+            row = next((r for r in claimed if r.id == user_id), None)
+            if row:
+                ok = _send_promo_email(row.email, row.code, row.tier or '', row.discount_label or '')
+                if ok:
+                    flash(f'Письмо отправлено на {row.email}', 'success')
+                else:
+                    flash(f'Ошибка отправки на {row.email}', 'danger')
+
+    rows_html = ''
+    for row in claimed:
+        res = next((r for r in results if r['email'] == row.email), None)
+        status_badge = ''
+        if res:
+            status_badge = '<span class="badge badge-success">Отправлено</span>' if res['ok'] else '<span class="badge" style="background:#fee2e2;color:#991b1b;">Ошибка</span>'
+        rows_html += f'''
+            <tr>
+                <td>{row.username or '—'}</td>
+                <td>{row.email}</td>
+                <td><span class="badge badge-success">{row.code}</span></td>
+                <td><span class="badge badge-info">{row.tier or '—'}</span></td>
+                <td>{status_badge}</td>
+                <td>
+                    <form method="POST" style="display:inline;">
+                        <input type="hidden" name="action" value="send_one">
+                        <input type="hidden" name="user_id" value="{row.id}">
+                        <button type="submit" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-envelope"></i> Отправить
+                        </button>
+                    </form>
+                </td>
+            </tr>'''
+
+    content = f'''
+    <div class="page-header">
+        <h1 class="page-title"><i class="bi bi-envelope-at me-2"></i>Рассылка промокодов</h1>
+        <a href="/admin/quest/progress/" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Назад к участникам
+        </a>
+    </div>
+
+    <!-- Test send form -->
+    <div class="card mb-4">
+        <div class="card-header"><span class="card-title">Тестовая отправка</span></div>
+        <div class="card-body" style="padding:1.5rem;">
+            <form method="POST" class="row g-3">
+                <input type="hidden" name="action" value="send_test">
+                <div class="col-md-5">
+                    <label class="form-label">Email получателя</label>
+                    <input type="email" name="test_email" class="form-control" placeholder="test@example.com" value="{test_email}" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Промокод (для теста)</label>
+                    <input type="text" name="test_code" class="form-control" placeholder="TEST-PROMO-CODE" value="TEST-PROMO-CODE">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-send me-2"></i>Отправить тест
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bulk send -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">Участники с промокодами ({len(claimed)} чел.)</span>
+            <form method="POST" style="display:inline;">
+                <input type="hidden" name="action" value="send_all">
+                <button type="submit" class="btn btn-success"
+                    onclick="return confirm('Отправить промокоды на email всем {len(claimed)} участникам?')">
+                    <i class="bi bi-send me-2"></i>Отправить всем
+                </button>
+            </form>
+        </div>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Имя</th>
+                        <th>Email</th>
+                        <th>Промокод</th>
+                        <th>Тир</th>
+                        <th>Статус</th>
+                        <th>Действие</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {rows_html if rows_html else '<tr><td colspan="6" class="text-center text-muted py-4">Нет участников с промокодами и email</td></tr>'}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    '''
+
+    return render_quest_page('Рассылка промокодов', 'quest_promo', content)
 
 
 # ============== QR CODE GENERATION ==============
