@@ -2,12 +2,14 @@ from flask import Flask, redirect, url_for, render_template_string
 from flask_sqlalchemy import SQLAlchemy
 from flask_admin import Admin, AdminIndexView, expose
 from flask_login import LoginManager, current_user
+from flask_mail import Mail
 from prometheus_flask_exporter import PrometheusMetrics
 from datetime import datetime, timezone, timedelta
 import os
 
 db = SQLAlchemy()
 login_manager = LoginManager()
+mail = Mail()
 metrics = None
 
 # Moscow timezone
@@ -356,6 +358,14 @@ DASHBOARD_TEMPLATE = '''
         </ul>
         {% endif %}
 
+        {% if admin_role in ('superadmin', 'quest_admin') %}
+        <div class="nav-section">Мэтч-3</div>
+        <ul class="sidebar-nav">
+            <li><a href="/admin/match3/prizes/"><i class="bi bi-award"></i> Призы рейтинга</a></li>
+            <li><a href="/admin/match3/pools/"><i class="bi bi-ticket-detailed"></i> Пулы промокодов</a></li>
+        </ul>
+        {% endif %}
+
         <div class="nav-section">Система</div>
         <ul class="sidebar-nav">
             <li><a href="/admin/adminuser/"><i class="bi bi-shield-lock"></i> Админы</a></li>
@@ -568,8 +578,17 @@ def create_app():
     )
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+    # Flask-Mail config
+    app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'mail.rosticslegends.ru')
+    app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 465))
+    app.config['MAIL_USE_SSL'] = os.environ.get('MAIL_USE_SSL', 'true').lower() == 'true'
+    app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME', '')
+    app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', '')
+    app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', 'info@rosticslegends.ru')
+
     db.init_app(app)
     login_manager.init_app(app)
+    mail.init_app(app)
 
     # Prometheus metrics (skip in testing to avoid duplicate registration)
     global metrics
@@ -604,6 +623,9 @@ def create_app():
 
     from app.quest_views import bp as quest_views_bp
     app.register_blueprint(quest_views_bp)
+
+    from app.match3_views import bp as match3_views_bp
+    app.register_blueprint(match3_views_bp)
 
     @app.route('/')
     def index():

@@ -6,10 +6,74 @@ from app.models.quest_page import QuestPage
 from app.models.quest_progress import QuestProgress
 from app.models.promo_code import PromoCodePool, PromoCode
 from app.models.user_activity import log_activity
+from app.utils.encryption import compute_hash
 from app.utils.timezone import now_moscow
+from app.utils.redis_cache import get_redis
 from app.services.email import send_promo_email
 
 bp = Blueprint('quest', __name__)
+
+
+def _auto_claim_promo(user):
+    """Auto-claim best eligible promo code for the user.
+
+    Returns (code, tier, discount_label) or None.
+    Safe to call multiple times — returns existing claim if already claimed.
+    """
+    # Already claimed?
+    existing = PromoCode.query.filter_by(used_by_user_id=user.id).first()
+    if existing:
+        return (existing.code, existing.pool.tier, existing.pool.discount_label)
+
+    score = user.quest_score or 0
+    if score < 120:
+        return None
+
+    # Find best eligible pool (quest category, highest tier first)
+    pool = PromoCodePool.query.filter(
+        PromoCodePool.category == 'quest',
+        PromoCodePool.is_active == True,
+        PromoCodePool.min_score <= score,
+    ).order_by(PromoCodePool.min_score.desc()).first()
+
+    if not pool:
+        return None
+
+    # Grab unused code with row-level lock
+    code = PromoCode.query.filter(
+        PromoCode.pool_id == pool.id,
+        PromoCode.is_used != True,
+    ).with_for_update().first()
+
+    if not code:
+        return None
+
+    code.is_used = True
+    code.used_by_user_id = user.id
+    code.used_at = now_moscow()
+    pool.used_codes = (pool.used_codes or 0) + 1
+    db.session.commit()
+
+    log_activity(user.id, 'quest_claim_promo', {
+        'code_hash': compute_hash(code.code),
+        'tier': pool.tier,
+        'score': score,
+        'auto': True,
+    }, request)
+
+    # Send email (best-effort)
+    if user.email:
+        try:
+            send_promo_email(
+                email=user.email,
+                code=code.code,
+                tier=pool.tier,
+                discount_label=pool.discount_label or '',
+            )
+        except Exception:
+            pass
+
+    return (code.code, pool.tier, pool.discount_label)
 
 
 @bp.route('/pages', methods=['GET'])
@@ -137,7 +201,7 @@ def scan_qr():
             next_page = page
             break
 
-    return jsonify({
+    response = {
         'is_correct': True,
         'points_earned': points,
         'total_quest_score': user.quest_score,
@@ -145,7 +209,17 @@ def scan_qr():
         'page': scanned_page.to_dict(),
         'next_page_slug': next_page.slug if next_page else None,
         'quest_completed': next_page is None,
-    })
+    }
+
+    # Auto-claim promo when quest is completed
+    if next_page is None:
+        claimed = _auto_claim_promo(user)
+        if claimed:
+            response['promo_code'] = claimed[0]
+            response['promo_tier'] = claimed[1]
+            response['promo_discount'] = claimed[2]
+
+    return jsonify(response)
 
 
 @bp.route('/sync-guest', methods=['POST'])
@@ -213,10 +287,20 @@ def sync_guest_progress():
             'total_points': total_points,
         }, request)
 
-    return jsonify({
+    response = {
         'synced': synced,
         'total_score': user.quest_score or 0,
-    })
+    }
+
+    # Auto-claim promo if score qualifies
+    if (user.quest_score or 0) >= 120:
+        claimed = _auto_claim_promo(user)
+        if claimed:
+            response['promo_code'] = claimed[0]
+            response['promo_tier'] = claimed[1]
+            response['promo_discount'] = claimed[2]
+
+    return jsonify(response)
 
 
 @bp.route('/skip', methods=['POST'])
@@ -338,14 +422,14 @@ def get_result():
     correct_count = sum(1 for p in progress_entries if p.is_correct)
     skipped_count = sum(1 for p in progress_entries if p.is_skipped)
 
-    # Find eligible promo tier (highest first)
+    # Auto-claim if eligible (idempotent — returns existing claim if already claimed)
+    claimed = _auto_claim_promo(user)
+
+    # Find eligible promo tier for display
     eligible_pool = PromoCodePool.query.filter(
         PromoCodePool.is_active == True,
         PromoCodePool.min_score <= score
     ).order_by(PromoCodePool.min_score.desc()).first()
-
-    # Check if already claimed
-    existing_claim = PromoCode.query.filter_by(used_by_user_id=user_id).first()
 
     return jsonify({
         'total_score': score,
@@ -355,9 +439,9 @@ def get_result():
         'answered_pages': len(progress_entries),
         'eligible_tier': eligible_pool.tier if eligible_pool else None,
         'eligible_discount': eligible_pool.discount_label if eligible_pool else None,
-        'already_claimed': existing_claim is not None,
-        'claimed_code': existing_claim.code if existing_claim else None,
-        'claimed_tier': existing_claim.pool.tier if existing_claim else None,
+        'already_claimed': claimed is not None,
+        'claimed_code': claimed[0] if claimed else None,
+        'claimed_tier': claimed[1] if claimed else None,
     })
 
 
@@ -392,8 +476,10 @@ def claim_promo():
         return jsonify({'error': 'Score too low for any promo'}), 400
 
     # Grab an unused code with row-level lock (PostgreSQL)
-    code = PromoCode.query.filter_by(
-        pool_id=eligible_pool.id, is_used=False
+    # Use `is_used != True` to also match NULL values from bulk imports
+    code = PromoCode.query.filter(
+        PromoCode.pool_id == eligible_pool.id,
+        PromoCode.is_used != True
     ).with_for_update().first()
 
     if not code:
@@ -407,7 +493,7 @@ def claim_promo():
     db.session.commit()
 
     log_activity(user_id, 'quest_claim_promo', {
-        'code': code.code,
+        'code_hash': compute_hash(code.code),
         'tier': eligible_pool.tier,
         'score': score,
     }, request)
@@ -446,8 +532,107 @@ def send_promo_email_endpoint():
         return jsonify({'error': 'Не удалось отправить письмо'}), 500
 
     log_activity(user_id, 'quest_promo_email', {
-        'email': email,
-        'code': existing_claim.code,
+        'email_hash': compute_hash(email),
+        'code_hash': compute_hash(existing_claim.code),
     }, request)
 
     return jsonify({'message': 'Промокод отправлен на ' + email})
+
+
+@bp.route('/guest-promo', methods=['POST'])
+def guest_promo():
+    """Send promo code to a guest by email without requiring registration.
+
+    Validates score server-side from submitted entries (slugs + correctness).
+    Rate-limits 1 claim per email via Redis (30-day TTL).
+    """
+    data = request.get_json() or {}
+    email = (data.get('email') or '').strip().lower()
+    entries = data.get('entries', [])  # [{page_slug, is_correct, is_skipped}]
+
+    if not email or '@' not in email or '.' not in email.split('@')[-1]:
+        return jsonify({'error': 'Введите корректный email'}), 400
+
+    # Rate limit: 1 promo per email (Redis key survives 30 days)
+    redis = get_redis()
+    redis_key = f"guest_promo:{email}"
+    if redis:
+        try:
+            if redis.get(redis_key):
+                return jsonify({'error': 'Этот email уже получил промокод'}), 400
+        except Exception:
+            pass  # Redis unavailable — proceed without rate limit
+
+    # Also block if registered user already claimed via the normal flow
+    existing_user = User.find_by_email(email)
+    if existing_user:
+        existing_code = PromoCode.query.filter_by(used_by_user_id=existing_user.id).first()
+        if existing_code:
+            return jsonify({'error': 'Этот email уже получил промокод. Войдите в аккаунт.'}), 400
+
+    # Validate score server-side — fetch real page points from DB
+    if not entries or not isinstance(entries, list):
+        return jsonify({'error': 'Нет данных о прохождении'}), 400
+
+    score = 0
+    for entry in entries[:50]:  # cap iterations
+        slug = (entry.get('page_slug') or '').strip()
+        if not slug:
+            continue
+        page = QuestPage.query.filter_by(slug=slug, is_active=True).first()
+        if page and entry.get('is_correct'):
+            score += page.points
+
+    if score < 120:
+        return jsonify({'error': f'Недостаточно очков для промокода (набрано {score}, нужно 120+)'}), 400
+
+    # Find eligible pool (quest category only)
+    eligible_pool = PromoCodePool.query.filter(
+        PromoCodePool.category == 'quest',
+        PromoCodePool.is_active == True,
+        PromoCodePool.min_score <= score,
+    ).order_by(PromoCodePool.min_score.desc()).first()
+
+    if not eligible_pool:
+        return jsonify({'error': 'Промокоды временно недоступны'}), 503
+
+    code = PromoCode.query.filter(
+        PromoCode.pool_id == eligible_pool.id,
+        PromoCode.is_used != True,
+    ).with_for_update().first()
+
+    if not code:
+        return jsonify({'error': 'Промокоды временно недоступны'}), 503
+
+    code.is_used = True
+    code.used_at = now_moscow()
+    # used_by_user_id stays NULL — guest claim
+    eligible_pool.used_codes = (eligible_pool.used_codes or 0) + 1
+    db.session.commit()
+
+    # Mark email in Redis so it can't claim again
+    if redis:
+        try:
+            redis.setex(redis_key, 60 * 60 * 24 * 30, '1')  # 30 days
+        except Exception:
+            pass
+
+    # Send email (best-effort — code is already claimed)
+    try:
+        send_promo_email(
+            email=email,
+            code=code.code,
+            tier=eligible_pool.tier,
+            discount_label=eligible_pool.discount_label or '',
+        )
+    except Exception:
+        pass
+
+    log_activity(None, 'quest_guest_promo', {
+        'email_hash': compute_hash(email),
+        'code_hash': compute_hash(code.code),
+        'score': score,
+        'tier': eligible_pool.tier,
+    }, request)
+
+    return jsonify({'code': code.code})

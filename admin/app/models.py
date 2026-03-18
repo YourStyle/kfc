@@ -3,6 +3,7 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 from sqlalchemy.dialects.postgresql import ARRAY
+from app.utils.encryption import EncryptedString, compute_hash
 
 
 class AdminUser(UserMixin, db.Model):
@@ -32,13 +33,14 @@ class User(db.Model):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(120), unique=True, nullable=False)
+    email = db.Column(EncryptedString(), nullable=False)
+    email_hash = db.Column(db.String(64), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(256), nullable=False)
     username = db.Column(db.String(80), nullable=False)
     city = db.Column(db.String(20), default='region')  # 'moscow' или 'region'
     city_name = db.Column(db.String(100))  # Полное название города
     is_verified = db.Column(db.Boolean, default=False)
-    verification_code = db.Column(db.String(6))
+    verification_code = db.Column(EncryptedString())
     verification_expires_at = db.Column(db.DateTime)
     total_score = db.Column(db.Integer, default=0)
     registration_source = db.Column(db.String(20), default='game')
@@ -127,8 +129,8 @@ class UserActivity(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     action = db.Column(db.String(50), nullable=False)
     activity_data = db.Column('metadata', db.JSON, default={})
-    ip_address = db.Column(db.String(45))
-    user_agent = db.Column(db.String(512))
+    ip_address = db.Column(EncryptedString())
+    user_agent = db.Column(EncryptedString())
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
@@ -204,6 +206,7 @@ class PromoCodePool(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     tier = db.Column(db.String(20), nullable=False)
+    category = db.Column(db.String(20), nullable=False, default='quest')  # 'quest' | 'match3'
     min_score = db.Column(db.Integer, nullable=False)
     discount_label = db.Column(db.String(200))
     total_codes = db.Column(db.Integer, default=0)
@@ -232,7 +235,8 @@ class PromoCode(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     pool_id = db.Column(db.Integer, db.ForeignKey('promo_code_pools.id'), nullable=False)
-    code = db.Column(db.String(50), unique=True, nullable=False)
+    code = db.Column(EncryptedString(), nullable=False)
+    code_hash = db.Column(db.String(64), unique=True, nullable=False, index=True)
     is_used = db.Column(db.Boolean, default=False)
     used_by_user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     used_at = db.Column(db.DateTime)
@@ -264,17 +268,37 @@ class LandingVisit(db.Model):
     __tablename__ = 'landing_visits'
 
     id = db.Column(db.Integer, primary_key=True)
-    ip_address = db.Column(db.String(45))
+    ip_address = db.Column(EncryptedString())
     city = db.Column(db.String(100))
     country = db.Column(db.String(100))
     region = db.Column(db.String(200))
-    user_agent = db.Column(db.String(512))
+    user_agent = db.Column(EncryptedString())
     referrer = db.Column(db.String(500))
     is_fake = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
-        return f'<LandingVisit {self.ip_address} {self.city}>'
+        return f'<LandingVisit {self.city}>'
+
+
+class Match3Prize(db.Model):
+    """Tracks match3 leaderboard prizes sent to players."""
+    __tablename__ = 'match3_prizes'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    region = db.Column(db.String(20), nullable=False)        # 'moscow' | 'region'
+    rank = db.Column(db.Integer, nullable=False)
+    tier = db.Column(db.String(50), nullable=False)
+    prize_description = db.Column(db.Text)
+    code = db.Column(EncryptedString())
+    email_sent_at = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    user = db.relationship('User', backref=db.backref('match3_prizes', lazy='dynamic'))
+
+    def __repr__(self):
+        return f'<Match3Prize user={self.user_id} rank={self.rank} tier={self.tier}>'
 
 
 class LandingStatsShare(db.Model):

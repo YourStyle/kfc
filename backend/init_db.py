@@ -99,23 +99,23 @@ def init_db():
 
         # Create test user if doesn't exist
         test_email = 'test@example.com'
-        if not User.query.filter_by(email=test_email).first():
+        if not User.find_by_email(test_email):
             test_user = User(
-                email=test_email,
                 username='TestPlayer',
                 is_verified=True
             )
-            test_user.set_password('test123')
+            test_user.set_email(test_email)
+            test_user.set_password('test12344')
             db.session.add(test_user)
             db.session.commit()
-            print(f"✓ Created test user: {test_email} / test123")
+            print(f"✓ Created test user: {test_email} / test1234")
         else:
             print(f"✓ Test user already exists")
 
         print("\n✅ Database initialized successfully!")
         print("\nTest credentials:")
         print("  Email: test@example.com")
-        print("  Password: test123")
+        print("  Password: test1234")
 
 
 if __name__ == '__main__':

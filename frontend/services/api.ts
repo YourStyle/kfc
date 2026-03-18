@@ -3,6 +3,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 interface ApiResponse<T> {
   data?: T;
   error?: string;
+  needs_verification?: boolean;
 }
 
 class ApiClient {
@@ -47,7 +48,7 @@ class ApiClient {
       const data = await response.json();
 
       if (!response.ok) {
-        return { error: data.error || 'Request failed' };
+        return { error: data.error || 'Request failed', needs_verification: data.needs_verification };
       }
 
       return { data };
@@ -225,9 +226,16 @@ class ApiClient {
     });
   }
 
+  async guestPromo(email: string, entries: GuestProgressEntry[]) {
+    return this.request<{ code: string }>('/quest/guest-promo', {
+      method: 'POST',
+      body: JSON.stringify({ email, entries }),
+    });
+  }
+
   // Texts endpoint (public, no auth needed)
   async getTexts() {
-    return this.request<Record<string, string>>('/api/texts');
+    return this.request<Record<string, string>>('/texts');
   }
 }
 
