@@ -1183,6 +1183,89 @@ def analytics():
         UserLevelProgress.completed_at >= seven_days_ago
     ).count()
 
+    # ─── Region Stats ───
+    moscow_total = User.query.filter(User.city == 'moscow').count()
+    moscow_verified = User.query.filter(User.city == 'moscow', User.is_verified == True).count()
+    moscow_played = db.session.query(func.count(distinct(GameSession.user_id))).join(
+        User, GameSession.user_id == User.id
+    ).filter(User.city == 'moscow').scalar() or 0
+    moscow_completed_all = db.session.query(UserLevelProgress.user_id).join(
+        User, UserLevelProgress.user_id == User.id
+    ).filter(
+        User.city == 'moscow',
+        UserLevelProgress.completed_at.isnot(None)
+    ).group_by(UserLevelProgress.user_id).having(
+        func.count(UserLevelProgress.level_id) >= total_levels
+    ).count() if total_levels > 0 else 0
+
+    region_total = User.query.filter(User.city == 'region').count()
+    region_verified = User.query.filter(User.city == 'region', User.is_verified == True).count()
+    region_played = db.session.query(func.count(distinct(GameSession.user_id))).join(
+        User, GameSession.user_id == User.id
+    ).filter(User.city == 'region').scalar() or 0
+    region_completed_all = db.session.query(UserLevelProgress.user_id).join(
+        User, UserLevelProgress.user_id == User.id
+    ).filter(
+        User.city == 'region',
+        UserLevelProgress.completed_at.isnot(None)
+    ).group_by(UserLevelProgress.user_id).having(
+        func.count(UserLevelProgress.level_id) >= total_levels
+    ).count() if total_levels > 0 else 0
+
+    # Registrations by day per region (last 30 days)
+    reg_moscow_by_day = db.session.query(
+        func.date(User.created_at).label('date'),
+        func.count(User.id).label('count')
+    ).filter(User.created_at >= thirty_days_ago, User.city == 'moscow').group_by(
+        func.date(User.created_at)
+    ).order_by(func.date(User.created_at)).all()
+
+    reg_region_by_day = db.session.query(
+        func.date(User.created_at).label('date'),
+        func.count(User.id).label('count')
+    ).filter(User.created_at >= thirty_days_ago, User.city == 'region').group_by(
+        func.date(User.created_at)
+    ).order_by(func.date(User.created_at)).all()
+
+    # Merge dates for region registrations chart
+    all_reg_dates = sorted(set(
+        [r.date for r in reg_moscow_by_day if r.date] +
+        [r.date for r in reg_region_by_day if r.date]
+    ))
+    moscow_day_map = {r.date: r.count for r in reg_moscow_by_day if r.date}
+    region_day_map = {r.date: r.count for r in reg_region_by_day if r.date}
+    region_reg_labels = [d.strftime('%d.%m') for d in all_reg_dates]
+    region_reg_moscow_data = [moscow_day_map.get(d, 0) for d in all_reg_dates]
+    region_reg_region_data = [region_day_map.get(d, 0) for d in all_reg_dates]
+
+    # Top 10 per region
+    top_moscow = User.query.filter(
+        User.is_verified == True, User.total_score > 0, User.city == 'moscow'
+    ).order_by(User.total_score.desc()).limit(10).all()
+    top_region = User.query.filter(
+        User.is_verified == True, User.total_score > 0, User.city == 'region'
+    ).order_by(User.total_score.desc()).limit(10).all()
+
+    # Full region breakdown (all city_names for "region" users)
+    city_name_stats = db.session.query(
+        User.city_name,
+        func.count(User.id).label('count')
+    ).filter(
+        User.city == 'region',
+        User.city_name.isnot(None),
+        User.city_name != ''
+    ).group_by(User.city_name).order_by(func.count(User.id).desc()).all()
+
+    # Moscow breakdown (Москва vs МО)
+    moscow_name_stats = db.session.query(
+        User.city_name,
+        func.count(User.id).label('count')
+    ).filter(
+        User.city == 'moscow',
+        User.city_name.isnot(None),
+        User.city_name != ''
+    ).group_by(User.city_name).order_by(func.count(User.id).desc()).all()
+
     # Get or create share token
     from app.models import AnalyticsShare
     share = AnalyticsShare.query.first()
@@ -1246,6 +1329,11 @@ def analytics():
         <li class="nav-item">
             <a class="nav-link" id="quest-tab" data-bs-toggle="tab" href="#quest-analytics" role="tab">
                 <i class="bi bi-map me-2"></i>Квест
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="regions-tab" data-bs-toggle="tab" href="#regions-analytics" role="tab">
+                <i class="bi bi-geo-alt me-2"></i>Регионы
             </a>
         </li>
     </ul>
@@ -1719,6 +1807,246 @@ def analytics():
     </div>
     '''
 
+    # ─── Regions Analytics Tab ───
+    from markupsafe import escape
+
+    city_name_rows = ''
+    for idx, cs in enumerate(city_name_stats, 1):
+        pct = round(cs.count / region_total * 100, 1) if region_total > 0 else 0
+        city_name_rows += f'''
+                            <tr>
+                                <td class="text-muted">{idx}</td>
+                                <td><strong>{escape(cs.city_name)}</strong></td>
+                                <td>{cs.count:,}</td>
+                                <td style="width:35%;"><div class="progress" style="height:6px;"><div class="progress-bar" style="width:{pct}%;background:var(--success);"></div></div></td>
+                                <td>{pct}%</td>
+                            </tr>'''
+
+    moscow_name_rows = ''
+    for cs in moscow_name_stats:
+        pct = round(cs.count / moscow_total * 100, 1) if moscow_total > 0 else 0
+        moscow_name_rows += f'''
+                            <tr>
+                                <td><strong>{escape(cs.city_name)}</strong></td>
+                                <td>{cs.count:,}</td>
+                                <td style="width:40%;"><div class="progress" style="height:6px;"><div class="progress-bar" style="width:{pct}%;background:var(--primary);"></div></div></td>
+                                <td>{pct}%</td>
+                            </tr>'''
+
+    top_moscow_rows = ''
+    for idx, player in enumerate(top_moscow, 1):
+        medal = '\U0001f947' if idx == 1 else '\U0001f948' if idx == 2 else '\U0001f949' if idx == 3 else str(idx)
+        top_moscow_rows += f'''
+                            <tr>
+                                <td>{medal}</td>
+                                <td><strong>{player.username}</strong></td>
+                                <td>{player.total_score:,}</td>
+                            </tr>'''
+
+    top_region_rows = ''
+    for idx, player in enumerate(top_region, 1):
+        medal = '\U0001f947' if idx == 1 else '\U0001f948' if idx == 2 else '\U0001f949' if idx == 3 else str(idx)
+        top_region_rows += f'''
+                            <tr>
+                                <td>{medal}</td>
+                                <td><strong>{player.username}</strong></td>
+                                <td>{player.total_score:,}</td>
+                            </tr>'''
+
+    content += f'''
+    <div class="tab-pane fade" id="regions-analytics" role="tabpanel">
+
+    <!-- Region Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="card h-100" style="border-left: 4px solid var(--primary);">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="text-muted small text-uppercase mb-1">Москва и МО</div>
+                            <div style="font-size: 2rem; font-weight: 700; color: var(--dark);">{moscow_total:,}</div>
+                            <div class="text-muted small">
+                                Подтверждённых: {moscow_verified:,} |
+                                Играли: {moscow_played:,} |
+                                Прошли всё: {moscow_completed_all:,}
+                            </div>
+                        </div>
+                        <div style="width: 48px; height: 48px; background: rgba(99, 102, 241, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-building" style="font-size: 1.5rem; color: var(--primary);"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="card h-100" style="border-left: 4px solid var(--success);">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="text-muted small text-uppercase mb-1">Регионы</div>
+                            <div style="font-size: 2rem; font-weight: 700; color: var(--dark);">{region_total:,}</div>
+                            <div class="text-muted small">
+                                Подтверждённых: {region_verified:,} |
+                                Играли: {region_played:,} |
+                                Прошли всё: {region_completed_all:,}
+                            </div>
+                        </div>
+                        <div style="width: 48px; height: 48px; background: rgba(16, 185, 129, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-geo-alt" style="font-size: 1.5rem; color: var(--success);"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Region Distribution + Registrations Chart -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-header">
+                    <span class="card-title"><i class="bi bi-pie-chart me-2"></i>Распределение</span>
+                </div>
+                <div class="card-body">
+                    <canvas id="regionPieChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8 mb-3">
+            <div class="card h-100">
+                <div class="card-header">
+                    <span class="card-title"><i class="bi bi-graph-up me-2"></i>Регистрации по дням (30 дней)</span>
+                </div>
+                <div class="card-body">
+                    <canvas id="regionRegChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed region breakdown -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-header">
+                    <span class="card-title"><i class="bi bi-building me-2"></i>Москва и МО ({moscow_total:,})</span>
+                </div>
+                <div class="table-responsive" style="max-height:500px;overflow-y:auto;">
+                    <table class="table">
+                        <thead><tr><th>Регион</th><th>Кол-во</th><th></th><th>%</th></tr></thead>
+                        <tbody>
+                            {moscow_name_rows if moscow_name_rows else '<tr><td colspan="4" class="text-center text-muted">Нет данных</td></tr>'}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8 mb-3">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="card-title"><i class="bi bi-geo-alt me-2"></i>Регионы ({region_total:,})</span>
+                    <span class="text-muted small">{len(city_name_stats)} регионов</span>
+                </div>
+                <div class="table-responsive" style="max-height:500px;overflow-y:auto;">
+                    <table class="table">
+                        <thead><tr><th>#</th><th>Регион</th><th>Кол-во</th><th></th><th>%</th></tr></thead>
+                        <tbody>
+                            {city_name_rows if city_name_rows else '<tr><td colspan="5" class="text-center text-muted">Нет данных</td></tr>'}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top players per region -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-header">
+                    <span class="card-title"><i class="bi bi-trophy me-2"></i>Топ-10 Москва и МО</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead><tr><th>#</th><th>Игрок</th><th>Очки</th></tr></thead>
+                        <tbody>
+                            {top_moscow_rows if top_moscow_rows else '<tr><td colspan="3" class="text-center text-muted">Нет данных</td></tr>'}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-header">
+                    <span class="card-title"><i class="bi bi-trophy me-2"></i>Топ-10 Регионы</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead><tr><th>#</th><th>Игрок</th><th>Очки</th></tr></thead>
+                        <tbody>
+                            {top_region_rows if top_region_rows else '<tr><td colspan="3" class="text-center text-muted">Нет данных</td></tr>'}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Region pie chart
+        new Chart(document.getElementById('regionPieChart'), {{
+            type: 'doughnut',
+            data: {{
+                labels: ['Москва и МО', 'Регионы'],
+                datasets: [{{
+                    data: [{moscow_total}, {region_total}],
+                    backgroundColor: ['rgba(99, 102, 241, 0.8)', 'rgba(16, 185, 129, 0.8)'],
+                    borderWidth: 0
+                }}]
+            }},
+            options: {{
+                responsive: true,
+                plugins: {{
+                    legend: {{ position: 'bottom' }}
+                }}
+            }}
+        }});
+
+        // Region registrations stacked chart
+        new Chart(document.getElementById('regionRegChart'), {{
+            type: 'bar',
+            data: {{
+                labels: {region_reg_labels},
+                datasets: [
+                    {{
+                        label: 'Москва и МО',
+                        data: {region_reg_moscow_data},
+                        backgroundColor: 'rgba(99, 102, 241, 0.7)',
+                        borderRadius: 4
+                    }},
+                    {{
+                        label: 'Регионы',
+                        data: {region_reg_region_data},
+                        backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                        borderRadius: 4
+                    }}
+                ]
+            }},
+            options: {{
+                responsive: true,
+                plugins: {{ legend: {{ position: 'top' }} }},
+                scales: {{
+                    x: {{ stacked: true, grid: {{ display: false }} }},
+                    y: {{ stacked: true, beginAtZero: true, ticks: {{ precision: 0 }} }}
+                }}
+            }}
+        }});
+    </script>
+
+    </div>
+    '''
+
     # Close tab-content
     content += '</div>'
 
@@ -1794,6 +2122,39 @@ def get_analytics_data():
         UserLevelProgress.completed_at >= seven_days_ago
     ).count()
 
+    # Region stats
+    moscow_total = User.query.filter(User.city == 'moscow').count()
+    moscow_verified = User.query.filter(User.city == 'moscow', User.is_verified == True).count()
+    moscow_played = db.session.query(func.count(distinct(GameSession.user_id))).join(
+        User, GameSession.user_id == User.id
+    ).filter(User.city == 'moscow').scalar() or 0
+
+    region_total = User.query.filter(User.city == 'region').count()
+    region_verified = User.query.filter(User.city == 'region', User.is_verified == True).count()
+    region_played = db.session.query(func.count(distinct(GameSession.user_id))).join(
+        User, GameSession.user_id == User.id
+    ).filter(User.city == 'region').scalar() or 0
+
+    top_moscow = User.query.filter(
+        User.is_verified == True, User.total_score > 0, User.city == 'moscow'
+    ).order_by(User.total_score.desc()).limit(10).all()
+    top_region = User.query.filter(
+        User.is_verified == True, User.total_score > 0, User.city == 'region'
+    ).order_by(User.total_score.desc()).limit(10).all()
+
+    # Full city_name breakdown
+    region_breakdown = db.session.query(
+        User.city_name, func.count(User.id).label('count')
+    ).filter(
+        User.city == 'region', User.city_name.isnot(None), User.city_name != ''
+    ).group_by(User.city_name).order_by(func.count(User.id).desc()).all()
+
+    moscow_breakdown = db.session.query(
+        User.city_name, func.count(User.id).label('count')
+    ).filter(
+        User.city == 'moscow', User.city_name.isnot(None), User.city_name != ''
+    ).group_by(User.city_name).order_by(func.count(User.id).desc()).all()
+
     return {
         'summary': {
             'total_users': total_users,
@@ -1819,7 +2180,15 @@ def get_analytics_data():
             'funnel_data': [l['completed'] for l in level_stats]
         },
         'level_stats': level_stats,
-        'top_players': [{'rank': i+1, 'username': p.username, 'score': p.total_score} for i, p in enumerate(top_players)]
+        'top_players': [{'rank': i+1, 'username': p.username, 'score': p.total_score} for i, p in enumerate(top_players)],
+        'regions': {
+            'moscow': {'total': moscow_total, 'verified': moscow_verified, 'played': moscow_played},
+            'region': {'total': region_total, 'verified': region_verified, 'played': region_played},
+            'top_moscow': [{'rank': i+1, 'username': p.username, 'score': p.total_score} for i, p in enumerate(top_moscow)],
+            'top_region': [{'rank': i+1, 'username': p.username, 'score': p.total_score} for i, p in enumerate(top_region)],
+            'moscow_breakdown': [{'name': r.city_name, 'count': r.count} for r in moscow_breakdown],
+            'region_breakdown': [{'name': r.city_name, 'count': r.count} for r in region_breakdown],
+        }
     }
 
 
@@ -2052,6 +2421,9 @@ def render_public_analytics(data, token):
     s = data['summary']
     r = data['recent']
     c = data['charts']
+    reg = data.get('regions', {})
+    m = reg.get('moscow', {})
+    rg = reg.get('region', {})
 
     level_rows = ''
     for ls in data['level_stats']:
@@ -2075,6 +2447,27 @@ def render_public_analytics(data, token):
             <td>{tp['score']:,}</td>
         </tr>
         '''
+
+    top_moscow_pub_rows = ''
+    for tp in reg.get('top_moscow', []):
+        medal = '🥇' if tp['rank'] == 1 else '🥈' if tp['rank'] == 2 else '🥉' if tp['rank'] == 3 else str(tp['rank'])
+        top_moscow_pub_rows += f'<tr><td>{medal}</td><td><strong>{tp["username"]}</strong></td><td>{tp["score"]:,}</td></tr>'
+
+    top_region_pub_rows = ''
+    for tp in reg.get('top_region', []):
+        medal = '🥇' if tp['rank'] == 1 else '🥈' if tp['rank'] == 2 else '🥉' if tp['rank'] == 3 else str(tp['rank'])
+        top_region_pub_rows += f'<tr><td>{medal}</td><td><strong>{tp["username"]}</strong></td><td>{tp["score"]:,}</td></tr>'
+
+    moscow_bd_rows = ''
+    for b in reg.get('moscow_breakdown', []):
+        pct = round(b['count'] / m.get('total', 1) * 100, 1) if m.get('total', 0) > 0 else 0
+        moscow_bd_rows += f'<tr><td><strong>{b["name"]}</strong></td><td>{b["count"]:,}</td><td>{pct}%</td></tr>'
+
+    region_bd_rows = ''
+    for idx, b in enumerate(reg.get('region_breakdown', []), 1):
+        pct = round(b['count'] / rg.get('total', 1) * 100, 1) if rg.get('total', 0) > 0 else 0
+        region_bd_rows += f'''<tr><td class="text-muted">{idx}</td><td><strong>{b["name"]}</strong></td><td>{b["count"]:,}</td>
+            <td style="width:30%;"><div class="progress" style="height:5px;"><div class="progress-bar" style="width:{pct}%;background:#10b981;"></div></div></td><td>{pct}%</td></tr>'''
 
     return f'''
     <!DOCTYPE html>
@@ -2200,7 +2593,7 @@ def render_public_analytics(data, token):
             </div>
 
             <!-- Tables -->
-            <div class="row g-3">
+            <div class="row g-3 mb-4">
                 <div class="col-md-6">
                     <div class="card h-100">
                         <div class="card-header">📋 Статистика по уровням</div>
@@ -2219,6 +2612,88 @@ def render_public_analytics(data, token):
                             <table class="table table-sm mb-0">
                                 <thead><tr><th>#</th><th>Игрок</th><th>Очки</th></tr></thead>
                                 <tbody>{top_rows}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Region Distribution -->
+            <div class="card mb-4">
+                <div class="card-header">📍 Распределение по регионам</div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <canvas id="regionPieChart" height="250"></canvas>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <div style="background:#f0f0ff;border-radius:12px;padding:1.25rem;">
+                                        <div style="font-size:1.75rem;font-weight:700;color:#6366f1;">{m.get('total', 0):,}</div>
+                                        <div class="text-muted" style="font-size:0.875rem;">Москва и МО</div>
+                                        <small class="text-muted">Подтв.: {m.get('verified', 0):,} | Играли: {m.get('played', 0):,}</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div style="background:#f0fdf4;border-radius:12px;padding:1.25rem;">
+                                        <div style="font-size:1.75rem;font-weight:700;color:#10b981;">{rg.get('total', 0):,}</div>
+                                        <div class="text-muted" style="font-size:0.875rem;">Регионы</div>
+                                        <small class="text-muted">Подтв.: {rg.get('verified', 0):,} | Играли: {rg.get('played', 0):,}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed breakdown -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-header">🏙 Москва и МО ({m.get('total', 0):,})</div>
+                        <div class="table-responsive" style="max-height:500px;overflow-y:auto;">
+                            <table class="table table-sm mb-0">
+                                <thead><tr><th>Регион</th><th>Кол-во</th><th>%</th></tr></thead>
+                                <tbody>{moscow_bd_rows if moscow_bd_rows else '<tr><td colspan="3" class="text-center text-muted">Нет данных</td></tr>'}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="card h-100">
+                        <div class="card-header">🌍 Все регионы ({rg.get('total', 0):,}) — {len(reg.get('region_breakdown', []))} регионов</div>
+                        <div class="table-responsive" style="max-height:500px;overflow-y:auto;">
+                            <table class="table table-sm mb-0">
+                                <thead><tr><th>#</th><th>Регион</th><th>Кол-во</th><th></th><th>%</th></tr></thead>
+                                <tbody>{region_bd_rows if region_bd_rows else '<tr><td colspan="5" class="text-center text-muted">Нет данных</td></tr>'}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top players by region -->
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header">🏆 Топ-10 Москва</div>
+                        <div class="table-responsive">
+                            <table class="table table-sm mb-0">
+                                <thead><tr><th>#</th><th>Игрок</th><th>Очки</th></tr></thead>
+                                <tbody>{top_moscow_pub_rows if top_moscow_pub_rows else '<tr><td colspan="3" class="text-center text-muted">Нет данных</td></tr>'}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header">🏆 Топ-10 Регионы</div>
+                        <div class="table-responsive">
+                            <table class="table table-sm mb-0">
+                                <thead><tr><th>#</th><th>Игрок</th><th>Очки</th></tr></thead>
+                                <tbody>{top_region_pub_rows if top_region_pub_rows else '<tr><td colspan="3" class="text-center text-muted">Нет данных</td></tr>'}</tbody>
                             </table>
                         </div>
                     </div>
@@ -2253,6 +2728,22 @@ def render_public_analytics(data, token):
                     datasets: [{{ label: 'Прошли', data: {c['funnel_data']}, backgroundColor: ['rgba(99, 102, 241, 0.8)', 'rgba(16, 185, 129, 0.8)', 'rgba(245, 158, 11, 0.8)', 'rgba(239, 68, 68, 0.8)', 'rgba(6, 182, 212, 0.8)', 'rgba(168, 85, 247, 0.8)'], borderRadius: 8 }}]
                 }},
                 options: {{ responsive: true, plugins: {{ legend: {{ display: false }} }}, scales: {{ y: {{ beginAtZero: true, ticks: {{ precision: 0 }} }} }} }}
+            }});
+
+            new Chart(document.getElementById('regionPieChart'), {{
+                type: 'doughnut',
+                data: {{
+                    labels: ['Москва и МО', 'Регионы'],
+                    datasets: [{{
+                        data: [{m.get('total', 0)}, {rg.get('total', 0)}],
+                        backgroundColor: ['rgba(99, 102, 241, 0.8)', 'rgba(16, 185, 129, 0.8)'],
+                        borderWidth: 0
+                    }}]
+                }},
+                options: {{
+                    responsive: true,
+                    plugins: {{ legend: {{ position: 'bottom' }} }}
+                }}
             }});
         </script>
     </body>

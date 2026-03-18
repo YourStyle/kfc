@@ -158,9 +158,8 @@ export function RulesScreen({ onBack }: RulesScreenProps) {
             <p style={styles.text}>
               Полный текст правил акции доступен по{' '}
               <a
-                href="https://rostics.ru/promo/legends-rules"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="/rules.pdf"
+                download="Правила акции Легенды Космоса.pdf"
                 style={styles.rulesLink}
               >
                 ссылке

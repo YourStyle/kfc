@@ -22,7 +22,6 @@ const QuestResultScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<QuestResultData | null>(null);
-  const [claiming, setClaiming] = useState(false);
   const [promoCode, setPromoCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [animatedScore, setAnimatedScore] = useState(0);
@@ -121,16 +120,9 @@ const QuestResultScreen: React.FC = () => {
         setEmail(user.email || '');
         animateScore(data.total_score);
 
-        // Auto-claim promo code if eligible
+        // Promo is now auto-claimed by the /result endpoint
         if (data.claimed_code) {
           setPromoCode(data.claimed_code);
-        } else if (data.total_score >= 120) {
-          try {
-            const promoResult = await api.claimPromoCode();
-            if (promoResult.data?.code) {
-              setPromoCode(promoResult.data.code);
-            }
-          } catch {}
         }
       } catch (err: any) {
         setError(err.message || 'Не удалось загрузить результаты');
@@ -162,16 +154,9 @@ const QuestResultScreen: React.FC = () => {
         setEmail(data.total_score >= 0 ? authEmail : '');
         animateScore(data.total_score);
 
-        // Auto-claim promo
+        // Promo is now auto-claimed by the /result endpoint
         if (data.claimed_code) {
           setPromoCode(data.claimed_code);
-        } else if (data.total_score >= 120) {
-          try {
-            const promoResult = await api.claimPromoCode();
-            if (promoResult.data?.code) {
-              setPromoCode(promoResult.data.code);
-            }
-          } catch {}
         }
       }
 
@@ -248,23 +233,23 @@ const QuestResultScreen: React.FC = () => {
     return null;
   };
 
-  const handleClaimPromo = async () => {
-    if (!result || claiming) return;
-
+  const handleGuestPromo = async () => {
+    if (!email || emailSending) return;
     try {
-      setClaiming(true);
-      const { data, error: apiError } = await api.claimPromoCode();
-
+      setEmailSending(true);
+      const entries = loadGuestProgress();
+      const { data, error: apiError } = await api.guestPromo(email, entries);
       if (apiError || !data) {
         alert(apiError || 'Не удалось получить промокод');
         return;
       }
-
+      localStorage.setItem('rostics_user_email', email);
       setPromoCode(data.code);
+      setEmailSent(true); // backend already sent it
     } catch (err: any) {
       alert(err.message || 'Не удалось получить промокод');
     } finally {
-      setClaiming(false);
+      setEmailSending(false);
     }
   };
 
@@ -439,8 +424,8 @@ const QuestResultScreen: React.FC = () => {
         </div>
 
         {/* Promo Code Section */}
-        {tier && isGuest ? (
-          /* Guest with enough points — show auth form to claim promo */
+        {tier && isGuest && !promoCode ? (
+          /* Guest with enough points — simple email form, no registration required */
           <div className="promo-section">
             <div className="tier-badge" style={{ borderColor: tier.color }}>
               <div className="tier-icon" style={{ color: tier.color }}>
@@ -453,100 +438,30 @@ const QuestResultScreen: React.FC = () => {
               </div>
             </div>
 
-            <div className="guest-auth-card">
-              <p className="guest-auth-hint">
-                Зарегистрируйтесь, чтобы получить промокод
+            <div className="promo-code-card">
+              <div className="promo-code-label">ПОЛУЧИТЕ ВАШ ПРОМОКОД</div>
+              <p style={{ fontFamily: "'RosticsCeraPro', sans-serif", fontSize: 14, color: 'rgba(255,255,255,0.6)', margin: '8px 0 16px' }}>
+                Введите email — пришлём промокод на почту
               </p>
-
-              {authError && <div className="guest-auth-error">{authError}</div>}
-
-              {authMode === 'register' && (
-                <form onSubmit={handleGuestRegister} className="guest-auth-form">
+              <div className="email-send-section">
+                <div className="email-send-row">
                   <input
                     type="email"
-                    placeholder="Email"
-                    value={authEmail}
-                    onChange={(e) => setAuthEmail(e.target.value)}
-                    className="guest-auth-input"
-                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Введите email"
+                    className="email-input"
+                    onKeyDown={(e) => e.key === 'Enter' && handleGuestPromo()}
                   />
-                  <input
-                    type="text"
-                    placeholder="Имя"
-                    value={authUsername}
-                    onChange={(e) => setAuthUsername(e.target.value)}
-                    className="guest-auth-input"
-                    required
-                    minLength={3}
-                  />
-                  <input
-                    type="password"
-                    placeholder="Пароль"
-                    value={authPassword}
-                    onChange={(e) => setAuthPassword(e.target.value)}
-                    className="guest-auth-input"
-                    required
-                    minLength={6}
-                  />
-                  <button type="submit" className="guest-auth-btn" disabled={authLoading}>
-                    {authLoading ? 'Загрузка...' : 'Зарегистрироваться'}
+                  <button
+                    onClick={handleGuestPromo}
+                    disabled={emailSending || !email}
+                    className="email-send-btn"
+                  >
+                    {emailSending ? '...' : 'Получить'}
                   </button>
-                  <p className="guest-auth-switch">
-                    Уже есть аккаунт?{' '}
-                    <span onClick={() => { setAuthMode('login'); setAuthError(''); }}>Войти</span>
-                  </p>
-                </form>
-              )}
-
-              {authMode === 'login' && (
-                <form onSubmit={handleGuestLogin} className="guest-auth-form">
-                  <input
-                    type="email"
-                    placeholder="Email"
-                    value={authEmail}
-                    onChange={(e) => setAuthEmail(e.target.value)}
-                    className="guest-auth-input"
-                    required
-                  />
-                  <input
-                    type="password"
-                    placeholder="Пароль"
-                    value={authPassword}
-                    onChange={(e) => setAuthPassword(e.target.value)}
-                    className="guest-auth-input"
-                    required
-                  />
-                  <button type="submit" className="guest-auth-btn" disabled={authLoading}>
-                    {authLoading ? 'Загрузка...' : 'Войти'}
-                  </button>
-                  <p className="guest-auth-switch">
-                    Нет аккаунта?{' '}
-                    <span onClick={() => { setAuthMode('register'); setAuthError(''); }}>Зарегистрироваться</span>
-                  </p>
-                </form>
-              )}
-
-              {authMode === 'verify' && (
-                <form onSubmit={handleGuestVerify} className="guest-auth-form">
-                  <p className="guest-auth-verify-hint">Код отправлен на {pendingEmail}</p>
-                  <input
-                    type="text"
-                    placeholder="000000"
-                    value={authCode}
-                    onChange={(e) => setAuthCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    className="guest-auth-input guest-auth-code"
-                    required
-                    maxLength={6}
-                  />
-                  <button type="submit" className="guest-auth-btn" disabled={authLoading || authCode.length !== 6}>
-                    {authLoading ? 'Загрузка...' : 'Подтвердить'}
-                  </button>
-                  <p className="guest-auth-switch">
-                    Не получили код?{' '}
-                    <span onClick={handleGuestResendCode}>Отправить повторно</span>
-                  </p>
-                </form>
-              )}
+                </div>
+              </div>
             </div>
           </div>
         ) : tier ? (
@@ -589,11 +504,28 @@ const QuestResultScreen: React.FC = () => {
                 </button>
                 <p className="promo-hint">{t('quest.promo_hint', "Используйте промокод в мобильном приложении ROSTIC'S")}</p>
 
-                {/* Optional email send */}
+                {/* Email send — one-click if email known, input otherwise */}
                 <div className="email-send-section">
                   <div className="email-send-label">Отправить промокод на почту</div>
                   {emailSent ? (
                     <div className="email-sent-msg">Промокод отправлен на {email}</div>
+                  ) : email ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      <button
+                        onClick={handleSendPromoEmail}
+                        disabled={emailSending}
+                        className="email-send-btn"
+                        style={{ width: '100%' }}
+                      >
+                        {emailSending ? '...' : `Отправить на ${email}`}
+                      </button>
+                      <button
+                        onClick={() => setEmail('')}
+                        style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', fontSize: 12, cursor: 'pointer', padding: 0 }}
+                      >
+                        Изменить email
+                      </button>
+                    </div>
                   ) : (
                     <div className="email-send-row">
                       <input
@@ -614,9 +546,9 @@ const QuestResultScreen: React.FC = () => {
                   )}
                 </div>
               </div>
-            ) : claiming ? (
-              <div className="promo-loading">Загружаем промокод...</div>
-            ) : null}
+            ) : (
+              <div className="promo-loading">Промокоды временно недоступны. Попробуйте позже.</div>
+            )}
           </div>
         ) : isGuest ? (
           <div className="no-prize-section">
